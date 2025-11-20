@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.immortals.platform</groupId>
+        <artifactId>platform-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>platform-infra-services</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Platform Infrastructure Services</name>
+    <description>Infrastructure services (Discovery, Gateway, Config)</description>
+
+    <modules>
+        <module>config-service</module>
+        <module>discovery-service</module>
+        <module>gateway-service</module>
+    </modules>
+
+</project>

@@ -1,0 +1,63 @@
+# Common configuration for all microservices
+# This configuration is shared across all services
+
+# Common Eureka configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    hostname: ${HOSTNAME:localhost}
+
+# Common management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLE_RATE:0.1}
+
+# Common observability configuration (for services using observability-starter)
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: ${TRACING_SAMPLE_RATE:0.1}
+      exporter: zipkin
+      zipkin-url: ${ZIPKIN_URL:http://localhost:9411}
+    metrics:
+      enabled: true
+      export-interval: 60s
+    logging:
+      format: json
+      level: INFO
+
+# Common logging configuration
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO
+    org.springframework: INFO
+    com.immortals: DEBUG
+
+# Common Spring Cloud Config
+spring:
+  cloud:
+    config:
+      override-system-properties: false
+      allow-override: true

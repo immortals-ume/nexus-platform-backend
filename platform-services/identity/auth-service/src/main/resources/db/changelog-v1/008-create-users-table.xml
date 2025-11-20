@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="008-create-users-table" author="auth-service">
+        <createTable tableName="users" schemaName="user_auth">
+            <!-- Primary Key -->
+            <column name="user_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Personal Information -->
+            <column name="first_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="middle_name" type="VARCHAR(50)"/>
+            
+            <column name="last_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="user_name" type="VARCHAR(16)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <!-- Authentication -->
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Email -->
+            <column name="email" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            
+            <column name="alternate_email" type="VARCHAR(100)"/>
+            
+            <column name="email_verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Phone -->
+            <column name="phone_code" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="contact_number" type="VARCHAR(15)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            
+            <column name="alternate_contact" type="VARCHAR(15)"/>
+            
+            <column name="phone_number_verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Session Information -->
+            <column name="login_time" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="logout_time" type="TIMESTAMP WITH TIME ZONE"/>
+
+            <!-- Account Status -->
+            <column name="account_non_expired" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="account_non_locked" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="account_locked" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="credentials_non_expired" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="active_ind" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Audit Fields -->
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="created_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="updated_by" type="VARCHAR(255)"/>
+            <column name="updated_date" type="TIMESTAMP"/>
+            <column name="deleted_by" type="VARCHAR(255)"/>
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <!-- Create indexes -->
+        <createIndex indexName="idx_user_username" tableName="users" schemaName="user_auth">
+            <column name="user_name"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_user_email" tableName="users" schemaName="user_auth">
+            <column name="email"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_user_contact_number" tableName="users" schemaName="user_auth">
+            <column name="contact_number"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_user_active_ind" tableName="users" schemaName="user_auth">
+            <column name="active_ind"/>
+        </createIndex>
+
+        <!-- Add unique constraints -->
+        <addUniqueConstraint
+                schemaName="user_auth"
+                tableName="users"
+                columnNames="user_name"
+                constraintName="uk_user_username"/>
+
+        <addUniqueConstraint
+                schemaName="user_auth"
+                tableName="users"
+                columnNames="email"
+                constraintName="uk_user_email"/>
+
+        <addUniqueConstraint
+                schemaName="user_auth"
+                tableName="users"
+                columnNames="contact_number"
+                constraintName="uk_user_contact_number"/>
+
+        <rollback>
+            <dropTable tableName="users" schemaName="user_auth" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

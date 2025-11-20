@@ -1,0 +1,39 @@
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_GIT_URI}
+          default-label: main
+          search-paths: '{application}'
+          clone-on-start: true
+          timeout: 10
+          username: ${CONFIG_GIT_USERNAME}
+          password: ${CONFIG_GIT_PASSWORD}
+          force-pull: true
+          refresh-rate: 60
+    bus:
+      enabled: true
+      refresh:
+        enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    properties:
+      security.protocol: SASL_SSL
+      sasl.mechanism: PLAIN
+      sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG}
+
+# Encryption configuration for production (use asymmetric encryption)
+encrypt:
+  key-store:
+    location: ${CONFIG_KEYSTORE_LOCATION:classpath:/config-server.jks}
+    password: ${CONFIG_KEYSTORE_PASSWORD}
+    alias: ${CONFIG_KEYSTORE_ALIAS:config-server-key}
+    secret: ${CONFIG_KEYSTORE_SECRET}
+
+# Logging
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud.config: INFO
+    com.example: INFO

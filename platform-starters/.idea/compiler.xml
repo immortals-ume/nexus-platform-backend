@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Annotation profile for Security Starter" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+        </processorPath>
+        <module name="cache-service-spring-boot-starter" />
+      </profile>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="messaging-starter" />
+        <module name="common-starter" />
+        <module name="observability-starter" />
+        <module name="security-starter" />
+        <module name="cache-starter" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="cache-service-spring-boot-starter" options="-parameters" />
+      <module name="cache-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
+      <module name="common-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
+      <module name="messaging-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
+      <module name="observability-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
+      <module name="security-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
+    </option>
+  </component>
+</project>

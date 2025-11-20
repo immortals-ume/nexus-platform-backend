@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="009-create-user-role-table" author="auth-service">
+        <createTable tableName="user_role" schemaName="user_auth">
+            <!-- Foreign Keys -->
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Add primary key -->
+        <addPrimaryKey
+                schemaName="user_auth"
+                tableName="user_role"
+                columnNames="user_id, role_id"
+                constraintName="pk_user_role"/>
+
+        <!-- Add foreign keys -->
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="user_role"
+                baseColumnNames="user_id"
+                constraintName="fk_user_role_user"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="users"
+                referencedColumnNames="user_id"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="user_role"
+                baseColumnNames="role_id"
+                constraintName="fk_user_role_role"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="role"
+                referencedColumnNames="role_id"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"/>
+
+        <!-- Create indexes -->
+        <createIndex indexName="idx_user_role_user_id" tableName="user_role" schemaName="user_auth">
+            <column name="user_id"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_user_role_role_id" tableName="user_role" schemaName="user_auth">
+            <column name="role_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="user_role" schemaName="user_auth" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="005-create-permission-table" author="auth-service">
+        <createTable tableName="permission" schemaName="user_auth">
+            <!-- Primary Key -->
+            <column name="permission_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Business Fields -->
+            <column name="permission_name" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            
+            <column name="active_ind" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Audit Fields -->
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="created_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="updated_by" type="VARCHAR(255)"/>
+            <column name="updated_date" type="TIMESTAMP"/>
+            <column name="deleted_by" type="VARCHAR(255)"/>
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <!-- Create index -->
+        <createIndex indexName="idx_permission_name" tableName="permission" schemaName="user_auth">
+            <column name="permission_name"/>
+        </createIndex>
+
+        <!-- Add unique constraint -->
+        <addUniqueConstraint
+                schemaName="user_auth"
+                tableName="permission"
+                columnNames="permission_name"
+                constraintName="uk_permission_name"/>
+
+        <rollback>
+            <dropTable tableName="permission" schemaName="user_auth" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

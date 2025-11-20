@@ -1,0 +1,5 @@
+com.immortals.cache.providers.caffeine.CaffeineConfiguration
+com.immortals.cache.providers.redis.CacheStandaloneConfiguration
+com.immortals.cache.providers.redis.CacheClusterConfiguration
+com.immortals.cache.providers.redis.CacheSentinelConfiguration
+com.immortals.cache.providers.multilevel.MultiLevelConfiguration

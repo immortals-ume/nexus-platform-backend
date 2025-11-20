@@ -1,0 +1,431 @@
+{
+  "groups": [
+    {
+      "name": "immortals.cache",
+      "type": "com.immortals.cache.features.autoconfigure.CacheProperties",
+      "description": "Configuration properties for the cache service."
+    },
+    {
+      "name": "immortals.cache.caffeine",
+      "type": "com.immortals.cache.features.autoconfigure.CacheProperties$CaffeineProperties",
+      "sourceType": "com.immortals.cache.features.autoconfigure.CacheProperties",
+      "description": "Caffeine cache configuration."
+    },
+    {
+      "name": "immortals.cache.redis",
+      "type": "com.immortals.cache.features.autoconfigure.CacheProperties$RedisProperties",
+      "sourceType": "com.immortals.cache.features.autoconfigure.CacheProperties",
+      "description": "Redis cache configuration."
+    },
+    {
+      "name": "immortals.cache.features",
+      "type": "com.immortals.cache.features.autoconfigure.CacheProperties$FeatureProperties",
+      "sourceType": "com.immortals.cache.features.autoconfigure.CacheProperties",
+      "description": "Feature toggles for compression, encryption, and serialization."
+    },
+    {
+      "name": "immortals.cache.resilience",
+      "type": "com.immortals.cache.features.autoconfigure.CacheProperties$ResilienceProperties",
+      "sourceType": "com.immortals.cache.features.autoconfigure.CacheProperties",
+      "description": "Resilience configuration for circuit breaker, stampede protection, and timeouts."
+    },
+    {
+      "name": "immortals.cache.observability",
+      "type": "com.immortals.cache.features.autoconfigure.CacheProperties$ObservabilityProperties",
+      "sourceType": "com.immortals.cache.features.autoconfigure.CacheProperties",
+      "description": "Observability configuration for metrics, health checks, tracing, and logging."
+    }
+  ],
+  "properties": [
+    {
+      "name": "immortals.cache.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether caching is enabled globally.",
+      "defaultValue": true
+    },
+    {
+      "name": "immortals.cache.type",
+      "type": "com.immortals.cache.features.autoconfigure.CacheProperties$CacheType",
+      "description": "Cache type: caffeine, redis, or multi-level.",
+      "defaultValue": "caffeine"
+    },
+    {
+      "name": "immortals.cache.default-ttl",
+      "type": "java.time.Duration",
+      "description": "Default time-to-live for cache entries.",
+      "defaultValue": "1h"
+    },
+    {
+      "name": "immortals.cache.caffeine.maximum-size",
+      "type": "java.lang.Long",
+      "description": "Maximum number of entries the Caffeine cache may contain.",
+      "defaultValue": 10000
+    },
+    {
+      "name": "immortals.cache.caffeine.expire-after-write",
+      "type": "java.time.Duration",
+      "description": "Time after which Caffeine entries are automatically removed after being written.",
+      "defaultValue": "1h"
+    },
+    {
+      "name": "immortals.cache.caffeine.expire-after-access",
+      "type": "java.time.Duration",
+      "description": "Time after which Caffeine entries are automatically removed after last access."
+    },
+    {
+      "name": "immortals.cache.caffeine.record-stats",
+      "type": "java.lang.Boolean",
+      "description": "Whether to record statistics in Caffeine cache.",
+      "defaultValue": true
+    },
+    {
+      "name": "immortals.cache.caffeine.initial-capacity",
+      "type": "java.lang.Integer",
+      "description": "Initial capacity of the Caffeine cache.",
+      "defaultValue": 100
+    },
+    {
+      "name": "immortals.cache.redis.host",
+      "type": "java.lang.String",
+      "description": "Redis server host.",
+      "defaultValue": "localhost"
+    },
+    {
+      "name": "immortals.cache.redis.port",
+      "type": "java.lang.Integer",
+      "description": "Redis server port.",
+      "defaultValue": 6379
+    },
+    {
+      "name": "immortals.cache.redis.password",
+      "type": "java.lang.String",
+      "description": "Redis password for authentication."
+    },
+    {
+      "name": "immortals.cache.redis.database",
+      "type": "java.lang.Integer",
+      "description": "Redis database index.",
+      "defaultValue": 0
+    },
+    {
+      "name": "immortals.cache.redis.command-timeout",
+      "type": "java.time.Duration",
+      "description": "Command timeout for Redis operations.",
+      "defaultValue": "5s"
+    },
+    {
+      "name": "immortals.cache.redis.use-ssl",
+      "type": "java.lang.Boolean",
+      "description": "Whether to use SSL/TLS for Redis connections.",
+      "defaultValue": false
+    },
+    {
+      "name": "immortals.cache.redis.ssl.trust-store",
+      "type": "java.lang.String",
+      "description": "Path to trust store file for SSL."
+    },
+    {
+      "name": "immortals.cache.redis.ssl.trust-store-password",
+      "type": "java.lang.String",
+      "description": "Trust store password for SSL."
+    },
+    {
+      "name": "immortals.cache.redis.acl.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether ACL authentication is enabled (Redis 6+).",
+      "defaultValue": false
+    },
+    {
+      "name": "immortals.cache.redis.acl.username",
+      "type": "java.lang.String",
+      "description": "ACL username for Redis 6+ authentication."
+    },
+    {
+      "name": "immortals.cache.redis.pool.max-total",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of connections in the pool.",
+      "defaultValue": 8
+    },
+    {
+      "name": "immortals.cache.redis.pool.max-idle",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of idle connections in the pool.",
+      "defaultValue": 8
+    },
+    {
+      "name": "immortals.cache.redis.pool.min-idle",
+      "type": "java.lang.Integer",
+      "description": "Minimum number of idle connections in the pool.",
+      "defaultValue": 0
+    },
+    {
+      "name": "immortals.cache.redis.pipelining.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether pipelining is enabled for batch operations.",
+      "defaultValue": true
+    },
+    {
+      "name": "immortals.cache.redis.pipelining.batch-size",
+      "type": "java.lang.Integer",
+      "description": "Batch size for pipelined operations.",
+      "defaultValue": 100
+    },
+    {
+      "name": "immortals.cache.redis.cluster.nodes",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Cluster node addresses (host:port)."
+    },
+    {
+      "name": "immortals.cache.redis.cluster.max-redirects",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of redirects to follow in cluster mode.",
+      "defaultValue": 5
+    },
+    {
+      "name": "immortals.cache.redis.sentinel.master",
+      "type": "java.lang.String",
+      "description": "Name of the Redis master in sentinel mode."
+    },
+    {
+      "name": "immortals.cache.redis.sentinel.nodes",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Sentinel node addresses (host:port)."
+    },
+    {
+      "name": "immortals.cache.redis.read-strategy.read-from-replica",
+      "type": "java.lang.Boolean",
+      "description": "Whether to read from replicas.",
+      "defaultValue": false
+    },
+    {
+      "name": "immortals.cache.redis.read-strategy.replica-preference",
+      "type": "java.lang.String",
+      "description": "Replica preference: REPLICA_PREFERRED, REPLICA, MASTER, NEAREST, ANY.",
+      "defaultValue": "REPLICA_PREFERRED"
+    },
+    {
+      "name": "immortals.cache.multi-level.distributed-eviction",
+      "type": "java.lang.Boolean",
+      "description": "Whether to enable distributed eviction notifications in multi-level cache.",
+      "defaultValue": true
+    },
+    {
+      "name": "immortals.cache.multi-level.eviction-channel",
+      "type": "java.lang.String",
+      "description": "Redis channel name for eviction notifications.",
+      "defaultValue": "cache:eviction"
+    },
+    {
+      "name": "immortals.cache.features.compression.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether compression is enabled.",
+      "defaultValue": false
+    },
+    {
+      "name": "immortals.cache.features.compression.algorithm",
+      "type": "java.lang.String",
+      "description": "Compression algorithm (currently only gzip is supported).",
+      "defaultValue": "gzip"
+    },
+    {
+      "name": "immortals.cache.features.compression.threshold",
+      "type": "java.lang.Integer",
+      "description": "Minimum size in bytes to trigger compression.",
+      "defaultValue": 1024
+    },
+    {
+      "name": "immortals.cache.features.encryption.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether encryption is enabled.",
+      "defaultValue": false
+    },
+    {
+      "name": "immortals.cache.features.encryption.algorithm",
+      "type": "java.lang.String",
+      "description": "Encryption algorithm (currently only AES-GCM is supported).",
+      "defaultValue": "AES-GCM"
+    },
+    {
+      "name": "immortals.cache.features.encryption.key",
+      "type": "java.lang.String",
+      "description": "Base64-encoded encryption key. Required if encryption is enabled."
+    },
+    {
+      "name": "immortals.cache.features.encryption.key-size",
+      "type": "java.lang.Integer",
+      "description": "Encryption key size in bits (128, 192, or 256).",
+      "defaultValue": 256
+    },
+    {
+      "name": "immortals.cache.features.serialization.strategy",
+      "type": "java.lang.String",
+      "description": "Serialization strategy: jackson or java.",
+      "defaultValue": "jackson"
+    },
+    {
+      "name": "immortals.cache.resilience.circuit-breaker.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether circuit breaker is enabled.",
+      "defaultValue": false
+    },
+    {
+      "name": "immortals.cache.resilience.circuit-breaker.failure-rate-threshold",
+      "type": "java.lang.Integer",
+      "description": "Failure rate threshold percentage to open the circuit.",
+      "defaultValue": 50
+    },
+    {
+      "name": "immortals.cache.resilience.circuit-breaker.wait-duration-in-open-state",
+      "type": "java.time.Duration",
+      "description": "Wait duration in open state before transitioning to half-open.",
+      "defaultValue": "60s"
+    },
+    {
+      "name": "immortals.cache.resilience.circuit-breaker.sliding-window-size",
+      "type": "java.lang.Integer",
+      "description": "Sliding window size for calculating failure rate.",
+      "defaultValue": 100
+    },
+    {
+      "name": "immortals.cache.resilience.circuit-breaker.minimum-number-of-calls",
+      "type": "java.lang.Integer",
+      "description": "Minimum number of calls before calculating failure rate.",
+      "defaultValue": 10
+    },
+    {
+      "name": "immortals.cache.resilience.stampede-protection.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether stampede protection is enabled.",
+      "defaultValue": false
+    },
+    {
+      "name": "immortals.cache.resilience.stampede-protection.lock-timeout",
+      "type": "java.time.Duration",
+      "description": "Timeout for acquiring distributed lock in stampede protection.",
+      "defaultValue": "5s"
+    },
+    {
+      "name": "immortals.cache.resilience.timeout.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether timeout handling is enabled.",
+      "defaultValue": true
+    },
+    {
+      "name": "immortals.cache.resilience.timeout.operation-timeout",
+      "type": "java.time.Duration",
+      "description": "Operation timeout duration.",
+      "defaultValue": "5s"
+    },
+    {
+      "name": "immortals.cache.observability.metrics.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether metrics collection is enabled.",
+      "defaultValue": true
+    },
+    {
+      "name": "immortals.cache.observability.metrics.prefix",
+      "type": "java.lang.String",
+      "description": "Metrics prefix for all cache metrics.",
+      "defaultValue": "cache"
+    },
+    {
+      "name": "immortals.cache.observability.health.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether health indicator is enabled.",
+      "defaultValue": true
+    },
+    {
+      "name": "immortals.cache.observability.tracing.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether distributed tracing is enabled.",
+      "defaultValue": false
+    },
+    {
+      "name": "immortals.cache.observability.logging.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether structured logging is enabled.",
+      "defaultValue": true
+    },
+    {
+      "name": "immortals.cache.observability.logging.include-correlation-id",
+      "type": "java.lang.Boolean",
+      "description": "Whether to include correlation IDs in logs.",
+      "defaultValue": true
+    }
+  ],
+  "hints": [
+    {
+      "name": "immortals.cache.type",
+      "values": [
+        {
+          "value": "caffeine",
+          "description": "In-memory cache using Caffeine (default)."
+        },
+        {
+          "value": "redis",
+          "description": "Distributed cache using Redis."
+        },
+        {
+          "value": "multi-level",
+          "description": "Two-tier cache combining Caffeine (L1) and Redis (L2)."
+        }
+      ]
+    },
+    {
+      "name": "immortals.cache.features.compression.algorithm",
+      "values": [
+        {
+          "value": "gzip",
+          "description": "GZIP compression algorithm."
+        }
+      ]
+    },
+    {
+      "name": "immortals.cache.features.encryption.algorithm",
+      "values": [
+        {
+          "value": "AES-GCM",
+          "description": "AES-GCM encryption algorithm."
+        }
+      ]
+    },
+    {
+      "name": "immortals.cache.features.serialization.strategy",
+      "values": [
+        {
+          "value": "jackson",
+          "description": "JSON serialization using Jackson (default)."
+        },
+        {
+          "value": "java",
+          "description": "Java native serialization."
+        }
+      ]
+    },
+    {
+      "name": "immortals.cache.redis.read-strategy.replica-preference",
+      "values": [
+        {
+          "value": "REPLICA_PREFERRED",
+          "description": "Prefer replicas, fallback to master (default)."
+        },
+        {
+          "value": "REPLICA",
+          "description": "Read only from replicas."
+        },
+        {
+          "value": "MASTER",
+          "description": "Read only from master."
+        },
+        {
+          "value": "NEAREST",
+          "description": "Read from nearest node."
+        },
+        {
+          "value": "ANY",
+          "description": "Read from any node."
+        }
+      ]
+    }
+  ]
+}

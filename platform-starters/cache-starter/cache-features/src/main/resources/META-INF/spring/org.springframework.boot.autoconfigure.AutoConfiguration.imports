@@ -1,0 +1,6 @@
+com.immortals.cache.features.autoconfigure.CacheAutoConfiguration
+com.immortals.cache.features.autoconfigure.CaffeineAutoConfiguration
+com.immortals.cache.features.autoconfigure.RedisAutoConfiguration
+com.immortals.cache.features.autoconfigure.MultiLevelAutoConfiguration
+com.immortals.cache.features.autoconfigure.DecoratorAutoConfiguration
+com.immortals.cache.features.annotations.CacheAnnotationAutoConfiguration

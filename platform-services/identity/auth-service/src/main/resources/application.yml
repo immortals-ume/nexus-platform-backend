@@ -1,0 +1,22 @@
+# Minimal local configuration
+# Most configuration comes from config-server
+
+spring:
+  application:
+    name: auth-service
+
+# Local overrides (optional)
+server:
+  port: ${SERVER_PORT:8083}
+
+# Messaging configuration
+messaging:
+  topics:
+    user-registered: user-events
+    user-authenticated: auth-events
+    user-authentication-failed: auth-events
+
+# Logging for local development
+logging:
+  level:
+    com.immortals.authapp: DEBUG

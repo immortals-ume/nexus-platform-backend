@@ -1,0 +1,40 @@
+# Production Environment Configuration
+spring:
+  config:
+    import: configserver:${CONFIG_SERVER_URL:http://config-server:8888}
+
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:discovery-service}
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  server:
+    enable-self-preservation: true
+    renewal-percent-threshold: 0.85
+    eviction-interval-timer-in-ms: 60000  # Less frequent in prod
+    # Enable peer awareness for HA
+    peer-node-connect-timeout-ms: 5000
+    peer-node-read-timeout-ms: 10000
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL:http://admin:admin123@discovery-service:8761/eureka/}
+
+# Logging - less verbose in prod
+logging:
+  level:
+    root: WARN
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+    com.example.discovery: INFO
+
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 0.1  # 10% sampling in prod
+      zipkin-url: ${ZIPKIN_URL:http://zipkin:9411}
+    logging:
+      format: json  # JSON format for prod

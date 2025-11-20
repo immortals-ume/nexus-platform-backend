@@ -1,0 +1,166 @@
+server:
+  port: 8083
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/auth_db
+    username: ${DB_USERNAME:user}
+    password: ${DB_PASSWORD:admin}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog-master.xml
+    default-schema: user_auth
+    liquibase-schema: public
+    drop-first: false
+    contexts: default
+    labels: v1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Platform observability configuration
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 0.1
+    metrics:
+      enabled: true
+    logging:
+      format: json
+      level: INFO
+
+# Auth service specific configuration
+auth:
+  jwt:
+    issuer: ${JWT_ISSUER:https://auth.immortals.com}
+    access-token-expiry-ms: 900000
+    refresh-token-expiry-ms: 604800000
+  cors:
+    allowed-origins:
+      - "http://localhost:3000"
+      - "https://yourdomain.com"
+    allowed-methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed-headers:
+      - "*"
+    allow-credentials: true
+
+# OTP service configuration
+otp:
+  service:
+    url: ${OTP_SERVICE_URL:http://localhost:8090}
+    enabled: ${OTP_SERVICE_ENABLED:false}
+
+# Resilience4j configuration
+# Requirements: 5.1, 5.2, 5.3, 5.4 - Circuit breaker, retry, timeout, and bulkhead patterns
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 3s
+        recordExceptions:
+          - java.lang.Exception
+    instances:
+      otpService:
+        baseConfig: default
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+      databaseOperations:
+        baseConfig: default
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 60
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - org.springframework.dao.TransientDataAccessException
+          - org.springframework.dao.QueryTimeoutException
+          - java.sql.SQLException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+    instances:
+      otpService:
+        baseConfig: default
+        maxAttempts: 3
+        waitDuration: 500ms
+      databaseOperations:
+        baseConfig: default
+        maxAttempts: 3
+        waitDuration: 500ms
+
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 5s
+        cancelRunningFuture: true
+    instances:
+      otpService:
+        baseConfig: default
+        timeoutDuration: 5s
+      externalService:
+        baseConfig: default
+        timeoutDuration: 5s
+
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 500ms
+    instances:
+      otpService:
+        baseConfig: default
+        maxConcurrentCalls: 10
+      authenticationService:
+        baseConfig: default
+        maxConcurrentCalls: 20
+        maxWaitDuration: 1s

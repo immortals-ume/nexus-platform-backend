@@ -1,0 +1,19 @@
+spring:
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/configurations
+    bus:
+      enabled: false  # Disable bus in dev for simplicity
+
+# Encryption configuration for development
+encrypt:
+  key: ${CONFIG_ENCRYPT_KEY:dev-secret-key-change-in-production}
+
+# Logging
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.config: DEBUG
+    com.example: DEBUG

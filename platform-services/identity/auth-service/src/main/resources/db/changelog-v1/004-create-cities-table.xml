@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="004-create-cities-table" author="auth-service">
+        <createTable tableName="cities" schemaName="user_auth">
+            <!-- Primary Key -->
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Business Fields -->
+            <column name="city_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="state_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="active_ind" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Audit Fields -->
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="created_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="updated_by" type="VARCHAR(255)"/>
+            <column name="updated_date" type="TIMESTAMP"/>
+            <column name="deleted_by" type="VARCHAR(255)"/>
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <!-- Add foreign key -->
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="cities"
+                baseColumnNames="state_id"
+                constraintName="fk_cities_state"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="states"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"
+                onUpdate="CASCADE"/>
+
+        <!-- Create indexes -->
+        <createIndex indexName="idx_cities_name" tableName="cities" schemaName="user_auth">
+            <column name="city_name"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_cities_state_id" tableName="cities" schemaName="user_auth">
+            <column name="state_id"/>
+        </createIndex>
+
+        <!-- Add unique constraint -->
+        <addUniqueConstraint
+                schemaName="user_auth"
+                tableName="cities"
+                columnNames="city_name, state_id"
+                constraintName="uk_cities_name_state"/>
+
+        <rollback>
+            <dropTable tableName="cities" schemaName="user_auth" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

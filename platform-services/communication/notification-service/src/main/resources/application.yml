@@ -1,0 +1,23 @@
+# Local application.yml - Minimal defaults only
+# All configuration should come from Config Server
+# This file only contains fallback values for local development
+
+spring:
+  application:
+    name: notification-service
+
+# Server Configuration - Local development only
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+
+# Logging Configuration - Local development only  
+logging:
+  level:
+    root: INFO
+    com.immortals.notificationservice: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Note: All other configuration (database, Kafka, Eureka, resilience patterns, etc.) 
+# should be managed through Config Server for centralized configuration management

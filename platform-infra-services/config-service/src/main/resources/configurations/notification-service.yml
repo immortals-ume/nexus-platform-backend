@@ -1,0 +1,233 @@
+# Notification Service Configuration - Managed by Config Server
+# This configuration has highest priority and overrides local application.yml
+
+server:
+  port: 8081
+  shutdown: graceful
+
+spring:
+  banner:
+    location: banner.txt
+    charset: UTF-8
+  main:
+    banner-mode: console
+    
+  # Database Configuration - PostgreSQL
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/notification_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:pgpassword}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 600000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        use_sql_comments: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    
+  # Mail Configuration
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+# Eureka Client Configuration
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 30
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    metadata-map:
+      version: 1.0.0
+      environment: ${spring.profiles.active:dev}
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,loggers
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active:dev}
+    enable:
+      all: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# Platform Messaging Configuration (using messaging-starter)
+platform:
+  messaging:
+    kafka:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      consumer-group-prefix: notification-service
+      concurrency: 10
+      auto-commit: false
+      auto-offset-reset: earliest
+      max-poll-records: 500
+      session-timeout: 30s
+      heartbeat-interval: 10s
+    
+    retry:
+      enabled: true
+      max-attempts: 3
+      initial-interval: 1s
+      max-interval: 30s
+      multiplier: 2.0
+    
+    dlq:
+      enabled: true
+      topic-suffix: .dlq
+      enable-manual-retry: true
+      retention-time: 7d
+    
+    idempotency:
+      enabled: true
+      key-prefix: "notification:idempotency:"
+      ttl: 24h
+    
+    topics:
+      notification-requests: notification-requests
+      notification-sent: notification-sent
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+        slow-call-duration-threshold: 5s
+        slow-call-rate-threshold: 50
+    instances:
+      emailService:
+        base-config: default
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 60s
+      smsService:
+        base-config: default
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 60s
+        
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 1s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.mail.MailException
+          - com.twilio.exception.ApiException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+    instances:
+      emailService:
+        base-config: default
+        max-attempts: 5
+      smsService:
+        base-config: default
+        max-attempts: 3
+        
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 10s
+    instances:
+      emailService:
+        timeout-duration: 15s
+      smsService:
+        timeout-duration: 10s
+  
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 100
+        limit-refresh-period: 1s
+        timeout-duration: 5s
+    instances:
+      emailService:
+        limit-for-period: 100
+        limit-refresh-period: 1s
+      smsService:
+        limit-for-period: 50
+        limit-refresh-period: 1s
+
+# Application Configuration
+application:
+  title: notification-service
+  version: 1.0.0
+  
+# Twilio Configuration
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  phone-number: ${TWILIO_PHONE_NUMBER:}
+
+# OpenAPI/Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: true

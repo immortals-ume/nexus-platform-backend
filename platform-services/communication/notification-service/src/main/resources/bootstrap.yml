@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: notification-service
+  cloud:
+    config:
+      enabled: true
+      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      fail-fast: true  # Fail if config server is unavailable
+      retry:
+        initial-interval: 1000
+        max-attempts: 6
+        max-interval: 2000
+        multiplier: 1.1
+      override-none: true  # Config server has highest priority - no local overrides
+      allow-override: false  # Prevent local application.yml from overriding
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}

@@ -1,0 +1,29 @@
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_GIT_URI:https://github.com/your-org/config-repo.git}
+          default-label: staging
+          search-paths: '{application}'
+          clone-on-start: true
+          timeout: 10
+          username: ${CONFIG_GIT_USERNAME:}
+          password: ${CONFIG_GIT_PASSWORD:}
+          force-pull: true
+    bus:
+      enabled: true
+      refresh:
+        enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+# Encryption configuration for staging
+encrypt:
+  key: ${CONFIG_ENCRYPT_KEY}
+
+# Logging
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.config: INFO

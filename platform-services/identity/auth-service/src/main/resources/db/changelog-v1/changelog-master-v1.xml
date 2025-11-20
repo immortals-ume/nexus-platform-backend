@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="create-url-mapping-table" author="kaish">
+
+        <createTable tableName="url_mapping" schemaName="mini_url">
+            <!-- Primary Key -->
+            <column name="url_mapping_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <!-- Foreign Key / References -->
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Core Business Fields -->
+            <column name="original_url" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="short_url" type="TEXT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="custom_alias_flag" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="custom_alias_name" type="TEXT"/>
+            <column name="expires_at" type="TIMESTAMP(6) WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="redirect_type" type="SMALLINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="strategy" type="VARCHAR(255)"/>
+            <column name="tags" type="VARCHAR(255)"/>
+            <column name="notes" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Flags -->
+            <column name="high_throughput_flag" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="internal_tool_flag" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="needs_determinism_flag" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="premium_user_flag" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Metadata -->
+            <column name="created_user_agent" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+
+
+        <!-- CHECK constraints via raw SQL -->
+        <sql>
+            ALTER TABLE mini_url.url_mapping
+                ADD CONSTRAINT url_mapping_redirect_type_check
+                    CHECK (redirect_type = 0 OR redirect_type = 1);
+        </sql>
+
+        <sql>
+            ALTER TABLE mini_url.url_mapping
+                ADD CONSTRAINT chk_expires_future
+                    CHECK (expires_at > CURRENT_TIMESTAMP);
+        </sql>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_url_mapping_userid" tableName="url_mapping" schemaName="mini_url">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_url_mapping_short_url" tableName="url_mapping" schemaName="mini_url">
+            <column name="short_url"/>
+        </createIndex>
+
+        <createIndex indexName="url_mapping_url_mapping_id_index" tableName="url_mapping" schemaName="mini_url">
+            <column name="url_mapping_id"/>
+        </createIndex>
+
+        <!-- Composite unique index -->
+        <createIndex indexName="url_mapping_short_url_user_id_index" tableName="url_mapping" unique="true"
+                     schemaName="mini_url">
+            <column name="short_url"/>
+            <column name="user_id"/>
+        </createIndex>
+
+        <sql>
+            COMMENT
+            ON INDEX url_mapping_short_url_user_id_index IS
+            'composite unique index for the short url and user id';
+        </sql>
+
+        <!-- Sequence -->
+        <createSequence schemaName="mini_url" sequenceName="url_mapping_seq"
+                        startValue="1"
+                        incrementBy="1"
+                        cacheSize="1"/>
+    </changeSet>
+</databaseChangeLog>

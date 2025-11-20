@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="010-create-user-address-table" author="auth-service">
+        <createTable tableName="user_address" schemaName="user_auth">
+            <!-- Primary Key -->
+            <column name="user_address_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- UUID -->
+            <column name="address_uuid" type="VARCHAR(36)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <!-- Address Information -->
+            <column name="label" type="VARCHAR(50)"/>
+            
+            <column name="address_line1" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="address_line2" type="VARCHAR(255)"/>
+            
+            <column name="landmark" type="VARCHAR(255)"/>
+            
+            <column name="pincode" type="VARCHAR(6)">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Address Type and Status -->
+            <column name="address_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="is_default" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="is_verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="is_po_box" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Localization -->
+            <column name="timezone" type="VARCHAR(50)"/>
+            <column name="language_code" type="VARCHAR(5)"/>
+            <column name="formatted_address" type="TEXT"/>
+
+            <!-- Geolocation -->
+            <column name="latitude" type="DECIMAL(10, 7)"/>
+            <column name="longitude" type="DECIMAL(10, 7)"/>
+
+            <!-- Foreign Keys -->
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="country_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="state_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="city_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Audit Fields -->
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="created_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="updated_by" type="VARCHAR(255)"/>
+            <column name="updated_date" type="TIMESTAMP"/>
+            <column name="deleted_by" type="VARCHAR(255)"/>
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <!-- Add foreign keys -->
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="user_address"
+                baseColumnNames="user_id"
+                constraintName="fk_user_address_user"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="users"
+                referencedColumnNames="user_id"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="user_address"
+                baseColumnNames="country_id"
+                constraintName="fk_user_address_country"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="countries"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"
+                onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="user_address"
+                baseColumnNames="state_id"
+                constraintName="fk_user_address_state"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="states"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"
+                onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="user_address"
+                baseColumnNames="city_id"
+                constraintName="fk_user_address_city"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="cities"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"
+                onUpdate="CASCADE"/>
+
+        <!-- Create indexes -->
+        <createIndex indexName="idx_user_address_user_id" tableName="user_address" schemaName="user_auth">
+            <column name="user_id"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_user_address_country_id" tableName="user_address" schemaName="user_auth">
+            <column name="country_id"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_user_address_state_id" tableName="user_address" schemaName="user_auth">
+            <column name="state_id"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_user_address_city_id" tableName="user_address" schemaName="user_auth">
+            <column name="city_id"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_user_address_pincode" tableName="user_address" schemaName="user_auth">
+            <column name="pincode"/>
+        </createIndex>
+
+        <!-- Add unique constraint -->
+        <addUniqueConstraint
+                schemaName="user_auth"
+                tableName="user_address"
+                columnNames="address_uuid"
+                constraintName="uk_user_address_uuid"/>
+
+        <rollback>
+            <dropTable tableName="user_address" schemaName="user_auth" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="007-create-role-permission-table" author="auth-service">
+        <createTable tableName="role_permission" schemaName="user_auth">
+            <!-- Foreign Keys -->
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="permission_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Add primary key -->
+        <addPrimaryKey
+                schemaName="user_auth"
+                tableName="role_permission"
+                columnNames="role_id, permission_id"
+                constraintName="pk_role_permission"/>
+
+        <!-- Add foreign keys -->
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="role_permission"
+                baseColumnNames="role_id"
+                constraintName="fk_role_permission_role"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="role"
+                referencedColumnNames="role_id"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_auth"
+                baseTableName="role_permission"
+                baseColumnNames="permission_id"
+                constraintName="fk_role_permission_permission"
+                referencedTableSchemaName="user_auth"
+                referencedTableName="permission"
+                referencedColumnNames="permission_id"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"/>
+
+        <!-- Create indexes -->
+        <createIndex indexName="idx_role_permission_role_id" tableName="role_permission" schemaName="user_auth">
+            <column name="role_id"/>
+        </createIndex>
+        
+        <createIndex indexName="idx_role_permission_permission_id" tableName="role_permission" schemaName="user_auth">
+            <column name="permission_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="role_permission" schemaName="user_auth" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

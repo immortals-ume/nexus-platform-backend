@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- ChangeSet for revinfo table -->
+    <changeSet id="create-revinfo-table" author="kaish">
+        <createTable tableName="revinfo" schemaName="mini_url">
+            <column name="id" type="INTEGER">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="timestamp" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)"/>
+        </createTable>
+
+        <!-- Optional: change a table owner -->
+        <sql>
+            ALTER TABLE mini_url.revinfo OWNER TO "user";
+        </sql>
+
+        <createSequence schemaName="mini_url" sequenceName="revinfo_seq"
+                        startValue="1"
+                        incrementBy="50"
+                        cacheSize="50"/>
+    </changeSet>
+
+    <!-- ChangeSet for url_mapping_aud table -->
+    <changeSet id="create-url_mapping_aud-table" author="kaish">
+        <createTable tableName="url_mapping_aud" schemaName="mini_url">
+            <column name="url_mapping_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rev" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="created_user_agent" type="VARCHAR(512)"/>
+            <column name="custom_alias_flag" type="TEXT"/>
+            <column name="custom_alias_name" type="TEXT"/>
+            <column name="expires_at" type="TIMESTAMP(6) WITH TIME ZONE"/>
+            <column name="high_throughput_flag" type="TEXT"/>
+            <column name="internal_tool_flag" type="TEXT"/>
+            <column name="is_active" type="BOOLEAN"/>
+            <column name="needs_determinism_flag" type="TEXT"/>
+            <column name="notes" type="TEXT"/>
+            <column name="original_url" type="TEXT"/>
+            <column name="premium_user_flag" type="TEXT"/>
+            <column name="redirect_type" type="SMALLINT"/>
+            <column name="short_url" type="TEXT"/>
+            <column name="strategy" type="VARCHAR(255)"/>
+            <column name="tags" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT"/>
+            <column name="number_of_clicks" type="BIGINT"/>
+        </createTable>
+
+        <!-- Primary key (rev, url_mapping_id) -->
+        <addPrimaryKey schemaName="mini_url" tableName="url_mapping_aud" columnNames="rev, url_mapping_id"/>
+
+        <!-- Foreign key to revinfo -->
+        <addForeignKeyConstraint
+                schemaName="mini_url"
+                baseTableName="url_mapping_aud"
+                baseColumnNames="rev"
+                constraintName="fknpax3byqeur4rdomc3yp4dqas"
+                referencedTableName="revinfo"
+                referencedColumnNames="id"/>
+
+        <!-- Redirect type check constraint -->
+        <sql>
+            ALTER TABLE mini_url.url_mapping_aud
+                ADD CONSTRAINT url_mapping_aud_redirect_type_check
+                    CHECK (redirect_type = 0 OR redirect_type = 1);
+        </sql>
+
+        <!-- Optional: change a table owner -->
+        <sql>
+            ALTER TABLE mini_url.url_mapping_aud OWNER TO "user";
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

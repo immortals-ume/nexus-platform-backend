@@ -1,0 +1,106 @@
+spring:
+  application:
+    name: discovery-service
+  
+  config:
+    import: optional:configserver:http://localhost:8888
+  
+  security:
+    user:
+      name: ${EUREKA_USERNAME:admin}
+      password: ${EUREKA_PASSWORD:admin123}
+
+server:
+  port: ${SERVER_PORT:8761}
+
+# Eureka Server Configuration
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+    prefer-ip-address: false
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    
+  server:
+    # Enable self-preservation mode to prevent mass de-registration during network issues
+    enable-self-preservation: true
+    # Threshold for self-preservation (default 0.85 = 85%)
+    renewal-percent-threshold: 0.85
+    # Eviction interval - how often to check for expired leases
+    eviction-interval-timer-in-ms: 30000
+    # Response cache update interval
+    response-cache-update-interval-ms: 30000
+    # Response cache auto expiration
+    response-cache-auto-expiration-in-seconds: 180
+    # Disable delta updates for better consistency
+    disable-delta: false
+    # Peer node connection timeouts
+    peer-node-connect-timeout-ms: 2000
+    peer-node-read-timeout-ms: 5000
+    # Number of replication retries
+    number-of-replication-retries: 3
+    # Wait time between retries
+    wait-time-in-ms-when-sync-empty: 5000
+    
+  client:
+    # Don't register this Eureka server as a client
+    register-with-eureka: false
+    # Don't fetch registry since this is the registry
+    fetch-registry: false
+    # Service URL for other Eureka servers (for HA setup)
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL:http://${EUREKA_USERNAME:admin}:${EUREKA_PASSWORD:admin123}@${eureka.instance.hostname}:${server.port}/eureka/}
+
+# Management and Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,eureka
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${SPRING_PROFILES_ACTIVE:dev}
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+    com.example.discovery: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Platform Observability Configuration
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 0.1
+      exporter: zipkin
+      zipkin-url: ${ZIPKIN_URL:http://localhost:9411}
+    metrics:
+      enabled: true
+      export-interval: 60s
+    logging:
+      format: json
+      level: INFO

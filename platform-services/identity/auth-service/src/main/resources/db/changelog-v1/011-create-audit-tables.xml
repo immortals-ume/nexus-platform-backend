@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Create revision info table for Hibernate Envers -->
+    <changeSet id="011-create-revinfo-table" author="auth-service">
+        <createTable tableName="revinfo" schemaName="user_audit">
+            <column name="rev" type="INTEGER">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            
+            <column name="revtstmp" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="username" type="VARCHAR(255)"/>
+        </createTable>
+
+        <createSequence 
+            schemaName="user_audit" 
+            sequenceName="revinfo_seq"
+            startValue="1"
+            incrementBy="50"
+            cacheSize="50"/>
+
+        <rollback>
+            <dropSequence schemaName="user_audit" sequenceName="revinfo_seq"/>
+            <dropTable tableName="revinfo" schemaName="user_audit" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create audit table for users -->
+    <changeSet id="011-create-users-aud-table" author="auth-service">
+        <createTable tableName="users_aud" schemaName="user_audit">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="rev" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="revtype" type="SMALLINT"/>
+            
+            <!-- All fields from users table -->
+            <column name="first_name" type="VARCHAR(50)"/>
+            <column name="middle_name" type="VARCHAR(50)"/>
+            <column name="last_name" type="VARCHAR(50)"/>
+            <column name="user_name" type="VARCHAR(16)"/>
+            <column name="password" type="VARCHAR(255)"/>
+            <column name="email" type="VARCHAR(100)"/>
+            <column name="alternate_email" type="VARCHAR(100)"/>
+            <column name="email_verified" type="BOOLEAN"/>
+            <column name="phone_code" type="VARCHAR(5)"/>
+            <column name="contact_number" type="VARCHAR(15)"/>
+            <column name="alternate_contact" type="VARCHAR(15)"/>
+            <column name="phone_number_verified" type="BOOLEAN"/>
+            <column name="login_time" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="logout_time" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="account_non_expired" type="BOOLEAN"/>
+            <column name="account_non_locked" type="BOOLEAN"/>
+            <column name="account_locked" type="BOOLEAN"/>
+            <column name="credentials_non_expired" type="BOOLEAN"/>
+            <column name="active_ind" type="BOOLEAN"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="updated_by" type="VARCHAR(255)"/>
+            <column name="updated_date" type="TIMESTAMP"/>
+            <column name="deleted_by" type="VARCHAR(255)"/>
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <addPrimaryKey
+                schemaName="user_audit"
+                tableName="users_aud"
+                columnNames="user_id, rev"
+                constraintName="pk_users_aud"/>
+
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_audit"
+                baseTableName="users_aud"
+                baseColumnNames="rev"
+                constraintName="fk_users_aud_revinfo"
+                referencedTableSchemaName="user_audit"
+                referencedTableName="revinfo"
+                referencedColumnNames="rev"/>
+
+        <rollback>
+            <dropTable tableName="users_aud" schemaName="user_audit" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create audit table for roles -->
+    <changeSet id="011-create-role-aud-table" author="auth-service">
+        <createTable tableName="role_aud" schemaName="user_audit">
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="rev" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="revtype" type="SMALLINT"/>
+            <column name="role_name" type="VARCHAR(20)"/>
+            <column name="description" type="VARCHAR(200)"/>
+            <column name="active_ind" type="BOOLEAN"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="updated_by" type="VARCHAR(255)"/>
+            <column name="updated_date" type="TIMESTAMP"/>
+            <column name="deleted_by" type="VARCHAR(255)"/>
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <addPrimaryKey
+                schemaName="user_audit"
+                tableName="role_aud"
+                columnNames="role_id, rev"
+                constraintName="pk_role_aud"/>
+
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_audit"
+                baseTableName="role_aud"
+                baseColumnNames="rev"
+                constraintName="fk_role_aud_revinfo"
+                referencedTableSchemaName="user_audit"
+                referencedTableName="revinfo"
+                referencedColumnNames="rev"/>
+
+        <rollback>
+            <dropTable tableName="role_aud" schemaName="user_audit" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create audit table for permissions -->
+    <changeSet id="011-create-permission-aud-table" author="auth-service">
+        <createTable tableName="permission_aud" schemaName="user_audit">
+            <column name="permission_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="rev" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="revtype" type="SMALLINT"/>
+            <column name="permission_name" type="VARCHAR(50)"/>
+            <column name="active_ind" type="BOOLEAN"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="updated_by" type="VARCHAR(255)"/>
+            <column name="updated_date" type="TIMESTAMP"/>
+            <column name="deleted_by" type="VARCHAR(255)"/>
+            <column name="deleted_date" type="TIMESTAMP"/>
+        </createTable>
+
+        <addPrimaryKey
+                schemaName="user_audit"
+                tableName="permission_aud"
+                columnNames="permission_id, rev"
+                constraintName="pk_permission_aud"/>
+
+        <addForeignKeyConstraint
+                baseTableSchemaName="user_audit"
+                baseTableName="permission_aud"
+                baseColumnNames="rev"
+                constraintName="fk_permission_aud_revinfo"
+                referencedTableSchemaName="user_audit"
+                referencedTableName="revinfo"
+                referencedColumnNames="rev"/>
+
+        <rollback>
+            <dropTable tableName="permission_aud" schemaName="user_audit" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

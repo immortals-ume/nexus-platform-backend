@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+    <springProperty scope="context" name="logFormat" source="platform.observability.logging.format" defaultValue="json"/>
+    
+    <!-- Console appender with JSON format -->
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>correlationId</includeMdcKeyName>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <customFields>{"service":"${springAppName:-unknown}"}</customFields>
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+        </encoder>
+    </appender>
+    
+    <!-- Console appender with text format -->
+    <appender name="CONSOLE_TEXT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [correlationId=%X{correlationId:-N/A}] [traceId=%X{traceId:-N/A}] [spanId=%X{spanId:-N/A}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Root logger configuration -->
+    <root level="INFO">
+        <if condition='property("logFormat").equals("json")'>
+            <then>
+                <appender-ref ref="CONSOLE_JSON"/>
+            </then>
+            <else>
+                <appender-ref ref="CONSOLE_TEXT"/>
+            </else>
+        </if>
+    </root>
+    
+    <!-- Platform package logging -->
+    <logger name="com.immortals.platform" level="DEBUG" additivity="false">
+        <if condition='property("logFormat").equals("json")'>
+            <then>
+                <appender-ref ref="CONSOLE_JSON"/>
+            </then>
+            <else>
+                <appender-ref ref="CONSOLE_TEXT"/>
+            </else>
+        </if>
+    </logger>
+    
+</configuration>

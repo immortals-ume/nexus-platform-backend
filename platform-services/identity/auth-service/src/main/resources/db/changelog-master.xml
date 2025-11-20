@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    
+    <!-- Auth Service Database Migrations -->
+    <include file="db/changelog-v1/001-create-auth-schema.xml"/>
+    <include file="db/changelog-v1/002-create-countries-table.xml"/>
+    <include file="db/changelog-v1/003-create-states-table.xml"/>
+    <include file="db/changelog-v1/004-create-cities-table.xml"/>
+    <include file="db/changelog-v1/005-create-permission-table.xml"/>
+    <include file="db/changelog-v1/006-create-role-table.xml"/>
+    <include file="db/changelog-v1/007-create-role-permission-table.xml"/>
+    <include file="db/changelog-v1/008-create-users-table.xml"/>
+    <include file="db/changelog-v1/009-create-user-role-table.xml"/>
+    <include file="db/changelog-v1/010-create-user-address-table.xml"/>
+    <include file="db/changelog-v1/011-create-audit-tables.xml"/>
+    
+    <!-- Legacy migrations (if needed for backward compatibility) -->
+    <!-- <include file="db/changelog-v1/changelog-generate-schema-v1.xml"/> -->
+    <!-- <include file="db/changelog-v1/changelog-master-v1.xml"/> -->
+    <!-- <include file="db/changelog-v1/changelog-audit-v1.xml"/> -->
+    <!-- <include file="/db/changelog-v1/28-01-changelog.xml"/> -->
+    
+</databaseChangeLog>

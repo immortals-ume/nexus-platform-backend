@@ -1,0 +1,568 @@
+openapi: 3.1.0
+info:
+  title: Users Location API
+  description: API for managing location data including cities, countries, and states
+  version: "1.0.0"
+  contact:
+    name: Immortals Team
+    email: srivastavakapil34@gmail.com
+
+servers:
+  - url: /api/v1
+    description: Base API path
+
+tags:
+  - name: Cities
+    description: Operations for managing city data
+  - name: Countries
+    description: Operations for managing country data
+  - name: States
+    description: Operations for managing state data
+
+paths:
+  # City Controller Endpoints
+  /cities:
+    get:
+      summary: Get All Cities
+      operationId: getAllCities
+      description: Retrieves a list of all cities
+      tags: [ Cities ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ READ ]
+      responses:
+        '200':
+          description: List of cities retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CityDTO'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    
+    post:
+      summary: Create City
+      operationId: createCity
+      description: Creates a new city
+      tags: [ Cities ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ WRITE, CREATE ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityDTO'
+      responses:
+        '201':
+          description: City created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CityDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /cities/{id}:
+    get:
+      summary: Get City by ID
+      operationId: getCity
+      description: Retrieves a city by its ID
+      tags: [ Cities ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ READ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the city to retrieve
+      responses:
+        '200':
+          description: City retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CityDTO'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    patch:
+      summary: Update City
+      operationId: updateCity
+      description: Updates an existing city
+      tags: [ Cities ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ UPDATE ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the city to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CityDTO'
+      responses:
+        '200':
+          description: City updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CityDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      summary: Delete City
+      operationId: deleteCity
+      description: Deletes a city
+      tags: [ Cities ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ DELETE ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the city to delete
+      responses:
+        '204':
+          description: City deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Country Controller Endpoints
+  /countries:
+    get:
+      summary: Get All Countries
+      operationId: getAllCountries
+      description: Retrieves a list of all countries
+      tags: [ Countries ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ READ ]
+      responses:
+        '200':
+          description: List of countries retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CountryDTO'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    
+    post:
+      summary: Create Country
+      operationId: createCountry
+      description: Creates a new country
+      tags: [ Countries ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ WRITE, CREATE ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CountryDTO'
+      responses:
+        '201':
+          description: Country created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountryDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /countries/{id}:
+    patch:
+      summary: Update Country
+      operationId: updateCountry
+      description: Updates an existing country
+      tags: [ Countries ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ UPDATE ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the country to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CountryDTO'
+      responses:
+        '200':
+          description: Country updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountryDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      summary: Delete Country
+      operationId: deleteCountry
+      description: Deletes a country
+      tags: [ Countries ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ DELETE ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the country to delete
+      responses:
+        '204':
+          description: Country deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # State Controller Endpoints
+  /states:
+    get:
+      summary: Get All States
+      operationId: getAllStates
+      description: Retrieves a list of all states
+      tags: [ States ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ READ ]
+      responses:
+        '200':
+          description: List of states retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StateDTO'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    
+    post:
+      summary: Create State
+      operationId: createState
+      description: Creates a new state
+      tags: [ States ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ WRITE, CREATE ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateDTO'
+      responses:
+        '201':
+          description: State created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /states/{id}:
+    get:
+      summary: Get State by ID
+      operationId: getStateById
+      description: Retrieves a state by its ID
+      tags: [ States ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ READ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the state to retrieve
+      responses:
+        '200':
+          description: State retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateDTO'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    patch:
+      summary: Update State
+      operationId: updateState
+      description: Updates an existing state
+      tags: [ States ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ UPDATE ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the state to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateDTO'
+      responses:
+        '200':
+          description: State updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      summary: Delete State
+      operationId: deleteState
+      description: Deletes a state
+      tags: [ States ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ DELETE ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID of the state to delete
+      responses:
+        '204':
+          description: State deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    AdminAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Requires a Bearer token with ADMIN role.
+
+    UserAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Requires a Bearer token with ROLE_USER and specific authorities.
+
+  schemas:
+    CityDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the city
+          example: "New York"
+        activeInd:
+          type: boolean
+          description: Indicates if the city is active
+          example: true
+        stateName:
+          type: string
+          description: The name of the state this city belongs to
+          example: "New York"
+      required:
+        - name
+        - activeInd
+        - stateName
+
+    CountryDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the country
+          example: "United States"
+        code:
+          type: string
+          description: The country code
+          example: "US"
+        activeInd:
+          type: boolean
+          description: Indicates if the country is active
+          example: true
+      required:
+        - name
+        - code
+        - activeInd
+
+    StateDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the state
+          example: "California"
+        code:
+          type: string
+          description: The state code
+          example: "CA"
+        activeInd:
+          type: boolean
+          description: Indicates if the state is active
+          example: true
+        countryId:
+          type: integer
+          format: int64
+          description: The ID of the country this state belongs to
+          example: 1
+      required:
+        - name
+        - code
+        - activeInd
+        - countryId
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        httpStatus:
+          type: string
+          description: HTTP status code as a string
+          example: "BAD_REQUEST"
+        timeStamp:
+          type: string
+          format: date-time
+          example: "2023-08-04T14:30:00Z"
+        moreInfo:
+          type: string
+          example: "https://api.example.com/errors/validation"
+        errorCode:
+          type: integer
+          example: 4001
+        errorMessage:
+          type: string
+          example: "Validation failed for the request"
+        errors:
+          type: array
+          items:
+            type: string
+          example: [ "Field is required", "Invalid format" ]
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error or invalid input.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized - authentication required.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+    Forbidden:
+      description: Forbidden - insufficient permissions.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'

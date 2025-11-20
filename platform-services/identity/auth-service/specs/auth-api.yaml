@@ -1,0 +1,497 @@
+openapi: 3.1.0
+info:
+  title: Auth Service API
+  description: Authentication and User Management API for the Auth Service
+  version: "1.0.0"
+  contact:
+    name : immortals_ume
+
+servers:
+  - url: /api/v1
+    description: Base API path
+
+tags:
+  - name: Authentication
+    description: Authentication related operations
+  - name: Guest
+    description: Guest access operations
+  - name: User Management
+    description: User management operations
+
+paths:
+  # Auth Controller Endpoints
+  /auth/login:
+    get:
+      summary: User Login
+      operationId: login
+      description: Authenticates a user and returns an access token.
+      tags: [ Authentication ]
+      security:
+        - GuestAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '200':
+          description: Successful login, access token returned in header.
+          headers:
+            Authorization:
+              description: JWT access token with Bearer prefix.
+              schema:
+                type: string
+                example: "Bearer <Random Token String>"
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Login successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh/{username}:
+    get:
+      summary: Generate Refresh Token
+      operationId: generateRefreshToken
+      description: Generates a new refresh token for the given username and sets it as a secure cookie.
+      tags: [ Authentication ]
+      security:
+        - GuestAuth: [ ]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User's username
+      responses:
+        '200':
+          description: New refresh token generated and set as cookie.
+          headers:
+            Set-Cookie:
+              description: Secure HTTP-only cookie containing the refresh token
+              schema:
+                type: string
+                example: "refresh_token=abc123; Path=/; HttpOnly; Secure; SameSite=Strict"
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Refresh token generated successfully"
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /auth/logout:
+    delete:
+      summary: Logout User
+      operationId: logout
+      description: Logs out the user and clears refresh token cookie.
+      tags: [ Authentication ]
+      security:
+        - GuestAuth: [ ]
+      responses:
+        '204':
+          description: User logged out successfully, no content returned.
+          headers:
+            Set-Cookie:
+              description: Clears the refresh token cookie
+              schema:
+                type: string
+                example: "refresh_token=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Guest Controller Endpoints
+  /guest/login:
+    get:
+      summary: Guest Login
+      operationId: loginWithGuestCredentials
+      description: Generates a guest token for anonymous access without requiring credentials.
+      tags: [ Guest ]
+      responses:
+        '200':
+          description: Guest token generated successfully.
+          headers:
+            Authorization:
+              description: JWT guest token with Bearer prefix.
+              schema:
+                type: string
+                example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Guest Token generate successfully"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # User Controller Endpoints
+  /users/register:
+    post:
+      summary: Register New User
+      operationId: register
+      description: Registers a new user account.
+      tags: [ User Management ]
+      security:
+        - GuestAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequestDTO'
+      responses:
+        '201':
+          description: User registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: User already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /users/{username}:
+    get:
+      summary: Get User by Username
+      operationId: getUser
+      description: Retrieves user information by username.
+      tags: [ User Management ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ READ ]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Username to retrieve
+      responses:
+        '201':
+          description: User information retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/change-password-email/{username}:
+    post:
+      summary: Send Change Password Email
+      operationId: sendChangePasswordEmail
+      description: Sends a password change email to the specified user.
+      tags: [ User Management ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ SEND_EMAIL ]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Username to send password reset email
+      responses:
+        '200':
+          description: Password change email sent successfully.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Password reset email sent successfully"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/change-password:
+    patch:
+      summary: Change Password
+      operationId: changePassword
+      description: Changes user password using reset credentials.
+      tags: [ User Management ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ UPDATE ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetCredentials'
+      responses:
+        '200':
+          description: Password changed successfully.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Password changed successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/address:
+    patch:
+      summary: Update User Address
+      operationId: updateAddress
+      description: Updates or adds user address information for the authenticated user.
+      tags: [ User Management ]
+      security:
+        - AdminAuth: [ ]
+        - UserAuth: [ UPDATE, CREATE ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAddressDTO'
+      responses:
+        '200':
+          description: Address updated successfully.
+          content:
+            application/json:
+              schema:
+                type: string
+                description: JSON string representation of updated address
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    GuestAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Requires a Bearer token with GUEST role.
+
+    AdminAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Requires a Bearer token with ADMIN role.
+
+    UserAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Requires a Bearer token with ROLE_USER and specific authorities.
+
+  schemas:
+    LoginDto:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "username"
+        password:
+          type: string
+          format: password
+      required:
+        - username
+        - password
+
+    RegisterRequestDTO:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "username"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+      required:
+        - username
+        - email
+        - password
+
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 12345
+        username:
+          type: string
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-08-04T14:30:00Z"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 12345
+        username:
+          type: string
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        roles:
+          type: array
+          items:
+            type: string
+          example: [ "ROLE_USER", "ROLE_ADMIN" ]
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-08-04T14:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-08-04T15:45:00Z"
+
+    ResetCredentials:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Password reset token
+        newPassword:
+          type: string
+          format: password
+          example: "newSecurePassword123"
+        confirmPassword:
+          type: string
+          format: password
+          example: "newSecurePassword123"
+      required:
+        - token
+        - newPassword
+        - confirmPassword
+
+    UserAddressDTO:
+      type: object
+      properties:
+        street:
+          type: string
+          example: "123 Main St"
+        city:
+          type: string
+          example: "New York"
+        state:
+          type: string
+          example: "NY"
+        zipCode:
+          type: string
+          example: "10001"
+        country:
+          type: string
+          example: "USA"
+      required:
+        - street
+        - city
+        - zipCode
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        httpStatus:
+          type: string
+          description: HTTP status code as a string
+          example: "BAD_REQUEST"
+        timeStamp:
+          type: string
+          format: date-time
+          example: "2023-08-04T14:30:00Z"
+        moreInfo:
+          type: string
+          example: "https://api.example.com/errors/validation"
+        errorCode:
+          type: integer
+          example: 4001
+        errorMessage:
+          type: string
+          example: "Validation failed for the request"
+        errors:
+          type: array
+          items:
+            type: string
+          example: [ "Username is required", "Password must be at least 8 characters" ]
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error or invalid input.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized - authentication required.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+    Forbidden:
+      description: Forbidden - insufficient permissions.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+    InternalServerError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'

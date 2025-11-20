@@ -1,0 +1,2 @@
+com.immortals.cache.resilience.CircuitBreakerAutoConfiguration
+com.immortals.cache.resilience.StampedeProtectionAutoConfiguration

@@ -1,0 +1,1262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.immortals.platform</groupId>
+    <artifactId>platform-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>Platform Parent</name>
+    <description>Parent POM and aggregator for all microservices in the platform</description>
+
+    <modules>
+        <module>platform-bom</module>
+        <module>platform-infra-services</module>
+        <module>platform-services</module>
+        <module>platform-starters</module>
+    </modules>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <spring-cloud.version>2024.0.1</spring-cloud.version>
+
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+        <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+        <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
+        <dependency-check-maven-plugin.version>10.0.4</dependency-check-maven-plugin.version>
+        <jib-maven-plugin.version>3.4.4</jib-maven-plugin.version>
+        <sonar-maven-plugin.version>5.0.0.4389</sonar-maven-plugin.version>
+        <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
+        <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
+        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
+        <pitest-maven-plugin.version>1.15.3</pitest-maven-plugin.version>
+        <pitest-junit5-plugin.version>1.2.1</pitest-junit5-plugin.version>
+        <pact-jvm-provider-maven.version>4.6.15</pact-jvm-provider-maven.version>
+        <native-maven-plugin.version>0.10.3</native-maven-plugin.version>
+
+        <docker.image.registry>docker.io</docker.image.registry>
+        <docker.image.organization>immortals-platform</docker.image.organization>
+        <docker.base.image>eclipse-temurin:21-jre-alpine</docker.base.image>
+
+        <jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
+        <jacoco.minimum.branch.coverage>0.75</jacoco.minimum.branch.coverage>
+        <pitest.mutation.threshold>80</pitest.mutation.threshold>
+        <pitest.coverage.threshold>80</pitest.coverage.threshold>
+
+        <dependency-check.cvss.threshold>7</dependency-check.cvss.threshold>
+
+        <argLine>-Xmx1024m -XX:+EnableDynamicAgentLoading</argLine>
+        <skipTests>false</skipTests>
+        <skipITs>false</skipITs>
+        <skipUTs>false</skipUTs>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>com.immortals.platform</groupId>
+                <artifactId>platform-bom</artifactId>
+                <version>1.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                        <compilerArgs>
+                            <arg>-parameters</arg>
+                            <arg>-Xlint:all,-processing</arg>
+                            <arg>-Werror</arg>
+                            <arg>--enable-preview</arg>
+                        </compilerArgs>
+                        <showWarnings>true</showWarnings>
+                        <showDeprecation>true</showDeprecation>
+                        <enablePreview>true</enablePreview>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-configuration-processor</artifactId>
+                                <version>${spring-boot.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <skipTests>${skipUTs}</skipTests>
+                        <includes>
+                            <include>**/*Test.java</include>
+                            <include>**/*Tests.java</include>
+                        </includes>
+                        <excludes>
+                            <exclude>**/*IntegrationTest.java</exclude>
+                            <exclude>**/*IT.java</exclude>
+                        </excludes>
+                        <argLine>${argLine} @{argLine}</argLine>
+                        <parallel>methods</parallel>
+                        <threadCount>4</threadCount>
+                        <forkCount>1</forkCount>
+                        <reuseForks>true</reuseForks>
+                        <reportFormat>plain</reportFormat>
+                        <trimStackTrace>false</trimStackTrace>
+                        <useFile>false</useFile>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven-failsafe-plugin.version}</version>
+                    <configuration>
+                        <skipITs>${skipITs}</skipITs>
+                        <includes>
+                            <include>**/*IntegrationTest.java</include>
+                            <include>**/*IT.java</include>
+                        </includes>
+                        <argLine>${argLine} @{argLine}</argLine>
+                        <parallel>classes</parallel>
+                        <threadCount>2</threadCount>
+                        <forkCount>1</forkCount>
+                        <reuseForks>true</reuseForks>
+                        <reportFormat>plain</reportFormat>
+                        <trimStackTrace>false</trimStackTrace>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-maven-plugin.version}</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>**/config/**</exclude>
+                            <exclude>**/dto/**</exclude>
+                            <exclude>**/entity/**</exclude>
+                            <exclude>**/model/**</exclude>
+                            <exclude>**/*Application.class</exclude>
+                            <exclude>**/*Config.class</exclude>
+                            <exclude>**/*Properties.class</exclude>
+                        </excludes>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>prepare-agent-integration</id>
+                            <goals>
+                                <goal>prepare-agent-integration</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report-integration</id>
+                            <phase>post-integration-test</phase>
+                            <goals>
+                                <goal>report-integration</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>merge-results</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>merge</goal>
+                            </goals>
+                            <configuration>
+                                <fileSets>
+                                    <fileSet>
+                                        <directory>${project.build.directory}</directory>
+                                        <includes>
+                                            <include>*.exec</include>
+                                        </includes>
+                                    </fileSet>
+                                </fileSets>
+                                <destFile>${project.build.directory}/jacoco-aggregate.exec</destFile>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>check</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <rule>
+                                        <element>BUNDLE</element>
+                                        <limits>
+                                            <limit>
+                                                <counter>INSTRUCTION</counter>
+                                                <value>COVEREDRATIO</value>
+                                                <minimum>${jacoco.minimum.coverage}</minimum>
+                                            </limit>
+                                            <limit>
+                                                <counter>BRANCH</counter>
+                                                <value>COVEREDRATIO</value>
+                                                <minimum>${jacoco.minimum.branch.coverage}</minimum>
+                                            </limit>
+                                            <limit>
+                                                <counter>CLASS</counter>
+                                                <value>MISSEDCOUNT</value>
+                                                <maximum>0</maximum>
+                                            </limit>
+                                        </limits>
+                                    </rule>
+                                    <rule>
+                                        <element>CLASS</element>
+                                        <limits>
+                                            <limit>
+                                                <counter>COMPLEXITY</counter>
+                                                <value>TOTALCOUNT</value>
+                                                <maximum>50</maximum>
+                                            </limit>
+                                        </limits>
+                                    </rule>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>build-info</id>
+                            <goals>
+                                <goal>build-info</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin.version}</version>
+                    <configuration>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-maven-version</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+
+                                    <requireMavenVersion>
+                                        <version>[3.8.0,)</version>
+                                        <message>Maven 3.8.0 or higher is required. Current version: ${maven.version}</message>
+                                    </requireMavenVersion>
+
+                                    <requireJavaVersion>
+                                        <version>[21,)</version>
+                                        <message>Java 21 or higher is required. Current version: ${java.version}</message>
+                                    </requireJavaVersion>
+
+                                    <dependencyConvergence>
+                                        <message>Dependency convergence error: Multiple versions of the same dependency detected.</message>
+                                    </dependencyConvergence>
+
+                                    <banDuplicateClasses>
+                                        <ignoreClasses>
+
+                                            <ignoreClass>org.slf4j.*</ignoreClass>
+                                            <ignoreClass>javax.annotation.*</ignoreClass>
+                                            <ignoreClass>jakarta.annotation.*</ignoreClass>
+                                        </ignoreClasses>
+                                        <findAllDuplicates>true</findAllDuplicates>
+                                        <message>Duplicate classes found in dependencies. This can lead to unpredictable behavior.</message>
+                                    </banDuplicateClasses>
+
+                                    <bannedDependencies>
+                                        <excludes>
+
+                                            <exclude>log4j:log4j</exclude>
+                                            <exclude>org.apache.logging.log4j:log4j-core:(,2.17.0)</exclude>
+
+                                            <exclude>commons-collections:commons-collections:[3.0,3.2.2]</exclude>
+
+                                            <exclude>commons-beanutils:commons-beanutils:[1.0,1.9.4)</exclude>
+                                            <exclude>org.yaml:snakeyaml:[1.0,1.33)</exclude>
+                                            <exclude>com.fasterxml.jackson.core:jackson-databind:[2.0,2.13.4.2)</exclude>
+                                        </excludes>
+                                        <message>Banned vulnerable dependency detected. Please upgrade to a secure version.</message>
+                                    </bannedDependencies>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    <dependencies>
+
+                        <dependency>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>extra-enforcer-rules</artifactId>
+                            <version>1.8.0</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>${dependency-check-maven-plugin.version}</version>
+                    <configuration>
+
+                        <failBuildOnCVSS>${dependency-check.cvss.threshold}</failBuildOnCVSS>
+
+                        <formats>
+                            <format>HTML</format>
+                            <format>JSON</format>
+                            <format>XML</format>
+                        </formats>
+
+                        <outputDirectory>${project.build.directory}/dependency-check</outputDirectory>
+
+                        <suppressionFiles>
+                            <suppressionFile>${project.basedir}/dependency-check-suppressions.xml</suppressionFile>
+                        </suppressionFiles>
+
+                        <assemblyAnalyzerEnabled>true</assemblyAnalyzerEnabled>
+                        <jarAnalyzerEnabled>true</jarAnalyzerEnabled>
+                        <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
+                        <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
+
+                        <skipTestScope>false</skipTestScope>
+
+                        <skipProvidedScope>false</skipProvidedScope>
+
+                        <skipRuntimeScope>false</skipRuntimeScope>
+
+                        <autoUpdate>true</autoUpdate>
+
+                        <dataDirectory>${user.home}/.m2/dependency-check-data</dataDirectory>
+
+                        <failOnError>true</failOnError>
+
+                        <prettyPrint>true</prettyPrint>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>dependency-check</id>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                    <configuration>
+
+                        <failOnWarning>true</failOnWarning>
+
+                        <ignoreNonCompile>false</ignoreNonCompile>
+
+                        <ignoredUnusedDeclaredDependencies>
+
+                            <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
+
+                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-*</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-configuration-processor</ignoredUnusedDeclaredDependency>
+
+                            <ignoredUnusedDeclaredDependency>org.postgresql:postgresql</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
+
+                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-test</ignoredUnusedDeclaredDependency>
+
+                            <ignoredUnusedDeclaredDependency>io.micrometer:micrometer-*</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>io.opentelemetry:opentelemetry-*</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>io.zipkin.reporter2:zipkin-reporter-brave</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>ch.qos.logback:logback-classic</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>net.logstash.logback:logstash-logback-encoder</ignoredUnusedDeclaredDependency>
+
+                            <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.core:jackson-databind</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.datatype:jackson-datatype-jsr310</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.apache.commons:commons-lang3</ignoredUnusedDeclaredDependency>
+                        </ignoredUnusedDeclaredDependencies>
+
+                        <ignoredUsedUndeclaredDependencies>
+
+                            <ignoredUsedUndeclaredDependency>jakarta.annotation:jakarta.annotation-api</ignoredUsedUndeclaredDependency>
+
+                            <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
+
+                            <ignoredUsedUndeclaredDependency>org.springframework:spring-*</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-actuator-autoconfigure</ignoredUsedUndeclaredDependency>
+
+                            <ignoredUsedUndeclaredDependency>com.fasterxml.jackson.core:jackson-*</ignoredUsedUndeclaredDependency>
+
+                            <ignoredUsedUndeclaredDependency>io.opentelemetry:opentelemetry-*</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-tracing</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
+                        </ignoredUsedUndeclaredDependencies>
+
+                        <outputFile>${project.build.directory}/dependency-analysis.txt</outputFile>
+
+                        <verbose>false</verbose>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>analyze-dependencies</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>analyze-only</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven-javadoc-plugin.version}</version>
+                    <configuration>
+                        <doclint>none</doclint>
+                        <quiet>true</quiet>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>${versions-maven-plugin.version}</version>
+                    <configuration>
+                        <generateBackupPoms>false</generateBackupPoms>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>${spotless-maven-plugin.version}</version>
+                    <configuration>
+                        <java>
+                            <googleJavaFormat>
+                                <version>1.24.0</version>
+                                <style>GOOGLE</style>
+                            </googleJavaFormat>
+                            <removeUnusedImports/>
+                            <trimTrailingWhitespace/>
+                            <endWithNewline/>
+                        </java>
+                        <pom>
+                            <sortPom>
+                                <expandEmptyElements>false</expandEmptyElements>
+                            </sortPom>
+                        </pom>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <phase>validate</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>${flatten-maven-plugin.version}</version>
+                    <configuration>
+                        <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                        <updatePomFile>true</updatePomFile>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>flatten</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>flatten</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>flatten-clean</id>
+                            <phase>clean</phase>
+                            <goals>
+                                <goal>clean</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build-helper-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>add-integration-test-sources</id>
+                            <phase>generate-test-sources</phase>
+                            <goals>
+                                <goal>add-test-source</goal>
+                            </goals>
+                            <configuration>
+                                <sources>
+                                    <source>src/integration-test/java</source>
+                                </sources>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>add-integration-test-resources</id>
+                            <phase>generate-test-resources</phase>
+                            <goals>
+                                <goal>add-test-resource</goal>
+                            </goals>
+                            <configuration>
+                                <resources>
+                                    <resource>
+                                        <directory>src/integration-test/resources</directory>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>${jib-maven-plugin.version}</version>
+                    <configuration>
+
+                        <from>
+                            <image>${docker.base.image}</image>
+                            <platforms>
+                                <platform>
+                                    <architecture>amd64</architecture>
+                                    <os>linux</os>
+                                </platform>
+                                <platform>
+                                    <architecture>arm64</architecture>
+                                    <os>linux</os>
+                                </platform>
+                            </platforms>
+                        </from>
+
+                        <to>
+                            <image>${docker.image.registry}/${docker.image.organization}/${project.artifactId}</image>
+                            <tags>
+                                <tag>${project.version}</tag>
+                                <tag>latest</tag>
+                            </tags>
+                        </to>
+
+                        <container>
+
+                            <jvmFlags>
+                                <jvmFlag>-Xms256m</jvmFlag>
+                                <jvmFlag>-Xmx512m</jvmFlag>
+                                <jvmFlag>-XX:+UseG1GC</jvmFlag>
+                                <jvmFlag>-XX:MaxGCPauseMillis=100</jvmFlag>
+                                <jvmFlag>-XX:+UseContainerSupport</jvmFlag>
+                                <jvmFlag>-Djava.security.egd=file:/dev/./urandom</jvmFlag>
+                                <jvmFlag>-Dspring.profiles.active=${spring.profiles.active}</jvmFlag>
+                            </jvmFlags>
+
+                            <ports>
+                                <port>8080</port>
+                                <port>8081</port>
+                            </ports>
+
+                            <environment>
+                                <SPRING_OUTPUT_ANSI_ENABLED>ALWAYS</SPRING_OUTPUT_ANSI_ENABLED>
+                            </environment>
+
+                            <user>1000:1000</user>
+
+                            <workingDirectory>/app</workingDirectory>
+
+                            <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+
+                            <format>OCI</format>
+
+                            <labels>
+                                <org.opencontainers.image.title>${project.name}</org.opencontainers.image.title>
+                                <org.opencontainers.image.description>${project.description}</org.opencontainers.image.description>
+                                <org.opencontainers.image.version>${project.version}</org.opencontainers.image.version>
+                                <org.opencontainers.image.vendor>Immortals Platform</org.opencontainers.image.vendor>
+                                <org.opencontainers.image.created>${maven.build.timestamp}</org.opencontainers.image.created>
+                                <org.opencontainers.image.source>https://github.com/immortals-platform/${project.artifactId}</org.opencontainers.image.source>
+                                <com.immortals.platform.service.name>${project.artifactId}</com.immortals.platform.service.name>
+                                <com.immortals.platform.build.version>${project.version}</com.immortals.platform.build.version>
+                                <com.immortals.platform.build.timestamp>${maven.build.timestamp}</com.immortals.platform.build.timestamp>
+                            </labels>
+                        </container>
+
+                        <containerizingMode>layered</containerizingMode>
+
+                        <extraDirectories>
+                            <paths>
+                                <path>
+                                    <from>src/main/jib</from>
+                                    <into>/</into>
+                                </path>
+                            </paths>
+                            <permissions>
+                                <permission>
+                                    <file>/app/entrypoint.sh</file>
+                                    <mode>755</mode>
+                                </permission>
+                            </permissions>
+                        </extraDirectories>
+
+                        <allowInsecureRegistries>false</allowInsecureRegistries>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>build-docker-image</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>dockerBuild</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- Mutation Testing Plugin -->
+                <plugin>
+                    <groupId>org.pitest</groupId>
+                    <artifactId>pitest-maven</artifactId>
+                    <version>${pitest-maven-plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.pitest</groupId>
+                            <artifactId>pitest-junit5-plugin</artifactId>
+                            <version>${pitest-junit5-plugin.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <!-- Mutation threshold -->
+                        <mutationThreshold>${pitest.mutation.threshold}</mutationThreshold>
+                        <coverageThreshold>${pitest.coverage.threshold}</coverageThreshold>
+
+                        <!-- Mutators -->
+                        <mutators>
+                            <mutator>DEFAULTS</mutator>
+                            <mutator>STRONGER</mutator>
+                        </mutators>
+
+                        <!-- Target classes and tests -->
+                        <targetClasses>
+                            <param>com.immortals.*</param>
+                        </targetClasses>
+                        <targetTests>
+                            <param>com.immortals.*</param>
+                        </targetTests>
+
+                        <!-- Exclusions -->
+                        <excludedClasses>
+                            <param>com.immortals.*.config.*</param>
+                            <param>com.immortals.*.dto.*</param>
+                            <param>com.immortals.*.entity.*</param>
+                            <param>com.immortals.*.model.*</param>
+                            <param>com.immortals.*.*Application</param>
+                            <param>com.immortals.*.*Config</param>
+                            <param>com.immortals.*.*Properties</param>
+                        </excludedClasses>
+
+                        <!-- Output formats -->
+                        <outputFormats>
+                            <outputFormat>HTML</outputFormat>
+                            <outputFormat>XML</outputFormat>
+                        </outputFormats>
+
+                        <!-- Performance settings -->
+                        <threads>4</threads>
+                        <timeoutConstant>4000</timeoutConstant>
+                        <timeoutFactor>1.25</timeoutFactor>
+
+                        <!-- Reporting -->
+                        <verbose>false</verbose>
+                        <timestampedReports>false</timestampedReports>
+                        <exportLineCoverage>true</exportLineCoverage>
+
+                        <!-- Integration with other tools -->
+                        <failWhenNoMutations>false</failWhenNoMutations>
+                        <skipFailingTests>false</skipFailingTests>
+                    </configuration>
+                </plugin>
+
+                <!-- Contract Testing Plugin -->
+                <plugin>
+                    <groupId>au.com.dius.pact.provider</groupId>
+                    <artifactId>maven</artifactId>
+                    <version>${pact-jvm-provider-maven.version}</version>
+                    <configuration>
+                        <serviceProviders>
+                            <serviceProvider>
+                                <name>${project.artifactId}</name>
+                                <protocol>http</protocol>
+                                <host>localhost</host>
+                                <port>8080</port>
+                                <path>/</path>
+                                <pactBrokerUrl>http://localhost:9292</pactBrokerUrl>
+                                <pactFileDirectory>target/pacts</pactFileDirectory>
+                            </serviceProvider>
+                        </serviceProviders>
+                        <projectVersion>${project.version}</projectVersion>
+                        <trimSnapshot>true</trimSnapshot>
+                    </configuration>
+                </plugin>
+
+                <!-- GraalVM Native Image Plugin -->
+                <plugin>
+                    <groupId>org.graalvm.buildtools</groupId>
+                    <artifactId>native-maven-plugin</artifactId>
+                    <version>${native-maven-plugin.version}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <imageName>${project.artifactId}</imageName>
+                        <mainClass>${start-class}</mainClass>
+                        <buildArgs>
+                            <buildArg>--no-fallback</buildArg>
+                            <buildArg>--install-exit-handlers</buildArg>
+                            <buildArg>--enable-http</buildArg>
+                            <buildArg>--enable-https</buildArg>
+                            <buildArg>--enable-url-protocols=http,https</buildArg>
+                            <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                            <buildArg>-H:+AddAllCharsets</buildArg>
+                            <buildArg>--initialize-at-build-time=org.slf4j</buildArg>
+                            <buildArg>--initialize-at-run-time=io.netty</buildArg>
+                        </buildArgs>
+                        <agent>
+                            <enabled>true</enabled>
+                            <defaultMode>standard</defaultMode>
+                        </agent>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>build-native</id>
+                            <goals>
+                                <goal>compile-no-fork</goal>
+                            </goals>
+                            <phase>package</phase>
+                        </execution>
+                        <execution>
+                            <id>test-native</id>
+                            <goals>
+                                <goal>test</goal>
+                            </goals>
+                            <phase>test</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+                <maven.test.skip>false</maven.test.skip>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>staging</id>
+            <properties>
+                <spring.profiles.active>staging</spring.profiles.active>
+                <maven.test.skip>false</maven.test.skip>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>prod</id>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+                <maven.test.skip>false</maven.test.skip>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>security-scan</id>
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>sonar</id>
+            <properties>
+                <sonar.host.url>http://localhost:9000</sonar.host.url>
+                <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+                <sonar.exclusions>**/target/**,**/generated-sources/**,**/dto/**,**/entity/**,**/config/**</sonar.exclusions>
+                <sonar.test.exclusions>**/*Test.java,**/*IntegrationTest.java,**/*IT.java</sonar.test.exclusions>
+                <sonar.java.source>${java.version}</sonar.java.source>
+                <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
+                <sonar.junit.reportPaths>${project.build.directory}/surefire-reports,${project.build.directory}/failsafe-reports</sonar.junit.reportPaths>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>quick</id>
+            <properties>
+                <skipTests>true</skipTests>
+                <skipITs>true</skipITs>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+                <jacoco.skip>true</jacoco.skip>
+                <dependency-check.skip>true</dependency-check.skip>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>ci</id>
+            <properties>
+                <skipTests>false</skipTests>
+                <skipITs>false</skipITs>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>release</id>
+            <properties>
+                <skipTests>false</skipTests>
+                <skipITs>false</skipITs>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>performance</id>
+            <properties>
+                <skipUTs>true</skipUTs>
+                <skipITs>true</skipITs>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>code-quality</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.diffplug.spotless</groupId>
+                        <artifactId>spotless-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>apply</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Mutation Testing Profile -->
+        <profile>
+            <id>mutation-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <executions>
+                            <execution>
+                                <id>run-mutation-tests</id>
+                                <goals>
+                                    <goal>mutationCoverage</goal>
+                                </goals>
+                                <phase>verify</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Contract Testing Profile -->
+        <profile>
+            <id>contract-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>au.com.dius.pact.provider</groupId>
+                        <artifactId>maven</artifactId>
+                        <executions>
+                            <execution>
+                                <id>verify-pacts</id>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Chaos Engineering Profile -->
+        <profile>
+            <id>chaos</id>
+            <properties>
+                <!-- Enable Chaos Monkey -->
+                <chaos.monkey.enabled>true</chaos.monkey.enabled>
+
+                <!-- Assault Configuration -->
+                <chaos.monkey.assaults.level>5</chaos.monkey.assaults.level>
+
+                <!-- Latency Assault: Inject random latency to simulate slow responses -->
+                <chaos.monkey.assaults.latencyActive>true</chaos.monkey.assaults.latencyActive>
+                <chaos.monkey.assaults.latencyRangeStart>1000</chaos.monkey.assaults.latencyRangeStart>
+                <chaos.monkey.assaults.latencyRangeEnd>5000</chaos.monkey.assaults.latencyRangeEnd>
+
+                <!-- Exception Assault: Throw random exceptions to test error handling -->
+                <chaos.monkey.assaults.exceptionsActive>true</chaos.monkey.assaults.exceptionsActive>
+                <chaos.monkey.assaults.exception.type>java.lang.RuntimeException</chaos.monkey.assaults.exception.type>
+                <chaos.monkey.assaults.exception.arguments>Chaos Monkey Exception</chaos.monkey.assaults.exception.arguments>
+
+                <!-- Kill Application Assault: Disabled by default for safety -->
+                <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
+
+                <!-- Memory Assault: Simulate memory pressure -->
+                <chaos.monkey.assaults.memoryActive>false</chaos.monkey.assaults.memoryActive>
+                <chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>90000</chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>
+                <chaos.monkey.assaults.memoryMillisecondsWaitNextIncrease>1000</chaos.monkey.assaults.memoryMillisecondsWaitNextIncrease>
+                <chaos.monkey.assaults.memoryFillIncrementFraction>0.15</chaos.monkey.assaults.memoryFillIncrementFraction>
+                <chaos.monkey.assaults.memoryFillTargetFraction>0.25</chaos.monkey.assaults.memoryFillTargetFraction>
+
+                <!-- CPU Assault: Simulate CPU pressure -->
+                <chaos.monkey.assaults.cpuActive>false</chaos.monkey.assaults.cpuActive>
+                <chaos.monkey.assaults.cpuMillisecondsHoldLoad>90000</chaos.monkey.assaults.cpuMillisecondsHoldLoad>
+                <chaos.monkey.assaults.cpuLoadTargetFraction>0.9</chaos.monkey.assaults.cpuLoadTargetFraction>
+
+                <!-- Watcher Configuration: Define which components to monitor -->
+                <chaos.monkey.watcher.controller>true</chaos.monkey.watcher.controller>
+                <chaos.monkey.watcher.restController>true</chaos.monkey.watcher.restController>
+                <chaos.monkey.watcher.service>true</chaos.monkey.watcher.service>
+                <chaos.monkey.watcher.repository>true</chaos.monkey.watcher.repository>
+                <chaos.monkey.watcher.component>false</chaos.monkey.watcher.component>
+                <chaos.monkey.watcher.restTemplate>false</chaos.monkey.watcher.restTemplate>
+                <chaos.monkey.watcher.webClient>false</chaos.monkey.watcher.webClient>
+
+                <!-- Scheduling Configuration -->
+                <chaos.monkey.assaults.deterministic>false</chaos.monkey.assaults.deterministic>
+                <chaos.monkey.assaults.watchedCustomServices></chaos.monkey.assaults.watchedCustomServices>
+            </properties>
+        </profile>
+
+        <!-- Chaos Engineering Profile - Mild (for initial testing) -->
+        <profile>
+            <id>chaos-mild</id>
+            <properties>
+                <chaos.monkey.enabled>true</chaos.monkey.enabled>
+                <chaos.monkey.assaults.level>2</chaos.monkey.assaults.level>
+                <chaos.monkey.assaults.latencyActive>true</chaos.monkey.assaults.latencyActive>
+                <chaos.monkey.assaults.latencyRangeStart>500</chaos.monkey.assaults.latencyRangeStart>
+                <chaos.monkey.assaults.latencyRangeEnd>2000</chaos.monkey.assaults.latencyRangeEnd>
+                <chaos.monkey.assaults.exceptionsActive>false</chaos.monkey.assaults.exceptionsActive>
+                <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
+                <chaos.monkey.watcher.controller>true</chaos.monkey.watcher.controller>
+                <chaos.monkey.watcher.restController>true</chaos.monkey.watcher.restController>
+                <chaos.monkey.watcher.service>false</chaos.monkey.watcher.service>
+                <chaos.monkey.watcher.repository>false</chaos.monkey.watcher.repository>
+            </properties>
+        </profile>
+
+        <!-- Chaos Engineering Profile - Aggressive (for stress testing) -->
+        <profile>
+            <id>chaos-aggressive</id>
+            <properties>
+                <chaos.monkey.enabled>true</chaos.monkey.enabled>
+                <chaos.monkey.assaults.level>10</chaos.monkey.assaults.level>
+                <chaos.monkey.assaults.latencyActive>true</chaos.monkey.assaults.latencyActive>
+                <chaos.monkey.assaults.latencyRangeStart>2000</chaos.monkey.assaults.latencyRangeStart>
+                <chaos.monkey.assaults.latencyRangeEnd>10000</chaos.monkey.assaults.latencyRangeEnd>
+                <chaos.monkey.assaults.exceptionsActive>true</chaos.monkey.assaults.exceptionsActive>
+                <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
+                <chaos.monkey.assaults.memoryActive>true</chaos.monkey.assaults.memoryActive>
+                <chaos.monkey.assaults.cpuActive>true</chaos.monkey.assaults.cpuActive>
+                <chaos.monkey.watcher.controller>true</chaos.monkey.watcher.controller>
+                <chaos.monkey.watcher.restController>true</chaos.monkey.watcher.restController>
+                <chaos.monkey.watcher.service>true</chaos.monkey.watcher.service>
+                <chaos.monkey.watcher.repository>true</chaos.monkey.watcher.repository>
+                <chaos.monkey.watcher.component>true</chaos.monkey.watcher.component>
+            </properties>
+        </profile>
+
+        <!-- Chaos Engineering Profile - Latency Only -->
+        <profile>
+            <id>chaos-latency</id>
+            <properties>
+                <chaos.monkey.enabled>true</chaos.monkey.enabled>
+                <chaos.monkey.assaults.level>5</chaos.monkey.assaults.level>
+                <chaos.monkey.assaults.latencyActive>true</chaos.monkey.assaults.latencyActive>
+                <chaos.monkey.assaults.latencyRangeStart>1000</chaos.monkey.assaults.latencyRangeStart>
+                <chaos.monkey.assaults.latencyRangeEnd>5000</chaos.monkey.assaults.latencyRangeEnd>
+                <chaos.monkey.assaults.exceptionsActive>false</chaos.monkey.assaults.exceptionsActive>
+                <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
+                <chaos.monkey.assaults.memoryActive>false</chaos.monkey.assaults.memoryActive>
+                <chaos.monkey.assaults.cpuActive>false</chaos.monkey.assaults.cpuActive>
+                <chaos.monkey.watcher.controller>true</chaos.monkey.watcher.controller>
+                <chaos.monkey.watcher.restController>true</chaos.monkey.watcher.restController>
+                <chaos.monkey.watcher.service>true</chaos.monkey.watcher.service>
+                <chaos.monkey.watcher.repository>true</chaos.monkey.watcher.repository>
+            </properties>
+        </profile>
+
+        <!-- Chaos Engineering Profile - Exceptions Only -->
+        <profile>
+            <id>chaos-exceptions</id>
+            <properties>
+                <chaos.monkey.enabled>true</chaos.monkey.enabled>
+                <chaos.monkey.assaults.level>5</chaos.monkey.assaults.level>
+                <chaos.monkey.assaults.latencyActive>false</chaos.monkey.assaults.latencyActive>
+                <chaos.monkey.assaults.exceptionsActive>true</chaos.monkey.assaults.exceptionsActive>
+                <chaos.monkey.assaults.exception.type>java.lang.RuntimeException</chaos.monkey.assaults.exception.type>
+                <chaos.monkey.assaults.exception.arguments>Chaos Monkey Exception Test</chaos.monkey.assaults.exception.arguments>
+                <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
+                <chaos.monkey.assaults.memoryActive>false</chaos.monkey.assaults.memoryActive>
+                <chaos.monkey.assaults.cpuActive>false</chaos.monkey.assaults.cpuActive>
+                <chaos.monkey.watcher.controller>true</chaos.monkey.watcher.controller>
+                <chaos.monkey.watcher.restController>true</chaos.monkey.watcher.restController>
+                <chaos.monkey.watcher.service>true</chaos.monkey.watcher.service>
+                <chaos.monkey.watcher.repository>true</chaos.monkey.watcher.repository>
+            </properties>
+        </profile>
+
+        <!-- Chaos Engineering Profile - Resource Exhaustion -->
+        <profile>
+            <id>chaos-resources</id>
+            <properties>
+                <chaos.monkey.enabled>true</chaos.monkey.enabled>
+                <chaos.monkey.assaults.level>5</chaos.monkey.assaults.level>
+                <chaos.monkey.assaults.latencyActive>false</chaos.monkey.assaults.latencyActive>
+                <chaos.monkey.assaults.exceptionsActive>false</chaos.monkey.assaults.exceptionsActive>
+                <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
+                <chaos.monkey.assaults.memoryActive>true</chaos.monkey.assaults.memoryActive>
+                <chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>60000</chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>
+                <chaos.monkey.assaults.memoryFillTargetFraction>0.25</chaos.monkey.assaults.memoryFillTargetFraction>
+                <chaos.monkey.assaults.cpuActive>true</chaos.monkey.assaults.cpuActive>
+                <chaos.monkey.assaults.cpuMillisecondsHoldLoad>60000</chaos.monkey.assaults.cpuMillisecondsHoldLoad>
+                <chaos.monkey.assaults.cpuLoadTargetFraction>0.8</chaos.monkey.assaults.cpuLoadTargetFraction>
+                <chaos.monkey.watcher.controller>true</chaos.monkey.watcher.controller>
+                <chaos.monkey.watcher.restController>true</chaos.monkey.watcher.restController>
+                <chaos.monkey.watcher.service>true</chaos.monkey.watcher.service>
+                <chaos.monkey.watcher.repository>false</chaos.monkey.watcher.repository>
+            </properties>
+        </profile>
+
+        <!-- Native Build Profile -->
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Build Cache Profile (for faster builds) -->
+        <profile>
+            <id>build-cache</id>
+            <properties>
+                <maven.build.cache.enabled>true</maven.build.cache.enabled>
+                <maven.build.cache.remote.enabled>false</maven.build.cache.remote.enabled>
+                <maven.build.cache.skipCache>false</maven.build.cache.skipCache>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

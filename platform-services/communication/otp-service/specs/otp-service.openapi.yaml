@@ -1,0 +1,243 @@
+openapi: 3.0.3
+info:
+  title: OTP Service API
+  version: 1.0.0
+  description: |
+    A microservice for generating and validating One-Time Passwords (OTPs).
+    Supports JWT-based auth and inter-service token-based communication.
+  contact:
+    name: Backend Team
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+  - url: https://otp-service.yourdomain.com
+    description: Production server
+
+tags:
+  - name: OTP
+    description: OTP operations for verification
+
+paths:
+  /api/otp/send:
+    post:
+      tags: [OTP]
+      summary: Send OTP to phone number
+      operationId: sendOtp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpSendRequest'
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Invalid request or phone number missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access (token missing or invalid)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many OTP requests (rate limited)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Notification service or internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/otp/validate:
+    post:
+      tags: [OTP]
+      summary: Validate the OTP
+      operationId: validateOtp
+      security:
+        - internalToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpValidateRequest'
+      responses:
+        '200':
+          description: OTP validated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: OTP is invalid, expired, or not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/otp/resend:
+    post:
+      tags: [ OTP ]
+      summary: Resend OTP to the user's phone number
+      operationId: resendOtp
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpSendRequest'
+      responses:
+        '200':
+          description: OTP resent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: OTP not previously requested or resend cooldown active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '423':
+          description: OTP sending locked for this phone number due to too many attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many resend attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error or downstream failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Use `Authorization: Bearer <token>`"
+
+    internalToken:
+      type: apiKey
+      in: header
+      name: X-Internal-Token
+      description: "Use `X-Internal-Token: <secure-token>` for inter-service access"
+
+  schemas:
+    OtpSendRequest:
+      type: object
+      required: [phoneNumber]
+      properties:
+        phoneNumber:
+          type: string
+          example: "+919999999999"
+
+    OtpValidateRequest:
+      type: object
+      required: [phoneNumber, otp]
+      properties:
+        phoneNumber:
+          type: string
+          example: "+919999999999"
+        otp:
+          type: string
+          example: "123456"
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OTP validated successfully
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+        - code
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: OTP has expired
+          description: Human-readable message explaining the error
+        code:
+          type: string
+          example: OTP_EXPIRED
+          description: Machine-readable error code for frontend/app logic
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-06-20T10:45:32.123Z"
+          description: Time the error occurred (UTC)
+        path:
+          type: string
+          example: "/api/otp/validate"
+          description: The API path where the error occurred
+        traceId:
+          type: string
+          example: "f8a1b45c-3a2c-4bd1-bc1a-f8d933af784b"
+          description: Unique trace ID (e.g. from OpenTelemetry) for debugging
+        details:
+          type: array
+          description: Optional list of sub-errors (e.g. validation failures)
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "phoneNumber"
+              error:
+                type: string
+                example: "must not be blank"

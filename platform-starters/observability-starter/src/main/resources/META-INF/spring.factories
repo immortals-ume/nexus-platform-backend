@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.immortals.platform.observability.ObservabilityAutoConfiguration

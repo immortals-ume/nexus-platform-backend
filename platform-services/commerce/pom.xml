@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.immortals.platform</groupId>
+        <artifactId>platform-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>commerce-services</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Commerce Services</name>
+    <description>E-Commerce Platform Microservices</description>
+
+    <modules>
+        <module>product-service</module>
+        <module>customer-service</module>
+        <module>order-service</module>
+        <module>payment-service</module>
+        <module>cart-service</module>
+        <module>inventory-service</module>
+        <module>shipping-service</module>
+        <module>review-service</module>
+        <module>promotion-service</module>
+        <module>wishlist-service</module>
+        <module>search-service</module>
+        <module>analytics-service</module>
+        <module>fraud-service</module>
+        <module>return-service</module>
+    </modules>
+
+</project>
