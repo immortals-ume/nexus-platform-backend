@@ -14,8 +14,8 @@
     <description>Bill of Materials for centralized dependency version management</description>
 
     <properties>
-        <spring-boot.version>3.4.1</spring-boot.version>
-        <spring-cloud.version>2024.0.1</spring-cloud.version>
+        <spring-boot.version>3.5.7</spring-boot.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
 
         <postgresql.version>42.7.4</postgresql.version>
         <mysql.version>9.1.0</mysql.version>
@@ -141,11 +141,6 @@
                 <version>1.0.0</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.immortals.platform</groupId>
-                <artifactId>observability-starter</artifactId>
-                <version>1.0.0</version>
-            </dependency>
 
             <dependency>
                 <groupId>com.immortals.platform</groupId>
@@ -159,11 +154,6 @@
                 <version>1.0.0</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.immortals.platform</groupId>
-                <artifactId>security-starter</artifactId>
-                <version>1.0.0</version>
-            </dependency>
 
             <dependency>
                 <groupId>com.immortals.platform</groupId>

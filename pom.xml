@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>
+        <version>3.5.7</version>
         <relativePath/>
     </parent>
 
@@ -28,16 +28,13 @@
     </modules>
 
     <properties>
-        <java.version>21</java.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.compiler.release>21</maven.compiler.release>
-
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-        <spring-cloud.version>2024.0.1</spring-cloud.version>
-
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
@@ -54,22 +51,19 @@
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
-        <pitest-maven-plugin.version>1.15.3</pitest-maven-plugin.version>
-        <pitest-junit5-plugin.version>1.2.1</pitest-junit5-plugin.version>
+        <pitest-maven-plugin.version>1.2.0</pitest-maven-plugin.version>
+        <pitest-junit5-plugin.version>1.2.3</pitest-junit5-plugin.version>
         <pact-jvm-provider-maven.version>4.6.15</pact-jvm-provider-maven.version>
         <native-maven-plugin.version>0.10.3</native-maven-plugin.version>
-
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
         <docker.image.registry>docker.io</docker.image.registry>
         <docker.image.organization>immortals-platform</docker.image.organization>
         <docker.base.image>eclipse-temurin:21-jre-alpine</docker.base.image>
-
         <jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
         <jacoco.minimum.branch.coverage>0.75</jacoco.minimum.branch.coverage>
         <pitest.mutation.threshold>80</pitest.mutation.threshold>
         <pitest.coverage.threshold>80</pitest.coverage.threshold>
-
         <dependency-check.cvss.threshold>7</dependency-check.cvss.threshold>
-
         <argLine>-Xmx1024m -XX:+EnableDynamicAgentLoading</argLine>
         <skipTests>false</skipTests>
         <skipITs>false</skipITs>
@@ -78,7 +72,21 @@
 
     <dependencyManagement>
         <dependencies>
-
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.14</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>2.28.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>33.3.1-jre</version>
+            </dependency>
             <dependency>
                 <groupId>com.immortals.platform</groupId>
                 <artifactId>platform-bom</artifactId>
@@ -86,7 +94,6 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -125,11 +132,9 @@
                             <arg>-parameters</arg>
                             <arg>-Xlint:all,-processing</arg>
                             <arg>-Werror</arg>
-                            <arg>--enable-preview</arg>
                         </compilerArgs>
                         <showWarnings>true</showWarnings>
                         <showDeprecation>true</showDeprecation>
-                        <enablePreview>true</enablePreview>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>
@@ -144,7 +149,6 @@
                             <path>
                                 <groupId>org.springframework.boot</groupId>
                                 <artifactId>spring-boot-configuration-processor</artifactId>
-                                <version>${spring-boot.version}</version>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
@@ -352,16 +356,21 @@
 
                                     <requireMavenVersion>
                                         <version>[3.8.0,)</version>
-                                        <message>Maven 3.8.0 or higher is required. Current version: ${maven.version}</message>
+                                        <message>Maven 3.8.0 or higher is required. Current version: ${maven.version}
+                                        </message>
                                     </requireMavenVersion>
 
                                     <requireJavaVersion>
-                                        <version>[21,)</version>
-                                        <message>Java 21 or higher is required. Current version: ${java.version}</message>
+                                        <version>[17,)</version>
+                                        <message>Java 17 or higher is required. Current version: ${java.version}
+                                        </message>
                                     </requireJavaVersion>
 
                                     <dependencyConvergence>
-                                        <message>Dependency convergence error: Multiple versions of the same dependency detected.</message>
+                                        <uniqueVersions>false</uniqueVersions>
+                                        <message>Dependency convergence error: Multiple versions of the same dependency
+                                            detected.
+                                        </message>
                                     </dependencyConvergence>
 
                                     <banDuplicateClasses>
@@ -370,9 +379,13 @@
                                             <ignoreClass>org.slf4j.*</ignoreClass>
                                             <ignoreClass>javax.annotation.*</ignoreClass>
                                             <ignoreClass>jakarta.annotation.*</ignoreClass>
+                                            <ignoreClass>org.aopalliance.*</ignoreClass>
+                                            <ignoreClass>org.apache.commons.logging.*</ignoreClass>
                                         </ignoreClasses>
                                         <findAllDuplicates>true</findAllDuplicates>
-                                        <message>Duplicate classes found in dependencies. This can lead to unpredictable behavior.</message>
+                                        <message>Duplicate classes found in dependencies. This can lead to unpredictable
+                                            behavior.
+                                        </message>
                                     </banDuplicateClasses>
 
                                     <bannedDependencies>
@@ -385,9 +398,12 @@
 
                                             <exclude>commons-beanutils:commons-beanutils:[1.0,1.9.4)</exclude>
                                             <exclude>org.yaml:snakeyaml:[1.0,1.33)</exclude>
-                                            <exclude>com.fasterxml.jackson.core:jackson-databind:[2.0,2.13.4.2)</exclude>
+                                            <exclude>com.fasterxml.jackson.core:jackson-databind:[2.0,2.13.4.2)
+                                            </exclude>
                                         </excludes>
-                                        <message>Banned vulnerable dependency detected. Please upgrade to a secure version.</message>
+                                        <message>Banned vulnerable dependency detected. Please upgrade to a secure
+                                            version.
+                                        </message>
                                     </bannedDependencies>
                                 </rules>
                             </configuration>
@@ -466,41 +482,141 @@
 
                             <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
 
-                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-*</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-configuration-processor</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-*
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>
+                                org.springframework.boot:spring-boot-configuration-processor
+                            </ignoredUnusedDeclaredDependency>
 
                             <ignoredUnusedDeclaredDependency>org.postgresql:postgresql</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
 
-                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-test</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-test
+                            </ignoredUnusedDeclaredDependency>
 
-                            <ignoredUnusedDeclaredDependency>io.micrometer:micrometer-*</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>io.opentelemetry:opentelemetry-*</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>io.zipkin.reporter2:zipkin-reporter-brave</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>ch.qos.logback:logback-classic</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>net.logstash.logback:logstash-logback-encoder</ignoredUnusedDeclaredDependency>
+                            <!-- Testing frameworks -->
+                            <ignoredUnusedDeclaredDependency>net.jqwik:jqwik</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.testcontainers:*</ignoredUnusedDeclaredDependency>
 
-                            <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.core:jackson-databind</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.datatype:jackson-datatype-jsr310</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.apache.commons:commons-lang3</ignoredUnusedDeclaredDependency>
+                            <!-- Optional runtime dependencies -->
+                            <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-spring-boot3
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-bus-kafka
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-config-monitor
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-netflix-eureka-client
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-netflix-eureka-server
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-config
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-test
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-gateway
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-loadbalancer
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>io.projectreactor:reactor-test
+                            </ignoredUnusedDeclaredDependency>
+
+                            <ignoredUnusedDeclaredDependency>io.micrometer:micrometer-*
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>io.opentelemetry:opentelemetry-*
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>io.zipkin.reporter2:zipkin-reporter-brave
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>ch.qos.logback:logback-classic
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>net.logstash.logback:logstash-logback-encoder
+                            </ignoredUnusedDeclaredDependency>
+
+                            <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.core:jackson-databind
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.datatype:jackson-datatype-jsr310
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.apache.commons:commons-lang3
+                            </ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency> org.apache.tomcat:tomcat-annotations-api</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
 
                         <ignoredUsedUndeclaredDependencies>
 
-                            <ignoredUsedUndeclaredDependency>jakarta.annotation:jakarta.annotation-api</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>jakarta.annotation:jakarta.annotation-api
+                            </ignoredUsedUndeclaredDependency>
 
                             <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
 
-                            <ignoredUsedUndeclaredDependency>org.springframework:spring-*</ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot</ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-actuator-autoconfigure</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework:spring-*
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>
+                                org.springframework.boot:spring-boot-actuator-autoconfigure
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>
+                                org.springframework.boot:spring-boot-autoconfigure
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>
+                                org.springframework.boot:spring-boot-test
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>
+                                org.springframework.boot:spring-boot-actuator
+                            </ignoredUsedUndeclaredDependency>
 
-                            <ignoredUsedUndeclaredDependency>com.fasterxml.jackson.core:jackson-*</ignoredUsedUndeclaredDependency>
+                            <!-- Testing frameworks -->
+                            <ignoredUsedUndeclaredDependency>net.jqwik:jqwik-api</ignoredUsedUndeclaredDependency>
 
-                            <ignoredUsedUndeclaredDependency>io.opentelemetry:opentelemetry-*</ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-tracing</ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
+                            <!-- Spring Security transitive dependencies -->
+                            <ignoredUsedUndeclaredDependency>org.springframework.security:spring-security-*
+                            </ignoredUsedUndeclaredDependency>
+
+                            <!-- Eureka transitive dependencies -->
+                            <ignoredUsedUndeclaredDependency>com.netflix.eureka:eureka-*
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework.cloud:spring-cloud-netflix-eureka-server
+                            </ignoredUsedUndeclaredDependency>
+
+                            <!-- Resilience4j transitive dependencies -->
+                            <ignoredUsedUndeclaredDependency>io.github.resilience4j:resilience4j-core
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>io.github.resilience4j:resilience4j-circuitbreaker
+                            </ignoredUsedUndeclaredDependency>
+
+                            <!-- Spring Cloud Gateway transitive dependencies -->
+                            <ignoredUsedUndeclaredDependency>org.springframework.cloud:spring-cloud-gateway-server
+                            </ignoredUsedUndeclaredDependency>
+
+                            <!-- Spring Data transitive dependencies -->
+                            <ignoredUsedUndeclaredDependency>org.springframework.data:spring-data-redis
+                            </ignoredUsedUndeclaredDependency>
+
+                            <!-- Reactor transitive dependencies -->
+                            <ignoredUsedUndeclaredDependency>io.projectreactor:reactor-core
+                            </ignoredUsedUndeclaredDependency>
+
+                            <!-- Micrometer transitive dependencies -->
+                            <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-observation
+                            </ignoredUsedUndeclaredDependency>
+
+                            <!-- Spring Cloud Commons transitive dependencies -->
+                            <ignoredUsedUndeclaredDependency>org.springframework.cloud:spring-cloud-commons
+                            </ignoredUsedUndeclaredDependency>
+
+                            <ignoredUsedUndeclaredDependency>com.fasterxml.jackson.core:jackson-*
+                            </ignoredUsedUndeclaredDependency>
+
+                            <ignoredUsedUndeclaredDependency>io.opentelemetry:opentelemetry-*
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-tracing
+                            </ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core
+                            </ignoredUsedUndeclaredDependency>
+
                         </ignoredUsedUndeclaredDependencies>
 
                         <outputFile>${project.build.directory}/dependency-analysis.txt</outputFile>
@@ -714,18 +830,25 @@
 
                             <labels>
                                 <org.opencontainers.image.title>${project.name}</org.opencontainers.image.title>
-                                <org.opencontainers.image.description>${project.description}</org.opencontainers.image.description>
+                                <org.opencontainers.image.description>${project.description}
+                                </org.opencontainers.image.description>
                                 <org.opencontainers.image.version>${project.version}</org.opencontainers.image.version>
                                 <org.opencontainers.image.vendor>Immortals Platform</org.opencontainers.image.vendor>
-                                <org.opencontainers.image.created>${maven.build.timestamp}</org.opencontainers.image.created>
-                                <org.opencontainers.image.source>https://github.com/immortals-platform/${project.artifactId}</org.opencontainers.image.source>
-                                <com.immortals.platform.service.name>${project.artifactId}</com.immortals.platform.service.name>
-                                <com.immortals.platform.build.version>${project.version}</com.immortals.platform.build.version>
-                                <com.immortals.platform.build.timestamp>${maven.build.timestamp}</com.immortals.platform.build.timestamp>
+                                <org.opencontainers.image.created>${maven.build.timestamp}
+                                </org.opencontainers.image.created>
+                                <org.opencontainers.image.source>
+                                    https://github.com/immortals-platform/${project.artifactId}
+                                </org.opencontainers.image.source>
+                                <com.immortals.platform.service.name>${project.artifactId}
+                                </com.immortals.platform.service.name>
+                                <com.immortals.platform.build.version>${project.version}
+                                </com.immortals.platform.build.version>
+                                <com.immortals.platform.build.timestamp>${maven.build.timestamp}
+                                </com.immortals.platform.build.timestamp>
                             </labels>
                         </container>
 
-                        <containerizingMode>layered</containerizingMode>
+                        <containerizingMode>exploded</containerizingMode>
 
                         <extraDirectories>
                             <paths>
@@ -849,7 +972,6 @@
                     <extensions>true</extensions>
                     <configuration>
                         <imageName>${project.artifactId}</imageName>
-                        <mainClass>${start-class}</mainClass>
                         <buildArgs>
                             <buildArg>--no-fallback</buildArg>
                             <buildArg>--install-exit-handlers</buildArg>
@@ -933,12 +1055,16 @@
             <id>sonar</id>
             <properties>
                 <sonar.host.url>http://localhost:9000</sonar.host.url>
-                <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-                <sonar.exclusions>**/target/**,**/generated-sources/**,**/dto/**,**/entity/**,**/config/**</sonar.exclusions>
+                <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml
+                </sonar.coverage.jacoco.xmlReportPaths>
+                <sonar.exclusions>**/target/**,**/generated-sources/**,**/dto/**,**/entity/**,**/config/**
+                </sonar.exclusions>
                 <sonar.test.exclusions>**/*Test.java,**/*IntegrationTest.java,**/*IT.java</sonar.test.exclusions>
                 <sonar.java.source>${java.version}</sonar.java.source>
                 <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
-                <sonar.junit.reportPaths>${project.build.directory}/surefire-reports,${project.build.directory}/failsafe-reports</sonar.junit.reportPaths>
+                <sonar.junit.reportPaths>
+                    ${project.build.directory}/surefire-reports,${project.build.directory}/failsafe-reports
+                </sonar.junit.reportPaths>
             </properties>
             <build>
                 <plugins>
@@ -1102,16 +1228,20 @@
                 <!-- Exception Assault: Throw random exceptions to test error handling -->
                 <chaos.monkey.assaults.exceptionsActive>true</chaos.monkey.assaults.exceptionsActive>
                 <chaos.monkey.assaults.exception.type>java.lang.RuntimeException</chaos.monkey.assaults.exception.type>
-                <chaos.monkey.assaults.exception.arguments>Chaos Monkey Exception</chaos.monkey.assaults.exception.arguments>
+                <chaos.monkey.assaults.exception.arguments>Chaos Monkey Exception
+                </chaos.monkey.assaults.exception.arguments>
 
                 <!-- Kill Application Assault: Disabled by default for safety -->
                 <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
 
                 <!-- Memory Assault: Simulate memory pressure -->
                 <chaos.monkey.assaults.memoryActive>false</chaos.monkey.assaults.memoryActive>
-                <chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>90000</chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>
-                <chaos.monkey.assaults.memoryMillisecondsWaitNextIncrease>1000</chaos.monkey.assaults.memoryMillisecondsWaitNextIncrease>
-                <chaos.monkey.assaults.memoryFillIncrementFraction>0.15</chaos.monkey.assaults.memoryFillIncrementFraction>
+                <chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>90000
+                </chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>
+                <chaos.monkey.assaults.memoryMillisecondsWaitNextIncrease>1000
+                </chaos.monkey.assaults.memoryMillisecondsWaitNextIncrease>
+                <chaos.monkey.assaults.memoryFillIncrementFraction>0.15
+                </chaos.monkey.assaults.memoryFillIncrementFraction>
                 <chaos.monkey.assaults.memoryFillTargetFraction>0.25</chaos.monkey.assaults.memoryFillTargetFraction>
 
                 <!-- CPU Assault: Simulate CPU pressure -->
@@ -1202,7 +1332,8 @@
                 <chaos.monkey.assaults.latencyActive>false</chaos.monkey.assaults.latencyActive>
                 <chaos.monkey.assaults.exceptionsActive>true</chaos.monkey.assaults.exceptionsActive>
                 <chaos.monkey.assaults.exception.type>java.lang.RuntimeException</chaos.monkey.assaults.exception.type>
-                <chaos.monkey.assaults.exception.arguments>Chaos Monkey Exception Test</chaos.monkey.assaults.exception.arguments>
+                <chaos.monkey.assaults.exception.arguments>Chaos Monkey Exception Test
+                </chaos.monkey.assaults.exception.arguments>
                 <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
                 <chaos.monkey.assaults.memoryActive>false</chaos.monkey.assaults.memoryActive>
                 <chaos.monkey.assaults.cpuActive>false</chaos.monkey.assaults.cpuActive>
@@ -1223,7 +1354,8 @@
                 <chaos.monkey.assaults.exceptionsActive>false</chaos.monkey.assaults.exceptionsActive>
                 <chaos.monkey.assaults.killApplicationActive>false</chaos.monkey.assaults.killApplicationActive>
                 <chaos.monkey.assaults.memoryActive>true</chaos.monkey.assaults.memoryActive>
-                <chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>60000</chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>
+                <chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>60000
+                </chaos.monkey.assaults.memoryMillisecondsHoldFilledMemory>
                 <chaos.monkey.assaults.memoryFillTargetFraction>0.25</chaos.monkey.assaults.memoryFillTargetFraction>
                 <chaos.monkey.assaults.cpuActive>true</chaos.monkey.assaults.cpuActive>
                 <chaos.monkey.assaults.cpuMillisecondsHoldLoad>60000</chaos.monkey.assaults.cpuMillisecondsHoldLoad>
@@ -1258,5 +1390,28 @@
             </properties>
         </profile>
     </profiles>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
 </project>
