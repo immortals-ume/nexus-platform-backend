@@ -1,0 +1,127 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-products-table
+      author: platform-team
+      changes:
+        - createTable:
+            tableName: products
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: sku
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: barcode
+                  type: varchar(100)
+                  constraints:
+                    unique: true
+              - column:
+                  name: category_id
+                  type: uuid
+              - column:
+                  name: base_price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: current_price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: currency
+                  type: varchar(3)
+                  defaultValue: USD
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: average_rating
+                  type: decimal(3,2)
+              - column:
+                  name: review_count
+                  type: integer
+                  defaultValueNumeric: 0
+              - column:
+                  name: image_urls
+                  type: text[]
+              - column:
+                  name: metadata
+                  type: jsonb
+              - column:
+                  name: brand
+                  type: varchar(100)
+              - column:
+                  name: model_number
+                  type: varchar(50)
+              - column:
+                  name: weight
+                  type: decimal(10,2)
+              - column:
+                  name: weight_unit
+                  type: varchar(10)
+              - column:
+                  name: length
+                  type: decimal(10,2)
+              - column:
+                  name: width
+                  type: decimal(10,2)
+              - column:
+                  name: height
+                  type: decimal(10,2)
+              - column:
+                  name: dimension_unit
+                  type: varchar(10)
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: varchar(100)
+              - column:
+                  name: updated_by
+                  type: varchar(100)
+              - column:
+                  name: deleted_at
+                  type: timestamp
+              - column:
+                  name: deleted_by
+                  type: varchar(100)
+      rollback:
+        - dropTable:
+            tableName: products

@@ -1,0 +1,118 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-add-filtering-performance-indexes
+      author: platform-team
+      comment: Add additional indexes for filtering and sorting performance (Requirements 12.2, 12.3, 12.4, 124, 12.5)
+      changes:
+        # Composite index for category + price range queries (common pattern)
+        # Supports: WHERE category_id = ? AND current_price BETWEEN ? AND ?
+        - createIndex:
+            indexName: idx_product_category_price
+            tableName: products
+            columns:
+              - column:
+                  name: category_id
+              - column:
+                  name: current_price
+        
+        # Composite index for status + price (common pattern for active products)
+        # Supports: WHERE status = 'ACTIVE' AND current_price BETWEEN ? AND ?
+        - createIndex:
+            indexName: idx_product_status_price
+            tableName: products
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: current_price
+        
+        # Index for average rating filtering
+        # Supports: WHERE average_rating >= 4.0
+        - createIndex:
+            indexName: idx_product_rating
+            tableName: products
+            columns:
+              - column:
+                  name: average_rating
+        
+        # Index for created_at for sorting by date (Requirements 12.4)
+        # Supports: ORDER BY created_at DESC
+        - createIndex:
+            indexName: idx_product_created_at
+            tableName: products
+            columns:
+              - column:
+                  name: created_at
+                  descending: true
+        
+        # Index for name sorting (Requirements 12.4)
+        # Supports: ORDER BY name ASC/DESC
+        - createIndex:
+            indexName: idx_product_name_sort
+            tableName: products
+            columns:
+              - column:
+                  name: name
+        
+        # Note: Full-text search is handled by Search Service (Elasticsearch)
+        # No need for PostgreSQL full-text search indexes here
+        - sql:
+            dbms: postgresql
+            sql: >
+              CREATE INDEX IF NOT EXISTS idx_product_name_description_fts 
+              ON products USING GIN (to_tsvector('english', COALESCE(name, '') || ' ' || COALESCE(description, '')));
+            comment: Full-text search index for product name and description
+        
+        # Composite index for common query pattern: non-deleted + status
+        # Supports: WHERE deleted_at IS NULL AND status = ?
+        - createIndex:
+            indexName: idx_product_not_deleted_status
+            tableName: products
+            columns:
+              - column:
+                  name: deleted_at
+              - column:
+                  name: status
+        
+        # Composite index for category + status (common filter combination)
+        # Supports: WHERE category_id = ? AND status = 'ACTIVE'
+        - createIndex:
+            indexName: idx_product_category_status
+            tableName: products
+            columns:
+              - column:
+                  name: category_id
+              - column:
+                  name: status
+        
+        # Update statistics for query planner optimization
+        - sql:
+            dbms: postgresql
+            sql: ANALYZE products;
+            comment: Update table statistics for query planner
+      
+      rollback:
+        - dropIndex:
+            indexName: idx_product_category_price
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_status_price
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_rating
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_created_at
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_name_sort
+            tableName: products
+        - sql:
+            dbms: postgresql
+            sql: DROP INDEX IF EXISTS idx_product_name_description_fts;
+        - dropIndex:
+            indexName: idx_product_not_deleted_status
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_category_status
+            tableName: products

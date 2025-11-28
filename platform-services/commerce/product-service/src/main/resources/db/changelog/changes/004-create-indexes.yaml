@@ -1,0 +1,129 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-indexes
+      author: platform-team
+      changes:
+        # Product indexes
+        - createIndex:
+            indexName: idx_product_sku
+            tableName: products
+            columns:
+              - column:
+                  name: sku
+        - createIndex:
+            indexName: idx_product_barcode
+            tableName: products
+            columns:
+              - column:
+                  name: barcode
+        - createIndex:
+            indexName: idx_product_status
+            tableName: products
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_product_category
+            tableName: products
+            columns:
+              - column:
+                  name: category_id
+        - createIndex:
+            indexName: idx_product_deleted_at
+            tableName: products
+            columns:
+              - column:
+                  name: deleted_at
+        - createIndex:
+            indexName: idx_product_brand
+            tableName: products
+            columns:
+              - column:
+                  name: brand
+        - createIndex:
+            indexName: idx_product_price
+            tableName: products
+            columns:
+              - column:
+                  name: current_price
+        
+        # Category indexes
+        - createIndex:
+            indexName: idx_category_parent
+            tableName: categories
+            columns:
+              - column:
+                  name: parent_id
+        - createIndex:
+            indexName: idx_category_display_order
+            tableName: categories
+            columns:
+              - column:
+                  name: display_order
+        - createIndex:
+            indexName: idx_category_slug
+            tableName: categories
+            columns:
+              - column:
+                  name: slug
+        - createIndex:
+            indexName: idx_category_deleted_at
+            tableName: categories
+            columns:
+              - column:
+                  name: deleted_at
+        
+        # Price history indexes
+        - createIndex:
+            indexName: idx_price_history_product
+            tableName: price_history
+            columns:
+              - column:
+                  name: product_id
+        - createIndex:
+            indexName: idx_price_history_changed_at
+            tableName: price_history
+            columns:
+              - column:
+                  name: changed_at
+                  descending: true
+      rollback:
+        - dropIndex:
+            indexName: idx_product_sku
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_barcode
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_status
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_category
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_deleted_at
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_brand
+            tableName: products
+        - dropIndex:
+            indexName: idx_product_price
+            tableName: products
+        - dropIndex:
+            indexName: idx_category_parent
+            tableName: categories
+        - dropIndex:
+            indexName: idx_category_display_order
+            tableName: categories
+        - dropIndex:
+            indexName: idx_category_slug
+            tableName: categories
+        - dropIndex:
+            indexName: idx_category_deleted_at
+            tableName: categories
+        - dropIndex:
+            indexName: idx_price_history_product
+            tableName: price_history
+        - dropIndex:
+            indexName: idx_price_history_changed_at
+            tableName: price_history

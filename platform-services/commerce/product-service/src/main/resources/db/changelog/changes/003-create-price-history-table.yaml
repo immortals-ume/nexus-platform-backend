@@ -1,0 +1,87 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-price-history-table
+      author: platform-team
+      changes:
+        - createTable:
+            tableName: price_history
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: old_price
+                  type: decimal(10,2)
+              - column:
+                  name: new_price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: changed_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: changed_by
+                  type: varchar(100)
+              - column:
+                  name: reason
+                  type: varchar(500)
+              - column:
+                  name: change_type
+                  type: varchar(50)
+              - column:
+                  name: price_difference
+                  type: decimal(10,2)
+              - column:
+                  name: percentage_change
+                  type: decimal(5,2)
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: varchar(100)
+              - column:
+                  name: updated_by
+                  type: varchar(100)
+              - column:
+                  name: deleted_at
+                  type: timestamp
+              - column:
+                  name: deleted_by
+                  type: varchar(100)
+        - addForeignKeyConstraint:
+            baseTableName: price_history
+            baseColumnNames: product_id
+            referencedTableName: products
+            referencedColumnNames: id
+            constraintName: fk_price_history_product
+            onDelete: CASCADE
+      rollback:
+        - dropTable:
+            tableName: price_history
