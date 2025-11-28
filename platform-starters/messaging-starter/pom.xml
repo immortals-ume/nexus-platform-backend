@@ -264,7 +264,14 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <configuration>
                     <ignoredUnusedDeclaredDependencies>
+                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-web</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-configuration-processor</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-data-redis</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-validation</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-test</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-data-jpa</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.springframework.kafka:spring-kafka-test</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-spring-boot3</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-circuitbreaker</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-bulkhead</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-ratelimiter</ignoredUnusedDeclaredDependency>
