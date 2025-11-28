@@ -22,7 +22,7 @@ import java.util.Map;
  */
 @Getter
 public class CacheConfiguration {
-    
+
     private Duration ttl;
     private EvictionPolicy evictionPolicy;
     private boolean compressionEnabled;
@@ -30,7 +30,7 @@ public class CacheConfiguration {
     private boolean stampedeProtectionEnabled;
     private boolean circuitBreakerEnabled;
     private Map<String, Object> providerSpecificConfig;
-    
+
     public CacheConfiguration() {
         this.ttl = Duration.ofHours(1);
         this.evictionPolicy = EvictionPolicy.LRU;
@@ -40,7 +40,7 @@ public class CacheConfiguration {
         this.circuitBreakerEnabled = false;
         this.providerSpecificConfig = new HashMap<>();
     }
-    
+
     /**
      * Creates a copy of this configuration.
      * 
@@ -85,7 +85,7 @@ public class CacheConfiguration {
     public void setCircuitBreakerEnabled(boolean circuitBreakerEnabled) {
         this.circuitBreakerEnabled = circuitBreakerEnabled;
     }
-    
+
     @Override
     public String toString() {
         return "CacheConfiguration{" +
@@ -97,11 +97,11 @@ public class CacheConfiguration {
                 ", circuitBreakerEnabled=" + circuitBreakerEnabled +
                 '}';
     }
-    
+
     public enum EvictionPolicy {
-        LRU,  // Least Recently Used
-        LFU,  // Least Frequently Used
-        FIFO, // First In First Out
-        TTL   // Time To Live
+        LRU,
+        LFU,
+        FIFO,
+        TTL
     }
 }

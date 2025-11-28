@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,29 +21,26 @@ import java.util.Optional;
 
 @Slf4j
 public class CacheHealthIndicator implements HealthIndicator {
-    
+
     private final List<CacheService<?, ?>> cacheServices;
     private final Optional<RedisConnectionFactory> redisConnectionFactory;
-    
+
     public CacheHealthIndicator(
             List<CacheService<?, ?>> cacheServices,
             Optional<RedisConnectionFactory> redisConnectionFactory) {
         this.cacheServices = cacheServices;
         this.redisConnectionFactory = redisConnectionFactory;
     }
-    
+
     @Override
     public Health health() {
         try {
             Map<String, Object> details = new HashMap<>();
-            
-            // Check Redis connectivity if available
+
             boolean redisHealthy = checkRedisHealth(details);
-            
-            // Collect cache statistics
+
             collectCacheStatistics(details);
-            
-            // Determine overall health
+
             if (redisHealthy || cacheServices.isEmpty()) {
                 return Health.up()
                     .withDetails(details)
@@ -55,7 +51,7 @@ public class CacheHealthIndicator implements HealthIndicator {
                     .withDetails(details)
                     .build();
             }
-            
+
         } catch (Exception e) {
             log.error("Error checking cache health", e);
             return Health.down()
@@ -63,7 +59,7 @@ public class CacheHealthIndicator implements HealthIndicator {
                 .build();
         }
     }
-    
+
     /**
      * Checks Redis connectivity.
      * 
@@ -75,29 +71,29 @@ public class CacheHealthIndicator implements HealthIndicator {
             details.put("redis", "not configured");
             return true;
         }
-        
+
         try {
             RedisConnectionFactory factory = redisConnectionFactory.get();
             factory.getConnection().ping();
-            
+
             Map<String, Object> redisDetails = new HashMap<>();
             redisDetails.put("status", "UP");
             redisDetails.put("connection", "active");
             details.put("redis", redisDetails);
-            
+
             return true;
         } catch (Exception e) {
             log.warn("Redis health check failed", e);
-            
+
             Map<String, Object> redisDetails = new HashMap<>();
             redisDetails.put("status", "DOWN");
             redisDetails.put("error", e.getMessage());
             details.put("redis", redisDetails);
-            
+
             return false;
         }
     }
-    
+
     /**
      * Collects statistics from all cache services.
      * 
@@ -108,14 +104,14 @@ public class CacheHealthIndicator implements HealthIndicator {
             details.put("caches", "none configured");
             return;
         }
-        
+
         Map<String, Object> cacheStats = new HashMap<>();
         int cacheIndex = 0;
-        
+
         for (CacheService<?, ?> cacheService : cacheServices) {
             try {
                 CacheStatistics stats = cacheService.getStatistics();
-                
+
                 Map<String, Object> serviceStats = new HashMap<>();
                 serviceStats.put("namespace", stats.getNamespace());
                 serviceStats.put("hitRate", String.format("%.2f%%", stats.getHitRate() * 100));
@@ -125,25 +121,25 @@ public class CacheHealthIndicator implements HealthIndicator {
                 serviceStats.put("currentSize", stats.getCurrentSize());
                 serviceStats.put("avgGetLatency", String.format("%.2fms", stats.getAvgGetLatency()));
                 serviceStats.put("avgPutLatency", String.format("%.2fms", stats.getAvgPutLatency()));
-                
+
                 if (stats.getMemoryUsage() != null) {
                     serviceStats.put("memoryUsage", formatBytes(stats.getMemoryUsage()));
                 }
-                
+
                 String cacheName = stats.getNamespace() != null ? stats.getNamespace() : "cache-" + cacheIndex;
                 cacheStats.put(cacheName, serviceStats);
                 cacheIndex++;
-                
+
             } catch (Exception e) {
                 log.warn("Failed to collect statistics for cache service", e);
                 cacheStats.put("cache-" + cacheIndex, Map.of("error", e.getMessage()));
                 cacheIndex++;
             }
         }
-        
+
         details.put("caches", cacheStats);
     }
-    
+
     /**
      * Formats bytes into human-readable format.
      * 

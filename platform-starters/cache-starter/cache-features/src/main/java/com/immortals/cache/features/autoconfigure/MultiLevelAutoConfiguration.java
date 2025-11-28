@@ -3,8 +3,8 @@ package com.immortals.cache.features.autoconfigure;
 import com.immortals.cache.core.CacheService;
 import com.immortals.cache.core.CacheServiceFactory;
 import com.immortals.cache.providers.caffeine.CaffeineProperties;
-import com.immortals.cache.providers.multilevel.MultiLevelConfiguration;
 import com.immortals.cache.providers.multilevel.MultiLevelCacheProperties;
+import com.immortals.cache.providers.multilevel.MultiLevelConfiguration;
 import com.immortals.cache.providers.redis.RedisProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -17,27 +17,27 @@ import org.springframework.context.annotation.Import;
 
 /**
  * Auto-configuration for multi-level cache provider.
- * 
+ *
  * <p>This configuration is activated when:
  * <ul>
  *   <li>Caffeine and Redis are on the classpath</li>
  *   <li>Cache type is set to "multi-level"</li>
  *   <li>No custom cache provider bean is defined</li>
  * </ul>
- * 
+ *
  * <p>Multi-level cache provides:
  * <ul>
  *   <li>L1 Cache: Caffeine (local in-memory, fast)</li>
  *   <li>L2 Cache: Redis (distributed, shared across instances)</li>
  *   <li>Eviction Publisher: Redis Pub/Sub for distributed invalidation</li>
  * </ul>
- * 
+ *
  * <p>This is the single AutoConfiguration class for multi-level caching.
  * It orchestrates by importing MultiLevelCacheAutoConfiguration from cache-providers,
  * which handles the actual bean creation and configuration logic.
- * 
+ *
  * <p>Requirements: 5.4, 6.1
- * 
+ *
  * @since 2.0.0
  */
 @Slf4j
@@ -58,7 +58,7 @@ public class MultiLevelAutoConfiguration {
 
     /**
      * Creates Caffeine properties from cache properties.
-     * 
+     *
      * @param cacheProperties main cache properties
      * @return Caffeine-specific properties
      */
@@ -80,11 +80,11 @@ public class MultiLevelAutoConfiguration {
 
     /**
      * Creates a factory that returns the singleton multi-level cache service instance.
-     * 
+     *
      * <p>This factory always returns the same instance, ensuring that all namespaces
      * share the same underlying cache. Namespace isolation is handled by NamespacedCacheService
      * through key prefixing.
-     * 
+     *
      * @param cacheService the singleton multi-level cache service bean
      * @return a factory that returns the singleton instance
      */

@@ -1,24 +1,18 @@
 package com.immortals.cache.providers.caffeine;
 
-import com.immortals.cache.core.exception.CacheConfigurationException;
-import com.immortals.cache.providers.redis.RedisProperties;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
-
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
+import com.immortals.cache.providers.resilience.DecoratorChainFactory;
+import com.immortals.platform.common.exception.CacheConfigurationException;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import io.micrometer.core.instrument.MeterRegistry;
-import com.immortals.cache.providers.resilience.DecoratorChainFactory;
-import org.redisson.api.RedissonClient;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -27,11 +21,12 @@ import java.util.concurrent.TimeUnit;
  * Configuration for Caffeine L1 (local in-memory) cache.
  * Provides high-performance local caching with configurable eviction policies.
  */
+@Slf4j
 @Configuration
-@ConditionalOnProperty(prefix = "cache.redis.l1-cache", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "cache.caffeine.l1-cache", name = "enabled", havingValue = "true")
 @EnableConfigurationProperties
 public class CaffeineConfiguration {
-    private static final Logger log = LoggerFactory.getLogger(CaffeineConfiguration.class);
+
     @Bean
     public CaffeineProperties cacheProperties() {
         return new CaffeineProperties();
@@ -46,14 +41,14 @@ public class CaffeineConfiguration {
     @Bean
     public Cache<Object, Object> caffeineCache(final CaffeineProperties caffeineProperties) {
         try {
-            // Validate properties
             validateCaffeineProperties(caffeineProperties);
-            
+
             Caffeine<Object, Object> builder = Caffeine.newBuilder()
                     .maximumSize(caffeineProperties.getMaximumSize())
-                    .expireAfterWrite(caffeineProperties.getTtl().toMillis(), TimeUnit.MILLISECONDS)
+                    .expireAfterWrite(caffeineProperties.getTtl()
+                            .toMillis(), TimeUnit.MILLISECONDS)
                     .removalListener(removalListener());
-            
+
             String evictionPolicy = CaffeineProperties.EvictionPolicy.LRU.name();
             switch (evictionPolicy) {
                 case "LFU":
@@ -66,7 +61,8 @@ public class CaffeineConfiguration {
                     log.debug("Using LRU-like eviction policy for L1 cache");
                     break;
                 default:
-                    builder.expireAfterAccess(caffeineProperties.getTtl().toMillis(), TimeUnit.MILLISECONDS);
+                    builder.expireAfterAccess(caffeineProperties.getTtl()
+                            .toMillis(), TimeUnit.MILLISECONDS);
                     log.debug("Using LRU eviction policy for L1 cache");
                     break;
             }
@@ -75,18 +71,18 @@ public class CaffeineConfiguration {
                 builder.recordStats();
                 log.info("L1 cache statistics recording enabled");
             }
-            
+
             Cache<Object, Object> cache = builder.build();
-            
+
             log.debug("Caffeine L1 cache created: maxSize={}, ttl={}, evictionPolicy={}",
-                  caffeineProperties.getMaximumSize(),caffeineProperties.getTtl(), evictionPolicy);
-            
+                    caffeineProperties.getMaximumSize(), caffeineProperties.getTtl(), evictionPolicy);
+
             return cache;
         } catch (Exception e) {
             log.error("Failed to create Caffeine cache configuration", e);
             throw new CacheConfigurationException(
-                "Failed to create Caffeine cache: " + e.getMessage(),
-                e
+                    "Failed to create Caffeine cache: " + e.getMessage(),
+                    e
             );
         }
     }
@@ -105,12 +101,12 @@ public class CaffeineConfiguration {
     /**
      * Creates an L1CacheService that wraps the Caffeine cache.
      * Applies resilience decorators (metrics, circuit breaker, stampede protection).
-     * 
+     * <p>
      * Note: This is a prototype bean - a new instance is created for each namespace.
      *
      * @param caffeineProperties the Caffeine configuration properties
-     * @param meterRegistry the meter registry for metrics
-     * @param redissonClient optional Redisson client for distributed locks
+     * @param meterRegistry      the meter registry for metrics
+     * @param redissonClient     optional Redisson client for distributed locks
      * @return configured and decorated L1CacheService
      */
     @Bean
@@ -119,38 +115,35 @@ public class CaffeineConfiguration {
             MeterRegistry meterRegistry,
             @org.springframework.beans.factory.annotation.Autowired(required = false) RedissonClient redissonClient) {
         try {
-            // Validate properties before creating service
             validateCaffeineProperties(caffeineProperties);
-            
-            // Create base cache service (namespace-agnostic)
+
             L1CacheService<String, Object> baseService = new L1CacheService<>(
-                caffeineProperties,
-                meterRegistry
+                    caffeineProperties,
+                    meterRegistry
             );
-            
-            // Apply resilience decorators
+
             DecoratorChainFactory decoratorFactory = new DecoratorChainFactory(
                     meterRegistry,
                     redissonClient,
-                    Duration.ofSeconds(5),  // Default stampede lock timeout
-                    Duration.ofSeconds(5),  // Default computation timeout
-                    50,                      // Default circuit breaker failure threshold
-                    Duration.ofSeconds(60)   // Default circuit breaker wait duration
+                    Duration.ofSeconds(5),
+                    Duration.ofSeconds(5),
+                    50,
+                    Duration.ofSeconds(60)
             );
-            
+
             boolean enableMetrics = true;
             boolean enableStampedeProtection = redissonClient != null;
-            boolean enableCircuitBreaker = false;  // Disabled for L1 cache by default
-            
+            boolean enableCircuitBreaker = false;
+
             com.immortals.cache.core.CacheService<String, Object> decorated = decoratorFactory.buildDecoratorChain(
                     baseService,
-                    "caffeine",  // Provider name, not namespace
+                    "caffeine",
                     enableMetrics,
                     enableStampedeProtection,
                     enableCircuitBreaker,
-                    null  // No fallback cache for L1
+                    null
             );
-            
+
             log.info("L1CacheService bean created successfully with decorators: metrics={}, stampedeProtection={}, circuitBreaker={}",
                     enableMetrics, enableStampedeProtection, enableCircuitBreaker);
             return decorated;
@@ -173,45 +166,45 @@ public class CaffeineConfiguration {
     private void validateCaffeineProperties(CaffeineProperties properties) {
         if (properties == null) {
             throw new CacheConfigurationException(
-                "CaffeineProperties cannot be null",
-                "immortals.cache.caffeine"
+                    "CaffeineProperties cannot be null",
+                    "immortals.cache.caffeine"
             );
         }
 
-        // Validate maximum size
         if (properties.getMaximumSize() <= 0) {
             throw new CacheConfigurationException(
-                "Caffeine cache maximum size must be positive",
-                "immortals.cache.caffeine.maximum-size",
-                properties.getMaximumSize()
+                    "Caffeine cache maximum size must be positive",
+                    "immortals.cache.caffeine.maximum-size",
+                    properties.getMaximumSize()
             );
         }
 
-        // Validate TTL
         if (properties.getTtl() == null) {
             throw new CacheConfigurationException(
-                "Caffeine cache TTL must be configured",
-                "immortals.cache.caffeine.ttl"
+                    "Caffeine cache TTL must be configured",
+                    "immortals.cache.caffeine.ttl"
             );
         }
 
-        if (properties.getTtl().isNegative()) {
+        if (properties.getTtl()
+                .isNegative()) {
             throw new CacheConfigurationException(
-                "Caffeine cache TTL must be positive",
-                "immortals.cache.caffeine.ttl",
-                properties.getTtl()
+                    "Caffeine cache TTL must be positive",
+                    "immortals.cache.caffeine.ttl",
+                    properties.getTtl()
             );
         }
 
-        if (properties.getTtl().isZero()) {
+        if (properties.getTtl()
+                .isZero()) {
             throw new CacheConfigurationException(
-                "Caffeine cache TTL must be greater than zero",
-                "immortals.cache.caffeine.ttl",
-                properties.getTtl()
+                    "Caffeine cache TTL must be greater than zero",
+                    "immortals.cache.caffeine.ttl",
+                    properties.getTtl()
             );
         }
 
         log.debug("Caffeine properties validation passed: maxSize={}, ttl={}",
-            properties.getMaximumSize(), properties.getTtl());
+                properties.getMaximumSize(), properties.getTtl());
     }
 }

@@ -1,12 +1,15 @@
 package com.immortals.platform.common.exception;
 
+import java.io.Serial;
+
 /**
  * Exception for authentication failures.
  * Used when user authentication fails (invalid credentials, locked account, etc.)
  */
 public class AuthenticationException extends SecurityException {
 
-    private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 13L;
 
     public AuthenticationException(String message) {
         super(message);

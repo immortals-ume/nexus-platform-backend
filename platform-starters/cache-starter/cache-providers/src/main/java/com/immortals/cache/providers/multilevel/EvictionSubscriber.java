@@ -1,12 +1,9 @@
 package com.immortals.cache.providers.multilevel;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.immortals.cache.core.CacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.immortals.cache.core.CacheService;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 
@@ -14,7 +11,7 @@ import org.springframework.data.redis.connection.MessageListener;
  * Subscriber for distributed cache eviction events.
  * Listens to Redis Pub/Sub channels and invalidates L1 cache based on events
  * from other application instances.
- * 
+ *
  * @since 2.0.0
  */
 public class EvictionSubscriber implements MessageListener {
@@ -27,9 +24,9 @@ public class EvictionSubscriber implements MessageListener {
     private final String namespace;
 
     public EvictionSubscriber(CacheService<Object, Object> l1Cache,
-                             ObjectMapper objectMapper,
-                             String instanceId,
-                             String namespace) {
+                              ObjectMapper objectMapper,
+                              String instanceId,
+                              String namespace) {
         this.l1Cache = l1Cache;
         this.objectMapper = objectMapper;
         this.instanceId = instanceId;
@@ -42,21 +39,17 @@ public class EvictionSubscriber implements MessageListener {
         try {
             String messageBody = new String(message.getBody());
             EvictionEvent event = objectMapper.readValue(messageBody, EvictionEvent.class);
-            
-            // Skip events from this instance to avoid redundant evictions
             if (instanceId.equals(event.getSource())) {
-                log.debug("Skipping eviction event from same instance: {} for namespace: {}", 
+                log.debug("Skipping eviction event from same instance: {} for namespace: {}",
                         instanceId, namespace);
                 return;
             }
-            
-            // Only process events for this namespace
             if (!namespace.equals(event.getNamespace())) {
-                log.debug("Skipping eviction event for different namespace: {} (expected: {})", 
+                log.debug("Skipping eviction event for different namespace: {} (expected: {})",
                         event.getNamespace(), namespace);
                 return;
             }
-            
+
             handleEvictionEvent(event);
         } catch (Exception e) {
             log.error("Failed to process eviction event for namespace: {}", namespace, e);
@@ -64,9 +57,9 @@ public class EvictionSubscriber implements MessageListener {
     }
 
     private void handleEvictionEvent(EvictionEvent event) {
-        log.debug("Processing L1 cache eviction event: type={}, source={}, namespace={}", 
+        log.debug("Processing L1 cache eviction event: type={}, source={}, namespace={}",
                 event.getType(), event.getSource(), event.getNamespace());
-        
+
         switch (event.getType()) {
             case SINGLE_KEY:
                 evictSingleKey(event.getKey());
@@ -91,11 +84,15 @@ public class EvictionSubscriber implements MessageListener {
         }
     }
 
+    /**
+     *
+     * Pattern-based eviction is challenging for L1 caches without key tracking
+     * For simplicity, we clear all L1 cache for pattern evictions
+     */
     private void evictByPattern(String pattern) {
         try {
-            // Pattern-based eviction is challenging for L1 caches without key tracking
-            // For simplicity, we clear all L1 cache for pattern evictions
-            log.warn("Pattern-based eviction not fully supported for L1 cache in namespace: {}, clearing all L1 entries", 
+
+            log.warn("Pattern-based eviction not fully supported for L1 cache in namespace: {}, clearing all L1 entries",
                     namespace);
             l1Cache.clear();
             log.info("Cleared L1 cache due to pattern eviction: {} in namespace: {}", pattern, namespace);

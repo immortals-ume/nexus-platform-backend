@@ -1,4 +1,6 @@
-package com.immortals.platform.common.exception.exception;
+package com.immortals.platform.common.exception;
+
+import java.io.Serial;
 
 /**
  * Exception thrown when serialization or deserialization of cache values fails.
@@ -28,10 +30,11 @@ package com.immortals.platform.common.exception.exception;
  * @since 2.0.0
  */
 public class CacheSerializationException extends CacheException {
-    
+
+    @Serial
     private static final long serialVersionUID = 1L;
     private static final String ERROR_CODE = "CACHE_SERIALIZATION_ERROR";
-    
+
     private final Class<?> valueType;
     private final SerializationDirection direction;
 
@@ -68,7 +71,7 @@ public class CacheSerializationException extends CacheException {
      * @param direction whether this is serialization or deserialization
      * @param cause the underlying cause
      */
-    public CacheSerializationException(String message, String cacheKey, CacheOperation operation,
+    public CacheSerializationException(String message, String cacheKey, CacheException.CacheOperation operation,
                                       Class<?> valueType, SerializationDirection direction, Throwable cause) {
         super(buildDetailedMessage(message, cacheKey, valueType, direction), cacheKey, operation, cause);
         this.valueType = valueType;
@@ -96,11 +99,11 @@ public class CacheSerializationException extends CacheException {
     /**
      * Builds a detailed error message with troubleshooting guidance.
      */
-    private static String buildDetailedMessage(String message, String cacheKey, 
+    private static String buildDetailedMessage(String message, String cacheKey,
                                               Class<?> valueType, SerializationDirection direction) {
         String typeName = valueType != null ? valueType.getSimpleName() : "Unknown";
         String directionStr = direction == SerializationDirection.SERIALIZATION ? "serializing" : "deserializing";
-        
+
         return String.format(
             "%s (Key: '%s', Type: %s, Direction: %s)" +
             "\n\nCommon Causes:" +
@@ -143,10 +146,10 @@ public class CacheSerializationException extends CacheException {
     public enum SerializationDirection {
         /** Serializing object to cache (write operation) */
         SERIALIZATION,
-        
+
         /** Deserializing object from cache (read operation) */
         DESERIALIZATION,
-        
+
         /** Direction unknown or not applicable */
         UNKNOWN
     }

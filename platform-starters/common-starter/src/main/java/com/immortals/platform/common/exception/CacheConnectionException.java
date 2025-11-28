@@ -1,4 +1,4 @@
-package com.immortals.platform.common.exception.exception;
+package com.immortals.platform.common.exception;
 
 import lombok.Getter;
 
@@ -27,7 +27,7 @@ import java.io.Serial;
  */
 @Getter
 public class CacheConnectionException extends CacheException {
-    
+
     @Serial
     private static final long serialVersionUID = 1L;
     private static final String ERROR_CODE = "CACHE_CONNECTION_ERROR";

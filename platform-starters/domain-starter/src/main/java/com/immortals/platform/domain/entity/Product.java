@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 
 /**
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 @Builder
 public class Product extends BaseEntity {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @NotBlank(message = "SKU is required")

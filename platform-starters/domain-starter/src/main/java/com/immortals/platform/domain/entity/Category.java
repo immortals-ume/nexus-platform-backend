@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,9 +24,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SuppressWarnings("serial")
 public class Category extends BaseEntity {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @NotBlank(message = "Category name is required")
@@ -42,7 +43,7 @@ public class Category extends BaseEntity {
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = false)
     @Builder.Default
-    private List<Category> children = new ArrayList<>();
+    private transient List<Category> children = new ArrayList<>();
 
     @Column(name = "display_order")
     private Integer displayOrder;

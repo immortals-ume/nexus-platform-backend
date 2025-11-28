@@ -30,12 +30,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @Slf4j
 public class CacheObservabilityAspect {
-    
+
     private final MeterRegistry meterRegistry;
     private final CacheTracingService tracingService;
     private final CacheStructuredLogger structuredLogger;
     private final Map<String, CacheMetrics> metricsCache;
-    
+
     public CacheObservabilityAspect(
             MeterRegistry meterRegistry,
             Optional<CacheTracingService> tracingService,
@@ -45,43 +45,43 @@ public class CacheObservabilityAspect {
         this.structuredLogger = structuredLogger;
         this.metricsCache = new ConcurrentHashMap<>();
     }
-    
+
     /**
      * Pointcut for all CacheService.get() methods.
      */
     @Pointcut("execution(* com.immortals.cache.core.CacheService.get(..))")
     public void getCacheOperation() {}
-    
+
     /**
      * Pointcut for all CacheService.put() methods.
      */
     @Pointcut("execution(* com.immortals.cache.core.CacheService.put(..))")
     public void putCacheOperation() {}
-    
+
     /**
      * Pointcut for all CacheService.remove() methods.
      */
     @Pointcut("execution(* com.immortals.cache.core.CacheService.remove(..))")
     public void removeCacheOperation() {}
-    
+
     /**
      * Pointcut for all CacheService.getAll() methods.
      */
     @Pointcut("execution(* com.immortals.cache.core.CacheService.getAll(..))")
     public void getAllCacheOperation() {}
-    
+
     /**
      * Pointcut for all CacheService.putAll() methods.
      */
     @Pointcut("execution(* com.immortals.cache.core.CacheService.putAll(..))")
     public void putAllCacheOperation() {}
-    
+
     /**
      * Pointcut for all CacheService.clear() methods.
      */
     @Pointcut("execution(* com.immortals.cache.core.CacheService.clear(..))")
     public void clearCacheOperation() {}
-    
+
     /**
      * Intercepts get operations to record metrics, tracing, and logging.
      */
@@ -91,22 +91,20 @@ public class CacheObservabilityAspect {
         Object key = args.length > 0 ? args[0] : null;
         String cacheName = getCacheName(joinPoint);
         String namespace = getNamespace(joinPoint);
-        
+
         CacheMetrics metrics = getOrCreateMetrics(cacheName, namespace);
         Instant start = Instant.now();
-        
-        // Start tracing span
+
         Object span = null;
         if (tracingService != null) {
             span = tracingService.startSpan("cache.get", cacheName, namespace);
             tracingService.addAttribute(span, "cache.key", String.valueOf(key));
         }
-        
+
         try {
             Object result = joinPoint.proceed();
             Duration duration = Duration.between(start, Instant.now());
-            
-            // Record metrics
+
             if (result instanceof Optional) {
                 Optional<?> optResult = (Optional<?>) result;
                 if (optResult.isPresent()) {
@@ -123,13 +121,13 @@ public class CacheObservabilityAspect {
                     structuredLogger.logCacheMiss(cacheName, namespace, key, duration);
                 }
             }
-            
+
             metrics.recordGetLatency(duration);
-            
+
             if (tracingService != null) {
                 tracingService.endSpan(span);
             }
-            
+
             return result;
         } catch (Throwable e) {
             metrics.recordError();
@@ -141,7 +139,7 @@ public class CacheObservabilityAspect {
             throw e;
         }
     }
-    
+
     /**
      * Intercepts put operations to record metrics, tracing, and logging.
      */
@@ -151,30 +149,29 @@ public class CacheObservabilityAspect {
         Object key = args.length > 0 ? args[0] : null;
         String cacheName = getCacheName(joinPoint);
         String namespace = getNamespace(joinPoint);
-        
+
         CacheMetrics metrics = getOrCreateMetrics(cacheName, namespace);
         Instant start = Instant.now();
-        
-        // Start tracing span
+
         Object span = null;
         if (tracingService != null) {
             span = tracingService.startSpan("cache.put", cacheName, namespace);
             tracingService.addAttribute(span, "cache.key", String.valueOf(key));
         }
-        
+
         try {
             Object result = joinPoint.proceed();
             Duration duration = Duration.between(start, Instant.now());
-            
+
             metrics.recordPut();
             metrics.recordPutLatency(duration);
-            
+
             structuredLogger.logCachePut(cacheName, namespace, key, duration);
-            
+
             if (tracingService != null) {
                 tracingService.endSpan(span);
             }
-            
+
             return result;
         } catch (Throwable e) {
             metrics.recordError();
@@ -186,7 +183,7 @@ public class CacheObservabilityAspect {
             throw e;
         }
     }
-    
+
     /**
      * Intercepts remove operations to record metrics, tracing, and logging.
      */
@@ -196,30 +193,29 @@ public class CacheObservabilityAspect {
         Object key = args.length > 0 ? args[0] : null;
         String cacheName = getCacheName(joinPoint);
         String namespace = getNamespace(joinPoint);
-        
+
         CacheMetrics metrics = getOrCreateMetrics(cacheName, namespace);
         Instant start = Instant.now();
-        
-        // Start tracing span
+
         Object span = null;
         if (tracingService != null) {
             span = tracingService.startSpan("cache.remove", cacheName, namespace);
             tracingService.addAttribute(span, "cache.key", String.valueOf(key));
         }
-        
+
         try {
             Object result = joinPoint.proceed();
             Duration duration = Duration.between(start, Instant.now());
-            
+
             metrics.recordRemove();
             metrics.recordRemoveLatency(duration);
-            
+
             structuredLogger.logCacheRemove(cacheName, namespace, key, duration);
-            
+
             if (tracingService != null) {
                 tracingService.endSpan(span);
             }
-            
+
             return result;
         } catch (Throwable e) {
             metrics.recordError();
@@ -231,7 +227,7 @@ public class CacheObservabilityAspect {
             throw e;
         }
     }
-    
+
     /**
      * Intercepts getAll operations to record metrics, tracing, and logging.
      */
@@ -239,28 +235,27 @@ public class CacheObservabilityAspect {
     public Object aroundGetAll(ProceedingJoinPoint joinPoint) throws Throwable {
         String cacheName = getCacheName(joinPoint);
         String namespace = getNamespace(joinPoint);
-        
+
         CacheMetrics metrics = getOrCreateMetrics(cacheName, namespace);
         Instant start = Instant.now();
-        
-        // Start tracing span
+
         Object span = null;
         if (tracingService != null) {
             span = tracingService.startSpan("cache.getAll", cacheName, namespace);
         }
-        
+
         try {
             Object result = joinPoint.proceed();
             Duration duration = Duration.between(start, Instant.now());
-            
+
             metrics.recordGetAllLatency(duration);
-            
+
             structuredLogger.logCacheBatchOperation(cacheName, namespace, "getAll", duration);
-            
+
             if (tracingService != null) {
                 tracingService.endSpan(span);
             }
-            
+
             return result;
         } catch (Throwable e) {
             metrics.recordError();
@@ -272,7 +267,7 @@ public class CacheObservabilityAspect {
             throw e;
         }
     }
-    
+
     /**
      * Intercepts putAll operations to record metrics, tracing, and logging.
      */
@@ -280,28 +275,27 @@ public class CacheObservabilityAspect {
     public Object aroundPutAll(ProceedingJoinPoint joinPoint) throws Throwable {
         String cacheName = getCacheName(joinPoint);
         String namespace = getNamespace(joinPoint);
-        
+
         CacheMetrics metrics = getOrCreateMetrics(cacheName, namespace);
         Instant start = Instant.now();
-        
-        // Start tracing span
+
         Object span = null;
         if (tracingService != null) {
             span = tracingService.startSpan("cache.putAll", cacheName, namespace);
         }
-        
+
         try {
             Object result = joinPoint.proceed();
             Duration duration = Duration.between(start, Instant.now());
-            
+
             metrics.recordPutAllLatency(duration);
-            
+
             structuredLogger.logCacheBatchOperation(cacheName, namespace, "putAll", duration);
-            
+
             if (tracingService != null) {
                 tracingService.endSpan(span);
             }
-            
+
             return result;
         } catch (Throwable e) {
             metrics.recordError();
@@ -313,7 +307,7 @@ public class CacheObservabilityAspect {
             throw e;
         }
     }
-    
+
     /**
      * Intercepts clear operations to record logging.
      */
@@ -321,24 +315,23 @@ public class CacheObservabilityAspect {
     public Object aroundClear(ProceedingJoinPoint joinPoint) throws Throwable {
         String cacheName = getCacheName(joinPoint);
         String namespace = getNamespace(joinPoint);
-        
+
         CacheMetrics metrics = getOrCreateMetrics(cacheName, namespace);
-        
-        // Start tracing span
+
         Object span = null;
         if (tracingService != null) {
             span = tracingService.startSpan("cache.clear", cacheName, namespace);
         }
-        
+
         try {
             Object result = joinPoint.proceed();
-            
+
             structuredLogger.logCacheClear(cacheName, namespace);
-            
+
             if (tracingService != null) {
                 tracingService.endSpan(span);
             }
-            
+
             return result;
         } catch (Throwable e) {
             metrics.recordError();
@@ -350,16 +343,16 @@ public class CacheObservabilityAspect {
             throw e;
         }
     }
-    
+
     /**
      * Gets or creates metrics for a cache.
      */
     private CacheMetrics getOrCreateMetrics(String cacheName, String namespace) {
         String key = cacheName + ":" + namespace;
-        return metricsCache.computeIfAbsent(key, 
+        return metricsCache.computeIfAbsent(key,
             k -> new CacheMetrics(meterRegistry, cacheName, namespace));
     }
-    
+
     /**
      * Extracts cache name from the target object.
      */
@@ -370,14 +363,13 @@ public class CacheObservabilityAspect {
         }
         return "unknown";
     }
-    
+
     /**
      * Extracts namespace from the target object.
      * This is a simplified implementation - in practice, you might want to
      * use a more sophisticated approach to extract the namespace.
      */
     private String getNamespace(ProceedingJoinPoint joinPoint) {
-        // Default namespace - can be enhanced to extract from context or target
         return "default";
     }
 }

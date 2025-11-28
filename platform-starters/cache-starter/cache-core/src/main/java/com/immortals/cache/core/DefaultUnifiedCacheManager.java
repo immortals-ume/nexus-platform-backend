@@ -1,10 +1,8 @@
 package com.immortals.cache.core;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * Default implementation of UnifiedCacheManager.
@@ -64,7 +62,7 @@ public class DefaultUnifiedCacheManager implements UnifiedCacheManager {
     public <K, V> CacheService<K, V> getCache(String namespace) {
         validateNamespace(namespace);
         return (CacheService<K, V>) cachedNamespacedInstances.computeIfAbsent(namespace, ns -> {
-            NamespacedCacheService<String, Object> wrapped = 
+            NamespacedCacheService<String, Object> wrapped =
                     new NamespacedCacheService<>((CacheService<String, Object>) sharedCacheInstance, ns);
             return decoratorChainBuilder.buildDecoratorChain(wrapped, ns, defaultConfiguration);
         });
@@ -87,7 +85,7 @@ public class DefaultUnifiedCacheManager implements UnifiedCacheManager {
         validateNamespace(namespace);
         validateConfiguration(config);
         return (CacheService<K, V>) cachedNamespacedInstances.computeIfAbsent(namespace, ns -> {
-            NamespacedCacheService<String, Object> wrapped = 
+            NamespacedCacheService<String, Object> wrapped =
                     new NamespacedCacheService<>((CacheService<String, Object>) sharedCacheInstance, ns);
             return decoratorChainBuilder.buildDecoratorChain(wrapped, ns, config);
         });
@@ -126,7 +124,6 @@ public class DefaultUnifiedCacheManager implements UnifiedCacheManager {
             CacheStatistics cacheStats = sharedCacheInstance.getStatistics();
             stats.put("shared", cacheStats);
         } catch (Exception e) {
-            // Ignore errors
         }
         return stats;
     }

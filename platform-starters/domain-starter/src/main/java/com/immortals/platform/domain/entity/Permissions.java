@@ -2,18 +2,15 @@ package com.immortals.platform.domain.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.immortals.platform.domain.audit.Auditable;
+import com.immortals.platform.domain.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.io.Serializable;
 import java.util.Set;
 
 @Entity
@@ -28,18 +25,13 @@ import java.util.Set;
         }
 )
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 @Audited
-@Setter
-@EntityListeners(AuditingEntityListener.class)
-public class Permissions extends Auditable<String> implements Serializable {
+public class Permissions extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "permission_id", nullable = false, updatable = false)
-    private Long permissionId;
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "permission_name", nullable = false, length = 50)
     @NotNull
@@ -51,5 +43,5 @@ public class Permissions extends Auditable<String> implements Serializable {
 
     @ManyToMany(mappedBy = "permissions")
     @JsonIgnore
-    private Set<Roles> roles;
+    private transient Set<Roles> roles;
 }

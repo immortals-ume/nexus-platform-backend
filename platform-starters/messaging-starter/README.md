@@ -91,12 +91,12 @@ public class UserService {
 
 ### Consuming Events
 
-Extend `AbstractEventHandler` to create event handlers:
+Extend `DlqEnabledEventHandler` to create event handlers with automatic DLQ publishing:
 
 ```java
 @Component
 @Slf4j
-public class UserCreatedEventHandler extends AbstractEventHandler<UserCreatedPayload> {
+public class UserCreatedEventHandler extends DlqEnabledEventHandler<UserCreatedPayload> {
     
     public UserCreatedEventHandler() {
         initMetrics("UserCreatedEventHandler");
@@ -118,6 +118,7 @@ public class UserCreatedEventHandler extends AbstractEventHandler<UserCreatedPay
         
         // Process the event
         // This method will be retried automatically on failure
+        // Failed events are automatically sent to DLQ
     }
     
     @Override
@@ -126,6 +127,8 @@ public class UserCreatedEventHandler extends AbstractEventHandler<UserCreatedPay
     }
 }
 ```
+
+**Note:** Use `DlqEnabledEventHandler` for automatic DLQ publishing. If you need custom DLQ behavior, extend `AbstractEventHandler` and override `onSendToDeadLetterQueue()`.
 
 ### Synchronous Publishing
 
@@ -169,11 +172,29 @@ Failed event processing is automatically retried with exponential backoff:
 
 ### Dead Letter Queue
 
-Events that fail after all retries are sent to a dead letter queue:
+Events that fail after all retries are automatically sent to a dead letter queue:
 
-- DLQ topic is automatically created with `.dlq` suffix
-- Failed events include error metadata
-- Manual retry support for persistent failures
+- DLQ topic is automatically created with `.dlq` suffix (e.g., `user-events.dlq`)
+- Failed events include error metadata (error message, error class, original topic, timestamp)
+- Automatic publishing when using `DlqEnabledEventHandler`
+- Manual retry support via `DeadLetterQueueHandler.retryFromDeadLetterQueue()`
+- Configurable retry limits and non-retryable error types
+
+#### Manual Retry from DLQ
+
+```java
+@Service
+@RequiredArgsConstructor
+public class DlqManagementService {
+    
+    private final DeadLetterQueueHandler dlqHandler;
+    
+    public void retryFailedEvent(DomainEvent<?> event, String originalTopic) {
+        // Retry a failed event from DLQ
+        dlqHandler.retryFromDeadLetterQueue(event, originalTopic);
+    }
+}
+```
 
 ### Metrics
 
@@ -202,6 +223,110 @@ This starter depends on:
 - `observability-starter`: For distributed tracing and metrics
 - `common-starter`: For common utilities and exception handling
 
-## License
+## 🧪 Testing
+
+### Unit Testing
+
+```java
+@SpringBootTest
+class EventPublisherTest {
+    
+    @Autowired
+    private EventPublisher eventPublisher;
+    
+    @MockBean
+    private KafkaTemplate<String, Object> kafkaTemplate;
+    
+    @Test
+    void shouldPublishEvent() {
+        DomainEvent<TestPayload> event = DomainEvent.<TestPayload>builder()
+            .eventType("TestEvent")
+            .aggregateId("123")
+            .payload(new TestPayload("test"))
+            .build();
+        
+        eventPublisher.publish("test-topic", event);
+        
+        verify(kafkaTemplate).send(eq("test-topic"), any());
+    }
+}
+```
+
+### Integration Testing with Testcontainers
+
+```java
+@SpringBootTest
+@Testcontainers
+class KafkaIntegrationTest {
+    
+    @Container
+    static KafkaContainer kafka = new KafkaContainer(
+        DockerImageName.parse("confluentinc/cp-kafka:7.4.0")
+    );
+    
+    @DynamicPropertySource
+    static void kafkaProperties(DynamicPropertyRegistry registry) {
+        registry.add("platform.messaging.kafka.bootstrap-servers", 
+            kafka::getBootstrapServers);
+    }
+    
+    @Test
+    void shouldPublishAndConsumeEvent() {
+    }
+}
+```
+
+## 🔍 Monitoring
+
+### Metrics
+
+Available metrics:
+- `event.handler.success` - Successful event processing
+- `event.handler.failure` - Failed event processing
+- `event.handler.duplicate` - Duplicate events detected
+- `event.handler.processing.time` - Processing time
+
+### Health Checks
+
+```bash
+curl http://localhost:8080/actuator/health/kafka
+```
+
+## 🎯 Best Practices
+
+1. **Use Idempotency**: Always enable idempotency checking
+2. **Handle Failures**: Extend `DlqEnabledEventHandler` for automatic DLQ
+3. **Set Timeouts**: Configure appropriate retry timeouts
+4. **Monitor Metrics**: Track event processing metrics
+5. **Use Correlation IDs**: Enable distributed tracing
+6. **Version Events**: Include version in event payload
+7. **Test Thoroughly**: Use Testcontainers for integration tests
+
+## 🔧 Troubleshooting
+
+### Events Not Being Consumed
+
+- Check Kafka broker connectivity
+- Verify consumer group configuration
+- Check topic exists
+- Review consumer logs
+
+### Duplicate Events
+
+- Verify idempotency is enabled
+- Check Redis connectivity
+- Review idempotency TTL settings
+
+### DLQ Not Working
+
+- Ensure `DlqEnabledEventHandler` is used
+- Check DLQ topic exists
+- Verify DLQ configuration
+
+## 📄 License
 
 Copyright © 2024 Immortals Platform
+
+## 🆘 Support
+
+For issues or questions, contact the platform team.

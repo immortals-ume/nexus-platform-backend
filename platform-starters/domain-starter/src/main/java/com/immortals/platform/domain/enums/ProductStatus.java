@@ -9,27 +9,27 @@ public enum ProductStatus {
      * Product is in draft state, not yet published
      */
     DRAFT("Draft", "Product is being prepared"),
-    
+
     /**
      * Product is active and available for purchase
      */
     ACTIVE("Active", "Product is available for purchase"),
-    
+
     /**
      * Product is temporarily out of stock
      */
     OUT_OF_STOCK("Out of Stock", "Product is temporarily unavailable"),
-    
+
     /**
      * Product is inactive and not visible to customers
      */
     INACTIVE("Inactive", "Product is not available"),
-    
+
     /**
      * Product has been discontinued
      */
     DISCONTINUED("Discontinued", "Product has been discontinued"),
-    
+
     /**
      * Product is archived (soft deleted)
      */

@@ -25,7 +25,6 @@ public abstract class DlqEnabledEventHandler<T> extends AbstractEventHandler<T> 
 
     @Override
     protected void onSendToDeadLetterQueue(DomainEvent<T> event, String dlqTopic, Exception ex) {
-        // This will only be called if EventPublisher is not available or publishing fails
         log.warn("EventPublisher not available or failed. Event {} will not be sent to DLQ topic {}. " +
                 "Consider injecting EventPublisher bean or implementing custom DLQ logic.",
                 event.getEventId(), dlqTopic);

@@ -1,16 +1,13 @@
 package com.immortals.platform.domain.entity;
 
-import com.immortals.platform.domain.audit.Auditable;
+import com.immortals.platform.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.io.Serializable;
 import java.util.Set;
 
 @Entity
@@ -29,14 +26,10 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 @Audited
-@EntityListeners(AuditingEntityListener.class)
-public class States extends Auditable<String> implements Serializable {
+public class States extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "state_name", nullable = false, length = 100)
     private String name;
@@ -49,7 +42,7 @@ public class States extends Auditable<String> implements Serializable {
     private Country country;
 
     @OneToMany(mappedBy = "states")
-    private Set<City> cities;
+    private transient Set<City> cities;
 
     @Column(name = "active_ind", nullable = false)
     private Boolean activeInd;

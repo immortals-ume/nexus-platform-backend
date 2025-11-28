@@ -12,23 +12,23 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 /**
  * Auto-configuration for cache annotation support.
  * Enables declarative caching using @Cacheable, @CachePut, and @CacheEvict annotations.
- * 
+ *
  * @since 2.0.0
  */
 @AutoConfiguration
 @EnableAspectJAutoProxy
 @ConditionalOnClass(CacheService.class)
 @ConditionalOnProperty(
-    prefix = "immortals.cache.annotations",
-    name = "enabled",
-    havingValue = "true",
-    matchIfMissing = true
+        prefix = "immortals.cache.annotations",
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = true
 )
 public class CacheAnnotationAutoConfiguration {
-    
+
     /**
      * Creates the cache aspect bean that processes cache annotations.
-     * 
+     *
      * @param cacheManager the unified cache manager for namespace support
      * @return the cache aspect
      */

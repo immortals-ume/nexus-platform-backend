@@ -9,47 +9,47 @@ public enum PaymentStatus {
      * Payment has been initiated but not yet processed
      */
     PENDING("Pending", "Payment is pending processing"),
-    
+
     /**
      * Payment is being processed by payment gateway
      */
     PROCESSING("Processing", "Payment is being processed"),
-    
+
     /**
      * Payment has been authorized but not yet captured
      */
     AUTHORIZED("Authorized", "Payment has been authorized"),
-    
+
     /**
      * Payment has been successfully completed
      */
     COMPLETED("Completed", "Payment completed successfully"),
-    
+
     /**
      * Payment processing failed
      */
     FAILED("Failed", "Payment processing failed"),
-    
+
     /**
      * Payment has been declined by payment gateway
      */
     DECLINED("Declined", "Payment was declined"),
-    
+
     /**
      * Payment has been cancelled
      */
     CANCELLED("Cancelled", "Payment has been cancelled"),
-    
+
     /**
      * Payment has been refunded
      */
     REFUNDED("Refunded", "Payment has been refunded"),
-    
+
     /**
      * Payment refund is being processed
      */
     REFUND_PENDING("Refund Pending", "Refund is being processed"),
-    
+
     /**
      * Partial refund has been issued
      */
@@ -75,7 +75,7 @@ public enum PaymentStatus {
      * Check if payment is in a terminal state
      */
     public boolean isTerminal() {
-        return this == COMPLETED || this == FAILED || this == DECLINED || 
+        return this == COMPLETED || this == FAILED || this == DECLINED ||
                this == CANCELLED || this == REFUNDED;
     }
 

@@ -1,20 +1,18 @@
 package com.immortals.platform.domain.entity;
 
-import com.immortals.platform.domain.audit.Auditable;
+import com.immortals.platform.domain.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.io.Serializable;
 import java.util.Set;
 
 @Getter
+@Setter
 @Entity
 @Table(
         name = "role",
@@ -28,16 +26,10 @@ import java.util.Set;
 )
 @RequiredArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 @Audited
-@Setter
-@EntityListeners(AuditingEntityListener.class)
-public class Roles extends Auditable<String> implements Serializable {
+public class Roles extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "role_id", nullable = false, unique = true, updatable = false)
-    private Long roleId;
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "role_name", nullable = false, length = 20)
     @NotNull
@@ -53,10 +45,10 @@ public class Roles extends Auditable<String> implements Serializable {
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
-    private Set<Permissions> permissions;
+    private transient Set<Permissions> permissions;
 
     @ManyToMany(mappedBy = "roles")
-    private Set<User> users;
+    private transient Set<User> users;
 
     @Column(name = "active_ind", nullable = false)
     @NotNull

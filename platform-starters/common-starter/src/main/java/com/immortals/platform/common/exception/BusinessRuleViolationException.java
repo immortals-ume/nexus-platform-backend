@@ -1,5 +1,7 @@
 package com.immortals.platform.common.exception;
 
+import java.io.Serial;
+
 /**
  * Exception thrown when a business rule is violated.
  * Used for domain-specific business logic violations that are not simple validation errors.
@@ -7,7 +9,8 @@ package com.immortals.platform.common.exception;
  */
 public class BusinessRuleViolationException extends BusinessException {
 
-    private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 17L;
 
     public BusinessRuleViolationException(String message) {
         super(message, "BUSINESS_RULE_VIOLATION");

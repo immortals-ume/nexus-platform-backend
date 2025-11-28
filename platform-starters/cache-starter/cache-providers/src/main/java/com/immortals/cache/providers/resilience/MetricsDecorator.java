@@ -8,8 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -20,12 +18,12 @@ import java.util.Optional;
  * @param <V> value type
  */
 public class MetricsDecorator<K, V> extends CacheDecorator<K, V> {
-    
+
     private static final Logger log = LoggerFactory.getLogger(MetricsDecorator.class);
-    
+
     private final MeterRegistry meterRegistry;
     private final String namespace;
-    
+
     private final Counter hitCounter;
     private final Counter missCounter;
     private final Counter putCounter;
@@ -34,7 +32,7 @@ public class MetricsDecorator<K, V> extends CacheDecorator<K, V> {
     private final Timer getTimer;
     private final Timer putTimer;
     private final Timer removeTimer;
-    
+
     /**
      * Creates a metrics decorator.
      * 
@@ -42,58 +40,56 @@ public class MetricsDecorator<K, V> extends CacheDecorator<K, V> {
      * @param meterRegistry meter registry for metrics
      * @param namespace cache namespace for metric tags
      */
-    public MetricsDecorator(CacheService<K, V> delegate, 
+    public MetricsDecorator(CacheService<K, V> delegate,
                            MeterRegistry meterRegistry,
                            String namespace) {
         super(delegate);
         this.meterRegistry = meterRegistry;
         this.namespace = namespace;
-        
-        // Initialize counters
+
         this.hitCounter = Counter.builder("cache.hits")
                 .tag("namespace", namespace)
                 .description("Number of cache hits")
                 .register(meterRegistry);
-        
+
         this.missCounter = Counter.builder("cache.misses")
                 .tag("namespace", namespace)
                 .description("Number of cache misses")
                 .register(meterRegistry);
-        
+
         this.putCounter = Counter.builder("cache.puts")
                 .tag("namespace", namespace)
                 .description("Number of cache put operations")
                 .register(meterRegistry);
-        
+
         this.removeCounter = Counter.builder("cache.removes")
                 .tag("namespace", namespace)
                 .description("Number of cache remove operations")
                 .register(meterRegistry);
-        
+
         this.evictionCounter = Counter.builder("cache.evictions")
                 .tag("namespace", namespace)
                 .description("Number of cache evictions")
                 .register(meterRegistry);
-        
-        // Initialize timers
+
         this.getTimer = Timer.builder("cache.get.duration")
                 .tag("namespace", namespace)
                 .description("Duration of cache get operations")
                 .register(meterRegistry);
-        
+
         this.putTimer = Timer.builder("cache.put.duration")
                 .tag("namespace", namespace)
                 .description("Duration of cache put operations")
                 .register(meterRegistry);
-        
+
         this.removeTimer = Timer.builder("cache.remove.duration")
                 .tag("namespace", namespace)
                 .description("Duration of cache remove operations")
                 .register(meterRegistry);
-        
+
         log.debug("Metrics decorator initialized for namespace: {}", namespace);
     }
-    
+
     @Override
     public void put(K key, V value) {
         Timer.Sample sample = Timer.start(meterRegistry);
@@ -104,7 +100,7 @@ public class MetricsDecorator<K, V> extends CacheDecorator<K, V> {
             sample.stop(putTimer);
         }
     }
-    
+
     @Override
     public void put(K key, V value, Duration ttl) {
         Timer.Sample sample = Timer.start(meterRegistry);
@@ -115,7 +111,7 @@ public class MetricsDecorator<K, V> extends CacheDecorator<K, V> {
             sample.stop(putTimer);
         }
     }
-    
+
     @Override
     public Optional<V> get(K key) {
         Timer.Sample sample = Timer.start(meterRegistry);
@@ -133,7 +129,7 @@ public class MetricsDecorator<K, V> extends CacheDecorator<K, V> {
             sample.stop(getTimer);
         }
     }
-    
+
     @Override
     public void remove(K key) {
         Timer.Sample sample = Timer.start(meterRegistry);
@@ -145,13 +141,13 @@ public class MetricsDecorator<K, V> extends CacheDecorator<K, V> {
             sample.stop(removeTimer);
         }
     }
-    
+
     @Override
     public void clear() {
         delegate.clear();
         log.debug("Cache cleared for namespace: {}", namespace);
     }
-    
+
     @Override
     public boolean putIfAbsent(K key, V value) {
         Timer.Sample sample = Timer.start(meterRegistry);
@@ -167,7 +163,7 @@ public class MetricsDecorator<K, V> extends CacheDecorator<K, V> {
             sample.stop(putTimer);
         }
     }
-    
+
     @Override
     public boolean putIfAbsent(K key, V value, Duration ttl) {
         Timer.Sample sample = Timer.start(meterRegistry);

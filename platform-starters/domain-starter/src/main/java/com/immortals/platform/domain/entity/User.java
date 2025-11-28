@@ -1,19 +1,17 @@
 package com.immortals.platform.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.immortals.platform.domain.audit.Auditable;
+import com.immortals.platform.domain.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
-import org.hibernate.proxy.HibernateProxy;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -36,22 +34,11 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 @Audited
-@EntityListeners(AuditingEntityListener.class)
 @ToString(exclude = {"userAddresses", "roles"})
-public class User extends Auditable<String> implements Serializable {
+public class User extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
-    @SequenceGenerator(
-            name = "user_sequence",
-            sequenceName = "auth.user_sequence",
-            allocationSize = 1,
-            initialValue = 1
-    )
-    @Column(name = "user_id", nullable = false, updatable = false)
-    private Long userId;
+    private static final long serialVersionUID = 1L;
 
     @NotBlank
     @Size(max = 50)
@@ -109,7 +96,6 @@ public class User extends Auditable<String> implements Serializable {
     private String alternateContact;
 
     @Column(name = "phone_number_verified", nullable = false)
-    @Builder.Default
     private Boolean phoneNumberVerified = false;
 
     @Column(name = "login_time")
@@ -135,7 +121,7 @@ public class User extends Auditable<String> implements Serializable {
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserAddress> userAddresses;
+    private transient List<UserAddress> userAddresses;
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
@@ -145,5 +131,5 @@ public class User extends Auditable<String> implements Serializable {
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id")
     )
-    private Set<Roles> roles;
+    private transient Set<Roles> roles;
 }

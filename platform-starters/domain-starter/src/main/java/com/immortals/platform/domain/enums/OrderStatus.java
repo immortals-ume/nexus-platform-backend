@@ -9,42 +9,42 @@ public enum OrderStatus {
      * Order has been created but not yet confirmed
      */
     PENDING("Pending", "Order is awaiting confirmation"),
-    
+
     /**
      * Order has been confirmed and inventory reserved
      */
     CONFIRMED("Confirmed", "Order has been confirmed"),
-    
+
     /**
      * Payment has been successfully processed
      */
     PAID("Paid", "Payment completed successfully"),
-    
+
     /**
      * Order is being prepared for shipment
      */
     PROCESSING("Processing", "Order is being processed"),
-    
+
     /**
      * Order has been shipped
      */
     SHIPPED("Shipped", "Order has been shipped"),
-    
+
     /**
      * Order has been delivered to customer
      */
     DELIVERED("Delivered", "Order has been delivered"),
-    
+
     /**
      * Order has been cancelled
      */
     CANCELLED("Cancelled", "Order has been cancelled"),
-    
+
     /**
      * Order processing failed
      */
     FAILED("Failed", "Order processing failed"),
-    
+
     /**
      * Order has been completed successfully
      */

@@ -20,8 +20,8 @@ public record PageRequest(
         if (size <= 0 || size > 100) {
             throw new IllegalArgumentException("Page size must be between 1 and 100");
         }
-        if (sortDirection != null && 
-            !sortDirection.equalsIgnoreCase("ASC") && 
+        if (sortDirection != null &&
+            !sortDirection.equalsIgnoreCase("ASC") &&
             !sortDirection.equalsIgnoreCase("DESC")) {
             throw new IllegalArgumentException("Sort direction must be ASC or DESC");
         }

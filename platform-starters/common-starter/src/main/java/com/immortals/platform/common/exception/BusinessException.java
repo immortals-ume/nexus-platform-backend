@@ -1,12 +1,15 @@
 package com.immortals.platform.common.exception;
 
+import java.io.Serial;
+
 /**
  * Exception for business logic violations.
  * Used when business rules are not satisfied.
  */
 public class BusinessException extends PlatformException {
 
-    private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 15L;
 
     public BusinessException(String message) {
         super(message);

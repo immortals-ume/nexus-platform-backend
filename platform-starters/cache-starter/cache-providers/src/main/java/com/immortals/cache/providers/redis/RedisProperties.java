@@ -1,6 +1,6 @@
 package com.immortals.cache.providers.redis;
 
-import com.immortals.cache.core.exception.CacheConfigurationException;
+import com.immortals.platform.common.exception.CacheConfigurationException;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -77,7 +77,7 @@ public class RedisProperties {
     @Setter
     public static class ReadStrategy {
         private Boolean readFromReplica = false;
-        private String replicaPreference = "REPLICA_PREFERRED"; // REPLICA_PREFERRED, REPLICA, MASTER
+        private String replicaPreference = "REPLICA_PREFERRED";
     }
 
     @Getter
@@ -122,7 +122,7 @@ public class RedisProperties {
     public boolean isPingBeforeActivateConnectionEnabled() {
         return Boolean.TRUE.equals(pingBeforeActivateConnection);
     }
-    
+
     /**
      * Validates the Redis properties.
      * 
@@ -136,7 +136,7 @@ public class RedisProperties {
                 host
             );
         }
-        
+
         if (port == null || port <= 0 || port > 65535) {
             throw new CacheConfigurationException(
                 "Redis port must be between 1 and 65535",

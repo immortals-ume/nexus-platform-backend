@@ -79,10 +79,9 @@ public abstract class AbstractEventHandler<T> {
         String eventId = event.getEventId();
 
         try {
-            log.info("Received event {} from topic {}: {}", 
+            log.info("Received event {} from topic {}: {}",
                 eventId, topic, event.getEventType());
 
-            // Check for duplicate (idempotency)
             if (messagingProperties.getIdempotency().isEnabled() && isDuplicate(eventId)) {
                 log.warn("Duplicate event detected: {}. Skipping processing.", eventId);
                 if (duplicateCounter != null) {
@@ -92,15 +91,12 @@ public abstract class AbstractEventHandler<T> {
                 return;
             }
 
-            // Process the event with retry logic
             processWithRetry(event);
 
-            // Mark as processed for idempotency
             if (messagingProperties.getIdempotency().isEnabled()) {
                 markAsProcessed(eventId);
             }
 
-            // Acknowledge successful processing
             acknowledgment.acknowledge();
 
             if (successCounter != null) {
@@ -110,19 +106,17 @@ public abstract class AbstractEventHandler<T> {
             log.info("Successfully processed event {}", eventId);
 
         } catch (Exception ex) {
-            log.error("Failed to process event {} after all retries: {}", 
+            log.error("Failed to process event {} after all retries: {}",
                 eventId, ex.getMessage(), ex);
 
             if (failureCounter != null) {
                 failureCounter.increment();
             }
 
-            // Send to DLQ if enabled
             if (messagingProperties.getDlq().isEnabled()) {
                 sendToDeadLetterQueue(event, topic, ex);
             }
 
-            // Acknowledge to prevent reprocessing
             acknowledgment.acknowledge();
 
         } finally {
@@ -137,7 +131,7 @@ public abstract class AbstractEventHandler<T> {
      */
     private void processWithRetry(DomainEvent<T> event) throws Exception {
         MessagingProperties.Retry retryConfig = messagingProperties.getRetry();
-        
+
         if (!retryConfig.isEnabled()) {
             processEvent(event);
             return;
@@ -149,21 +143,21 @@ public abstract class AbstractEventHandler<T> {
         double multiplier = retryConfig.getMultiplier();
 
         Exception lastException = null;
-        
+
         for (int attempt = 0; attempt <= maxAttempts; attempt++) {
             try {
                 processEvent(event);
-                return; // Success
+                return;
             } catch (Exception ex) {
                 lastException = ex;
-                
+
                 if (attempt < maxAttempts) {
                     long backoffMillis = calculateBackoff(
                         attempt, initialInterval, maxInterval, multiplier);
-                    
-                    log.warn("Event processing failed (attempt {}/{}). Retrying in {}ms: {}", 
+
+                    log.warn("Event processing failed (attempt {}/{}). Retrying in {}ms: {}",
                         attempt + 1, maxAttempts + 1, backoffMillis, ex.getMessage());
-                    
+
                     try {
                         Thread.sleep(backoffMillis);
                     } catch (InterruptedException ie) {
@@ -175,14 +169,14 @@ public abstract class AbstractEventHandler<T> {
                 }
             }
         }
-        
+
         throw lastException;
     }
 
     /**
      * Calculate exponential backoff delay
      */
-    private long calculateBackoff(int attempt, Duration initialInterval, 
+    private long calculateBackoff(int attempt, Duration initialInterval,
                                   Duration maxInterval, double multiplier) {
         long backoff = (long) (initialInterval.toMillis() * Math.pow(multiplier, attempt));
         return Math.min(backoff, maxInterval.toMillis());
@@ -212,19 +206,27 @@ public abstract class AbstractEventHandler<T> {
     private void sendToDeadLetterQueue(DomainEvent<T> event, String originalTopic, Exception ex) {
         try {
             String dlqTopic = originalTopic + messagingProperties.getDlq().getTopicSuffix();
-            
-            // Add error information to metadata
+
             event.addMetadata("error.message", ex.getMessage());
             event.addMetadata("error.class", ex.getClass().getName());
             event.addMetadata("original.topic", originalTopic);
             event.addMetadata("failed.timestamp", String.valueOf(System.currentTimeMillis()));
-            
-            // This will be handled by DeadLetterQueueHandler
+
             log.error("Sending event {} to DLQ topic {}", event.getEventId(), dlqTopic);
-            
-            // Subclasses can override this to customize DLQ behavior
-            onSendToDeadLetterQueue(event, dlqTopic, ex);
-            
+
+            com.immortals.platform.messaging.publisher.EventPublisher publisher = getEventPublisher();
+            if (publisher != null) {
+                try {
+                    publisher.publish(dlqTopic, event).get();
+                    log.info("Successfully sent event {} to DLQ topic {}", event.getEventId(), dlqTopic);
+                } catch (Exception publishEx) {
+                    log.error("Failed to publish to DLQ via EventPublisher: {}", publishEx.getMessage(), publishEx);
+                    onSendToDeadLetterQueue(event, dlqTopic, ex);
+                }
+            } else {
+                onSendToDeadLetterQueue(event, dlqTopic, ex);
+            }
+
         } catch (Exception dlqEx) {
             log.error("Failed to send event to DLQ: {}", dlqEx.getMessage(), dlqEx);
         }
@@ -247,7 +249,13 @@ public abstract class AbstractEventHandler<T> {
      * Hook for customizing DLQ behavior. Override if needed.
      */
     protected void onSendToDeadLetterQueue(DomainEvent<T> event, String dlqTopic, Exception ex) {
-        // Default implementation does nothing
-        // Subclasses can override to send to DLQ via EventPublisher
+    }
+
+    /**
+     * Get the EventPublisher for sending to DLQ
+     * Subclasses should override this if they want automatic DLQ publishing
+     */
+    protected com.immortals.platform.messaging.publisher.EventPublisher getEventPublisher() {
+        return null;
     }
 }

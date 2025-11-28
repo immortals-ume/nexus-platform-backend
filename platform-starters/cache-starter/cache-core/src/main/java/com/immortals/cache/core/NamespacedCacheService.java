@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class NamespacedCacheService<K, V> implements CacheService<K, V> {
 
     private static final String NAMESPACE_SEPARATOR = ":";
-    
+
     private final CacheService<String, V> delegate;
     private final String namespace;
 
@@ -43,7 +43,7 @@ public class NamespacedCacheService<K, V> implements CacheService<K, V> {
         if (namespace == null || namespace.trim().isEmpty()) {
             throw new IllegalArgumentException("Namespace cannot be null or empty");
         }
-        
+
         this.delegate = delegate;
         this.namespace = namespace;
     }
@@ -74,8 +74,6 @@ public class NamespacedCacheService<K, V> implements CacheService<K, V> {
 
     @Override
     public void clear() {
-        // Note: This clears the entire underlying cache, not just this namespace
-        // For namespace-specific clearing, would need pattern-based deletion
         delegate.clear();
     }
 
@@ -100,10 +98,9 @@ public class NamespacedCacheService<K, V> implements CacheService<K, V> {
         Collection<String> namespacedKeys = keys.stream()
                 .map(this::buildNamespacedKey)
                 .collect(Collectors.toList());
-        
+
         Map<String, V> namespacedResults = delegate.getAll(namespacedKeys);
-        
-        // Convert back to original keys
+
         return namespacedResults.entrySet().stream()
                 .collect(Collectors.toMap(
                         e -> extractOriginalKey(e.getKey()),

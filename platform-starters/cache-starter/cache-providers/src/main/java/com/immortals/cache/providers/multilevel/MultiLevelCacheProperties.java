@@ -1,7 +1,8 @@
 package com.immortals.cache.providers.multilevel;
 
-import com.immortals.cache.core.exception.CacheConfigurationException;
-import lombok.Data;
+import com.immortals.platform.common.exception.CacheConfigurationException;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -9,35 +10,36 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * 
  * @since 2.0.0
  */
-@Data
-@ConfigurationProperties(prefix = "immortals.cache.multi-level")
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "cache.multi-level")
 public class MultiLevelCacheProperties {
-    
+
     /**
      * Enable multi-level caching.
      */
     private boolean enabled = false;
-    
+
     /**
      * Enable distributed eviction notifications.
      */
     private boolean evictionEnabled = true;
-    
+
     /**
      * Enable fallback to L1 when L2 fails.
      */
     private boolean fallbackEnabled = true;
-    
+
     /**
      * Log fallback events.
      */
     private boolean logFallbacks = true;
-    
+
     /**
      * Eviction publisher type (e.g., "redis").
      */
     private String evictionPublisher;
-    
+
     /**
      * Validates the multi-level cache properties.
      * 

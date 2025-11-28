@@ -1,9 +1,8 @@
 package com.immortals.cache.providers.multilevel;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.UUID;
@@ -19,7 +18,7 @@ public class RedisEvictionPublisher implements EvictionPublisher {
 
 
     private static final String EVICTION_CHANNEL_PREFIX = "cache:eviction:";
-    
+
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
     private final String instanceId;
@@ -50,7 +49,7 @@ public class RedisEvictionPublisher implements EvictionPublisher {
             publishEvent(namespace, event);
             log.debug("Published pattern eviction event for pattern: {} in namespace: {}", pattern, namespace);
         } catch (Exception e) {
-            log.error("Failed to publish pattern eviction event for pattern: {} in namespace: {}", 
+            log.error("Failed to publish pattern eviction event for pattern: {} in namespace: {}",
                     pattern, namespace, e);
         }
     }

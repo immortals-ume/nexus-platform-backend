@@ -42,7 +42,7 @@ public class ValidationException extends BusinessException {
      */
     public static class ValidationError implements java.io.Serializable {
         private static final long serialVersionUID = 1L;
-        
+
         private String field;
         private String message;
         private transient Object rejectedValue;

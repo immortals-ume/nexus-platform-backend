@@ -1,19 +1,19 @@
 package com.immortals.platform.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.immortals.platform.domain.audit.Auditable;
+import com.immortals.platform.domain.BaseEntity;
 import com.immortals.platform.domain.enums.AddressStatus;
 import com.immortals.platform.domain.enums.AddressType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.envers.Audited;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity
@@ -35,21 +35,10 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 @Audited
-@EntityListeners(AuditingEntityListener.class)
-public class UserAddress extends Auditable<String> implements Serializable {
+public class UserAddress extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_address_sequence")
-    @SequenceGenerator(
-            name = "user_address_sequence",
-            sequenceName = "auth.user_address_sequence",
-            allocationSize = 1,
-            initialValue = 1
-    )
-    @Column(name = "user_address_id", nullable = false, updatable = false)
-    private Long userAddressId;
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "address_uuid", nullable = false, unique = true, updatable = false, length = 36)
     private String addressUuid;

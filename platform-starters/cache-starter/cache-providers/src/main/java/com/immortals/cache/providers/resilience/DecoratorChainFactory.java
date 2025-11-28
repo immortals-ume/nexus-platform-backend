@@ -17,16 +17,16 @@ import java.time.Duration;
  * 4. Base cache service (innermost)
  */
 public class DecoratorChainFactory {
-    
+
     private static final Logger log = LoggerFactory.getLogger(DecoratorChainFactory.class);
-    
+
     private final MeterRegistry meterRegistry;
     private final RedissonClient redissonClient;
     private final Duration stampedeTimeout;
     private final Duration computationTimeout;
     private final int circuitBreakerFailureThreshold;
     private final Duration circuitBreakerWaitDuration;
-    
+
     /**
      * Creates a decorator chain factory.
      * 
@@ -50,7 +50,7 @@ public class DecoratorChainFactory {
         this.circuitBreakerFailureThreshold = circuitBreakerFailureThreshold;
         this.circuitBreakerWaitDuration = circuitBreakerWaitDuration;
     }
-    
+
     /**
      * Builds a complete decorator chain for a cache service.
      * 
@@ -69,10 +69,9 @@ public class DecoratorChainFactory {
             boolean enableStampedeProtection,
             boolean enableCircuitBreaker,
             CacheService<K, V> fallbackCache) {
-        
+
         CacheService<K, V> decorated = baseCache;
-        
-        // Apply stampede protection first (innermost, after base cache)
+
         if (enableStampedeProtection && redissonClient != null) {
             decorated = new StampedeProtectionDecorator<>(
                     decorated,
@@ -84,8 +83,7 @@ public class DecoratorChainFactory {
             );
             log.debug("Applied stampede protection decorator for namespace: {}", namespace);
         }
-        
-        // Apply circuit breaker
+
         if (enableCircuitBreaker) {
             decorated = new CircuitBreakerDecorator<>(
                     decorated,
@@ -97,8 +95,7 @@ public class DecoratorChainFactory {
             );
             log.debug("Applied circuit breaker decorator for namespace: {}", namespace);
         }
-        
-        // Apply metrics last (outermost - records all operations)
+
         if (enableMetrics && meterRegistry != null) {
             decorated = new MetricsDecorator<>(
                     decorated,
@@ -107,10 +104,10 @@ public class DecoratorChainFactory {
             );
             log.debug("Applied metrics decorator for namespace: {}", namespace);
         }
-        
+
         return decorated;
     }
-    
+
     /**
      * Builds a decorator chain with all features enabled.
      * 
@@ -123,17 +120,17 @@ public class DecoratorChainFactory {
             CacheService<K, V> baseCache,
             String namespace,
             CacheService<K, V> fallbackCache) {
-        
+
         return buildDecoratorChain(
                 baseCache,
                 namespace,
-                true,  // enableMetrics
-                true,  // enableStampedeProtection
-                true,  // enableCircuitBreaker
+                true,
+                true,
+                true,
                 fallbackCache
         );
     }
-    
+
     /**
      * Builds a decorator chain with only metrics enabled.
      * 
@@ -144,13 +141,13 @@ public class DecoratorChainFactory {
     public <K, V> CacheService<K, V> buildMetricsOnlyChain(
             CacheService<K, V> baseCache,
             String namespace) {
-        
+
         return buildDecoratorChain(
                 baseCache,
                 namespace,
-                true,   // enableMetrics
-                false,  // enableStampedeProtection
-                false,  // enableCircuitBreaker
+                true,
+                false,
+                false,
                 null
         );
     }

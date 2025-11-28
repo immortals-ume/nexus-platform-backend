@@ -1,14 +1,12 @@
 package com.immortals.cache.providers.redis;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
-
 
 import java.time.Duration;
 import java.util.Optional;
@@ -45,7 +43,7 @@ public class StampedeProtectionHelper {
 
 
     private static final String LOCK_PREFIX = "cache:stampede:";
-    
+
     private final RedissonClient redissonClient;
     private final Duration lockTimeout;
     private final Duration computationTimeout;
@@ -67,47 +65,46 @@ public class StampedeProtectionHelper {
         this.redissonClient = redissonClient;
         this.lockTimeout = lockTimeout;
         this.computationTimeout = computationTimeout;
-        
+
         this.stampedeActivated = Counter.builder("cache.stampede.protection.activated")
                 .description("Number of times stampede protection was activated")
                 .register(meterRegistry);
-        
+
         this.doubleCheckHits = Counter.builder("cache.stampede.protection.double_check_hit")
                 .description("Number of times double-check found cached value")
                 .register(meterRegistry);
-        
+
         this.computationSuccess = Counter.builder("cache.stampede.protection.computation_success")
                 .description("Number of successful value computations")
                 .register(meterRegistry);
-        
+
         this.computationFailure = Counter.builder("cache.stampede.protection.computation_failure")
                 .description("Number of failed value computations")
                 .register(meterRegistry);
-        
+
         this.computationTime = Counter.builder("cache.stampede.protection.computation_timeout")
                 .description("Number of computation timeouts")
                 .register(meterRegistry);
-        
+
         this.lockWaitTimer = Timer.builder("cache.stampede.lock.wait")
                 .description("Time spent waiting for stampede protection lock")
                 .register(meterRegistry);
-        
+
         this.computationTimer = Timer.builder("cache.stampede.computation")
                 .description("Time spent computing values")
                 .register(meterRegistry);
-        
+
         this.totalTimer = Timer.builder("cache.stampede.total")
                 .description("Total time for stampede-protected operations")
                 .register(meterRegistry);
-        
-        // Create a dedicated thread pool for computation timeout handling
+
         this.executorService = Executors.newCachedThreadPool(r -> {
             Thread thread = new Thread(r);
-            thread.setName("stampede-protection-" + thread.getId());
+            thread.setName("stampede-protection-" + thread.getName());
             thread.setDaemon(true);
             return thread;
         });
-        
+
         log.info("Stampede protection helper initialized with lock timeout: {}, computation timeout: {}",
                 lockTimeout, computationTimeout);
     }
@@ -128,18 +125,16 @@ public class StampedeProtectionHelper {
             Supplier<Optional<V>> cacheCheck,
             Function<K, V> valueLoader,
             java.util.function.Consumer<V> cacheSetter) {
-        
+
         Timer.Sample overallSample = Timer.start();
-        
+
         try {
-            // First check without lock (fast path)
             Optional<V> cached = cacheCheck.get();
             if (cached.isPresent()) {
                 log.debug("Cache hit for key '{}', no stampede protection needed", key);
                 return cached;
             }
 
-            // Cache miss - activate stampede protection
             stampedeActivated.increment();
             log.debug("Cache miss for key '{}', activating stampede protection", key);
 
@@ -147,13 +142,12 @@ public class StampedeProtectionHelper {
             RLock lock = redissonClient.getLock(lockKey);
 
             Timer.Sample lockWaitSample = Timer.start();
-            
+
             try {
-                // Try to acquire lock with timeout
                 boolean acquired = lock.tryLock(lockTimeout.toMillis(), TimeUnit.MILLISECONDS);
-                
+
                 if (!acquired) {
-                    log.warn("Failed to acquire stampede protection lock for key '{}' within {}ms", 
+                    log.warn("Failed to acquire stampede protection lock for key '{}' within {}ms",
                             key, lockTimeout.toMillis());
                     return Optional.empty();
                 }
@@ -161,7 +155,6 @@ public class StampedeProtectionHelper {
                 lockWaitSample.stop(lockWaitTimer);
 
                 try {
-                    // Double-check cache after acquiring lock
                     cached = cacheCheck.get();
                     if (cached.isPresent()) {
                         doubleCheckHits.increment();
@@ -169,11 +162,9 @@ public class StampedeProtectionHelper {
                         return cached;
                     }
 
-                    // Still not in cache, compute the value with timeout protection
                     log.debug("Computing value for key '{}' with stampede protection", key);
                     V value = computeWithTimeout(key, valueLoader);
 
-                    // Store in cache if computation succeeded
                     if (value != null) {
                         cacheSetter.accept(value);
                         computationSuccess.increment();
@@ -183,11 +174,11 @@ public class StampedeProtectionHelper {
                         log.warn("Value loader returned null for key '{}', not caching", key);
                         return Optional.empty();
                     }
-                    
+
                 } finally {
                     lock.unlock();
                 }
-                
+
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.error("Interrupted while waiting for stampede protection lock for key '{}'", key);
@@ -211,7 +202,7 @@ public class StampedeProtectionHelper {
      */
     private <K, V> V computeWithTimeout(K key, Function<K, V> valueLoader) {
         Timer.Sample computationSample = Timer.start();
-        
+
         Future<V> future = executorService.submit(() -> {
             try {
                 return valueLoader.apply(key);
@@ -220,25 +211,25 @@ public class StampedeProtectionHelper {
                 throw new RedisCacheException("Failed to compute value for key: " + key, e);
             }
         });
-        
+
         try {
             V result = future.get(computationTimeout.toMillis(), TimeUnit.MILLISECONDS);
             computationSample.stop(computationTimer);
             return result;
-            
+
         } catch (TimeoutException e) {
             future.cancel(true);
             computationTime.increment();
             log.error("Computation timeout for key '{}' after {} ms", key, computationTimeout.toMillis());
             throw new RedisCacheException(
                     String.format("Computation timeout for key '%s' after %d ms", key, computationTimeout.toMillis()), e);
-            
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             future.cancel(true);
             log.error("Computation interrupted for key '{}'", key);
             throw new RedisCacheException("Computation interrupted for key: " + key, e);
-            
+
         } catch (ExecutionException e) {
             computationFailure.increment();
             Throwable cause = e.getCause();

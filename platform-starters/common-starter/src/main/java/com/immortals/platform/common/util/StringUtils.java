@@ -223,7 +223,7 @@ public final class StringUtils {
         String[] parts = email.split("@");
         String localPart = parts[0];
         String domain = parts[1];
-        
+
         if (localPart.length() <= 2) {
             return mask(localPart, 1, '*') + "@" + domain;
         }

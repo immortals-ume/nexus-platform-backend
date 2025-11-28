@@ -2,8 +2,8 @@ package com.immortals.cache.providers.redis;
 
 import com.immortals.cache.core.CacheService;
 import com.immortals.cache.core.CacheStatistics;
-import com.immortals.cache.core.exception.CacheConnectionException;
-import com.immortals.cache.core.exception.CacheException;
+import com.immortals.platform.common.exception.CacheConnectionException;
+import com.immortals.platform.common.exception.CacheException;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;

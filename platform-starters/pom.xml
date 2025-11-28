@@ -14,6 +14,7 @@
 
     <artifactId>platform-starters</artifactId>
     <packaging>pom</packaging>
+    <version>1.0.0</version>
 
     <name>Platform Starters</name>
     <description>Reusable Spring Boot starters for cross-cutting concerns</description>
@@ -23,8 +24,33 @@
         <module>common-starter</module>
         <module>domain-starter</module>
         <module>messaging-starter</module>
-        <module>observability-starter</module>
-        <module>security-starter</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>confluent</id>
+            <name>Confluent Maven Repository</name>
+            <url>https://packages.confluent.io/maven/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME</url>
+        </repository>
+        <snapshotRepository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>

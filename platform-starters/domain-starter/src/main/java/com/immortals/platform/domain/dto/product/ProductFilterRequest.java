@@ -13,25 +13,25 @@ import java.util.UUID;
  */
 public record ProductFilterRequest(
     UUID categoryId,
-    
+
     BigDecimal minPrice,
-    
+
     BigDecimal maxPrice,
-    
+
     ProductStatus status,
-    
+
     String brand,
-    
+
     BigDecimal minRating,
-    
+
     @Min(value = 0, message = "Page must be non-negative")
     int page,
-    
+
     @Min(value = 1, message = "Size must be at least 1")
     int size,
-    
+
     String sortBy,
-    
+
     String sortDirection
 ) {
     public ProductFilterRequest {

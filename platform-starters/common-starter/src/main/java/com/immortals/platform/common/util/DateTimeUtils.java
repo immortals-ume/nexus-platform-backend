@@ -14,7 +14,6 @@ public final class DateTimeUtils {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }
 
-    // Common date/time formatters
     public static final DateTimeFormatter ISO_DATE_TIME_FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
     public static final DateTimeFormatter ISO_DATE_FORMATTER = DateTimeFormatter.ISO_DATE;
     public static final DateTimeFormatter ISO_TIME_FORMATTER = DateTimeFormatter.ISO_TIME;

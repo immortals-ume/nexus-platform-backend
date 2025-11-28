@@ -1,4 +1,4 @@
-package com.immortals.platform.common.exception.exception;
+package com.immortals.platform.common.exception;
 
 import lombok.Getter;
 

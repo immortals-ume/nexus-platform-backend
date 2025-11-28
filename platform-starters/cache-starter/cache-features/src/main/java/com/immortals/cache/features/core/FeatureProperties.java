@@ -32,20 +32,20 @@ public class FeatureProperties {
          * Whether compression is enabled.
          * Default: false
          */
-        private boolean enabled ;
+        private boolean enabled;
 
         /**
          * Compression algorithm: gzip.
          * Default: gzip
          */
-        private String algorithm ;
+        private String algorithm;
 
         /**
          * Minimum size in bytes to trigger compression.
          * Default: 1024 (1KB)
          */
         @Min(0)
-        private int threshold ;
+        private int threshold;
     }
 
     /**
@@ -57,7 +57,7 @@ public class FeatureProperties {
          * Whether encryption is enabled.
          * Default: false
          */
-        private boolean enabled ;
+        private boolean enabled;
 
         /**
          * Encryption algorithm: AES-GCM.
@@ -76,7 +76,7 @@ public class FeatureProperties {
          * Default: 256
          */
         @Min(128)
-        private int keySize ;
+        private int keySize;
     }
 
     /**
@@ -88,6 +88,6 @@ public class FeatureProperties {
          * Serialization strategy: jackson, java.
          * Default: jackson
          */
-        private String strategy ;
+        private String strategy;
     }
 }

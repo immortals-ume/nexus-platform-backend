@@ -11,127 +11,123 @@ import java.lang.reflect.Method;
 /**
  * Evaluates SpEL expressions for cache annotation conditions.
  * Supports condition and unless expressions with access to method parameters and results.
- * 
+ *
  * @since 2.0.0
  */
 public class ExpressionEvaluator {
-    
+
     private final ExpressionParser parser = new SpelExpressionParser();
-    
+
     /**
      * Evaluates a condition expression before method execution.
      * Used for @Cacheable condition and @CacheEvict condition.
-     * 
+     *
      * @param conditionExpression the SpEL expression to evaluate
-     * @param method the method being invoked
-     * @param args the method arguments
-     * @param parameterNames the parameter names
+     * @param method              the method being invoked
+     * @param args                the method arguments
+     * @param parameterNames      the parameter names
      * @return true if the condition is met, false otherwise
      */
-    public boolean evaluateCondition(String conditionExpression, Method method, 
-                                    Object[] args, String[] parameterNames) {
-        if (conditionExpression == null || conditionExpression.trim().isEmpty()) {
-            return true; // No condition means always true
+    public boolean evaluateCondition(String conditionExpression, Method method,
+                                     Object[] args, String[] parameterNames) {
+        if (conditionExpression == null || conditionExpression.trim()
+                .isEmpty()) {
+            return true;
         }
-        
+
         try {
             Expression expression = parser.parseExpression(conditionExpression);
             EvaluationContext context = createEvaluationContext(args, parameterNames, null);
-            
+
             Boolean result = expression.getValue(context, Boolean.class);
             return result != null && result;
         } catch (Exception e) {
             throw new IllegalArgumentException(
-                "Failed to evaluate condition expression: " + conditionExpression + 
-                " for method: " + method.getName(), e);
+                    "Failed to evaluate condition expression: " + conditionExpression +
+                            " for method: " + method.getName(), e);
         }
     }
-    
+
     /**
      * Evaluates an unless expression after method execution.
      * Used for @Cacheable unless and @CachePut unless.
-     * 
+     *
      * @param unlessExpression the SpEL expression to evaluate
-     * @param method the method being invoked
-     * @param args the method arguments
-     * @param parameterNames the parameter names
-     * @param result the method result
+     * @param method           the method being invoked
+     * @param args             the method arguments
+     * @param parameterNames   the parameter names
+     * @param result           the method result
      * @return true if the unless condition is met (skip caching), false otherwise
      */
-    public boolean evaluateUnless(String unlessExpression, Method method, 
-                                 Object[] args, String[] parameterNames, Object result) {
-        if (unlessExpression == null || unlessExpression.trim().isEmpty()) {
-            return false; // No unless means never skip
+    public boolean evaluateUnless(String unlessExpression, Method method,
+                                  Object[] args, String[] parameterNames, Object result) {
+        if (unlessExpression == null || unlessExpression.trim()
+                .isEmpty()) {
+            return false;
         }
-        
+
         try {
             Expression expression = parser.parseExpression(unlessExpression);
             EvaluationContext context = createEvaluationContext(args, parameterNames, result);
-            
+
             Boolean unlessResult = expression.getValue(context, Boolean.class);
             return unlessResult != null && unlessResult;
         } catch (Exception e) {
             throw new IllegalArgumentException(
-                "Failed to evaluate unless expression: " + unlessExpression + 
-                " for method: " + method.getName(), e);
+                    "Failed to evaluate unless expression: " + unlessExpression +
+                            " for method: " + method.getName(), e);
         }
     }
-    
+
     /**
      * Creates an evaluation context with method parameters and optional result.
-     * 
-     * @param args the method arguments
+     *
+     * @param args           the method arguments
      * @param parameterNames the parameter names
-     * @param result the method result (may be null for pre-execution evaluation)
+     * @param result         the method result (may be null for pre-execution evaluation)
      * @return the evaluation context
      */
     private EvaluationContext createEvaluationContext(Object[] args, String[] parameterNames, Object result) {
         StandardEvaluationContext context = new StandardEvaluationContext();
-        
-        // Add method result if available
+
         if (result != null) {
             context.setVariable("result", result);
-            context.setRootObject(result); // Allow direct property access on result
+            context.setRootObject(result);
         }
-        
-        // Add method arguments
+
         if (args != null && args.length > 0) {
-            // Add positional parameters (#p0, #p1, etc.)
             for (int i = 0; i < args.length; i++) {
                 context.setVariable("p" + i, args[i]);
-                context.setVariable("a" + i, args[i]); // Alternative syntax
+                context.setVariable("a" + i, args[i]);
             }
-            
-            // Add named parameters if available
+
             if (parameterNames != null && parameterNames.length == args.length) {
                 for (int i = 0; i < parameterNames.length; i++) {
                     context.setVariable(parameterNames[i], args[i]);
                 }
             }
         }
-        
+
         return context;
     }
-    
+
     /**
      * Checks if caching should proceed based on condition and unless expressions.
-     * 
+     *
      * @param conditionExpression the condition expression (evaluated before method)
-     * @param unlessExpression the unless expression (evaluated after method)
-     * @param method the method being invoked
-     * @param args the method arguments
-     * @param parameterNames the parameter names
-     * @param result the method result
+     * @param unlessExpression    the unless expression (evaluated after method)
+     * @param method              the method being invoked
+     * @param args                the method arguments
+     * @param parameterNames      the parameter names
+     * @param result              the method result
      * @return true if caching should proceed, false otherwise
      */
     public boolean shouldCache(String conditionExpression, String unlessExpression,
-                              Method method, Object[] args, String[] parameterNames, Object result) {
-        // First check condition (before execution)
+                               Method method, Object[] args, String[] parameterNames, Object result) {
         if (!evaluateCondition(conditionExpression, method, args, parameterNames)) {
             return false;
         }
-        
-        // Then check unless (after execution)
+
         return !evaluateUnless(unlessExpression, method, args, parameterNames, result);
     }
 }

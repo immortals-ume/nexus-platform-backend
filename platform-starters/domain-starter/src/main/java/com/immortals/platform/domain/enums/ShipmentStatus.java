@@ -9,52 +9,52 @@ public enum ShipmentStatus {
      * Shipment has been created but not yet dispatched
      */
     PENDING("Pending", "Shipment is being prepared"),
-    
+
     /**
      * Shipment is being prepared for dispatch
      */
     PROCESSING("Processing", "Shipment is being processed"),
-    
+
     /**
      * Shipment has been dispatched from warehouse
      */
     DISPATCHED("Dispatched", "Shipment has been dispatched"),
-    
+
     /**
      * Shipment is in transit to destination
      */
     IN_TRANSIT("In Transit", "Shipment is on the way"),
-    
+
     /**
      * Shipment is out for delivery
      */
     OUT_FOR_DELIVERY("Out for Delivery", "Shipment is out for delivery"),
-    
+
     /**
      * Shipment has been delivered successfully
      */
     DELIVERED("Delivered", "Shipment has been delivered"),
-    
+
     /**
      * Delivery attempt failed
      */
     DELIVERY_FAILED("Delivery Failed", "Delivery attempt failed"),
-    
+
     /**
      * Shipment has been cancelled
      */
     CANCELLED("Cancelled", "Shipment has been cancelled"),
-    
+
     /**
      * Shipment is being returned
      */
     RETURNING("Returning", "Shipment is being returned"),
-    
+
     /**
      * Shipment has been returned
      */
     RETURNED("Returned", "Shipment has been returned"),
-    
+
     /**
      * Shipment is lost
      */

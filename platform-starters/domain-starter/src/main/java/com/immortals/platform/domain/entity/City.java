@@ -1,16 +1,12 @@
 package com.immortals.platform.domain.entity;
 
-import com.immortals.platform.domain.audit.Auditable;
+import com.immortals.platform.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.envers.Audited;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.io.Serializable;
 
 @Entity
 @Table(
@@ -25,17 +21,13 @@ import java.io.Serializable;
         }
 )
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 @Audited
-@Setter
-@EntityListeners(AuditingEntityListener.class)
-public class City extends Auditable<String> implements Serializable {
+public class City extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "city_name", nullable = false, length = 100)
     private String name;

@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.immortals.platform</groupId>
         <artifactId>cache-starter-parent</artifactId>
-        <version>2.0.0</version>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>cache-observability</artifactId>
@@ -15,14 +15,11 @@
     <description>Observability features for cache service including metrics, health checks, tracing, and logging</description>
 
     <dependencies>
-        <!-- Core module -->
         <dependency>
             <groupId>com.immortals.platform</groupId>
             <artifactId>cache-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -48,46 +45,39 @@
             <artifactId>aspectjweaver</artifactId>
         </dependency>
 
-        <!-- Micrometer for metrics -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
         </dependency>
 
-        <!-- OpenTelemetry for tracing -->
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-api</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- SLF4J for logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
-        <!-- Redis (optional) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- Jackson for Lombok -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
 
-        <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -98,5 +88,4 @@
             <artifactId>opentelemetry-sdk</artifactId>
         </dependency>
     </dependencies>
-
 </project>

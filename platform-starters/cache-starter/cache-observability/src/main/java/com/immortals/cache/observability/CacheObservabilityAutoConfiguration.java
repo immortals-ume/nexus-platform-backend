@@ -25,7 +25,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
     matchIfMissing = true
 )
 public class CacheObservabilityAutoConfiguration {
-    
+
     /**
      * Creates the structured logger bean.
      */
@@ -34,7 +34,7 @@ public class CacheObservabilityAutoConfiguration {
     public CacheStructuredLogger cacheStructuredLogger() {
         return new CacheStructuredLogger();
     }
-    
+
     /**
      * Creates the tracing service bean if OpenTelemetry is available.
      */
@@ -50,7 +50,7 @@ public class CacheObservabilityAutoConfiguration {
     public CacheTracingService cacheTracingService(OpenTelemetry openTelemetry) {
         return new CacheTracingService(openTelemetry);
     }
-    
+
     /**
      * Creates the observability aspect bean.
      */
@@ -68,7 +68,7 @@ public class CacheObservabilityAutoConfiguration {
             CacheStructuredLogger structuredLogger) {
         return new CacheObservabilityAspect(meterRegistry, java.util.Optional.empty(), structuredLogger);
     }
-    
+
     /**
      * Creates the health indicator bean.
      */

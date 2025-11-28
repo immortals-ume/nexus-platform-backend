@@ -5,6 +5,7 @@ import com.immortals.cache.observability.ObservabilityProperties;
 import com.immortals.cache.providers.caffeine.CaffeineProperties;
 import com.immortals.cache.providers.multilevel.MultiLevelCacheProperties;
 import com.immortals.cache.providers.redis.RedisProperties;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -15,26 +16,69 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import jakarta.annotation.PostConstruct;
 
 @Getter
 @Setter
 @Validated
 @ConfigurationProperties(prefix = "immortals.cache")
 public class CacheProperties {
-    
+
     /**
      * Cache type: caffeine, redis, multi-level.
      * Default: caffeine
      */
     @NotNull
     private CacheType type;
-    
+    /**
+     * Default TTL for cache entries.
+     * Default: 1 hour
+     */
+    @NotNull
+    private Duration defaultTtl;
+    /**
+     * Whether caching is enabled globally.
+     * Default: true
+     */
+    private Boolean enabled;
+    /**
+     * Namespace-specific configurations.
+     * Key: namespace name, Value: namespace configuration
+     */
+    private Map<String, NamespaceConfig> namespaces = new HashMap<>();
+    /**
+     * Caffeine-specific configuration.
+     */
+    @NestedConfigurationProperty
+    private CaffeineProperties caffeine = new CaffeineProperties();
+    /**
+     * Redis-specific configuration.
+     */
+    @NestedConfigurationProperty
+    private RedisProperties redisProperties = new RedisProperties();
+    /**
+     * Multi-level cache configuration.
+     */
+    @NestedConfigurationProperty
+    private MultiLevelCacheProperties multiLevel = new MultiLevelCacheProperties();
+    /**
+     * Feature toggles (compression, encryption, serialization).
+     */
+    @NestedConfigurationProperty
+    private FeatureProperties features = new FeatureProperties();
+    /**
+     * Resilience configuration (circuit breaker, stampede protection, timeouts).
+     */
+    @NestedConfigurationProperty
+    private ResilienceProperties resilience = new ResilienceProperties();
+    /**
+     * Observability configuration (metrics, health checks, tracing, logging).
+     */
+    @NestedConfigurationProperty
+    private ObservabilityProperties observability = new ObservabilityProperties();
+
     /**
      * Validates the cache properties after binding.
      * Called automatically by Spring after property binding.
@@ -45,7 +89,7 @@ public class CacheProperties {
         validateDefaultTtl();
         validateEncryptionKey();
     }
-    
+
     /**
      * Validates that cache type is one of the allowed values.
      */
@@ -56,14 +100,14 @@ public class CacheProperties {
             if (!isValid) {
                 throw new IllegalArgumentException(
                         String.format("Invalid cache type: '%s'. Must be one of: %s",
-                                type, String.join(", ", 
+                                type, String.join(", ",
                                         Stream.of(CacheType.values())
                                                 .map(Enum::name)
                                                 .toArray(String[]::new))));
             }
         }
     }
-    
+
     /**
      * Validates that default TTL is a positive duration.
      */
@@ -78,77 +122,27 @@ public class CacheProperties {
                     "Invalid default TTL: duration cannot be zero. TTL must be a positive duration.");
         }
     }
-    
+
     /**
      * Validates that encryption key is provided if encryption is enabled.
      */
     private void validateEncryptionKey() {
         if (features != null && features.getEncryption() != null) {
-            if (features.getEncryption().isEnabled() && 
-                    (features.getEncryption().getKey() == null || 
-                     features.getEncryption().getKey().trim().isEmpty())) {
+            if (features.getEncryption()
+                    .isEnabled() &&
+                    (features.getEncryption()
+                            .getKey() == null ||
+                            features.getEncryption()
+                                    .getKey()
+                                    .trim()
+                                    .isEmpty())) {
                 throw new IllegalArgumentException(
                         "Encryption is enabled but no encryption key is provided. " +
-                        "Please set 'immortals.cache.features.encryption.key' property.");
+                                "Please set 'immortals.cache.features.encryption.key' property.");
             }
         }
     }
-    
-    /**
-     * Default TTL for cache entries.
-     * Default: 1 hour
-     */
-    @NotNull
-    private Duration defaultTtl;
-    
-    /**
-     * Whether caching is enabled globally.
-     * Default: true
-     */
-    private Boolean enabled ;
-    
-    /**
-     * Namespace-specific configurations.
-     * Key: namespace name, Value: namespace configuration
-     */
-    private Map<String, NamespaceConfig> namespaces = new HashMap<>();
-    
-    /**
-     * Caffeine-specific configuration.
-     */
-    @NestedConfigurationProperty
-    private CaffeineProperties caffeine = new CaffeineProperties();
-    
-    /**
-     * Redis-specific configuration.
-     */
-    @NestedConfigurationProperty
-    private RedisProperties redisProperties = new RedisProperties();
-    
-    /**
-     * Multi-level cache configuration.
-     */
-    @NestedConfigurationProperty
-    private MultiLevelCacheProperties multiLevel = new MultiLevelCacheProperties();
-    
-    /**
-     * Feature toggles (compression, encryption, serialization).
-     */
-    @NestedConfigurationProperty
-    private FeatureProperties features = new FeatureProperties();
-    
-    /**
-     * Resilience configuration (circuit breaker, stampede protection, timeouts).
-     */
-    @NestedConfigurationProperty
-    private ResilienceProperties resilience = new ResilienceProperties();
-    
-    /**
-     * Observability configuration (metrics, health checks, tracing, logging).
-     */
-    @NestedConfigurationProperty
-    private ObservabilityProperties observability = new ObservabilityProperties();
-    
+
     /**
      * Cache type enumeration.
      */
@@ -157,7 +151,7 @@ public class CacheProperties {
         REDIS,
         MULTI_LEVEL
     }
-    
+
     /**
      * Namespace-specific configuration.
      */
@@ -168,7 +162,6 @@ public class CacheProperties {
         private Boolean encryptionEnabled;
         private Boolean stampedeProtectionEnabled;
     }
-
 
 
     /**

@@ -20,12 +20,12 @@ import java.util.function.Function;
  * @param <V> value type
  */
 public class StampedeProtectionDecorator<K, V> extends CacheDecorator<K, V> {
-    
+
     private static final Logger log = LoggerFactory.getLogger(StampedeProtectionDecorator.class);
-    
+
     private final StampedeProtectionHelper stampedeHelper;
     private final String namespace;
-    
+
     /**
      * Creates a stampede protection decorator.
      * 
@@ -50,11 +50,11 @@ public class StampedeProtectionDecorator<K, V> extends CacheDecorator<K, V> {
                 computationTimeout,
                 meterRegistry
         );
-        
+
         log.debug("Stampede protection decorator initialized for namespace: {} (lockTimeout: {}, computationTimeout: {})",
                 namespace, lockTimeout, computationTimeout);
     }
-    
+
     /**
      * Gets a value from cache with stampede protection.
      * If the value is not in cache, uses distributed lock to prevent
@@ -72,7 +72,7 @@ public class StampedeProtectionDecorator<K, V> extends CacheDecorator<K, V> {
                 value -> delegate.put(key, value)
         );
     }
-    
+
     /**
      * Gets a value from cache with stampede protection and TTL.
      * 

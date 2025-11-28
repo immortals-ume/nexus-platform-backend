@@ -22,13 +22,13 @@ import java.util.Optional;
  * @param <V> value type
  */
 public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
-    
+
     private static final Logger log = LoggerFactory.getLogger(CircuitBreakerDecorator.class);
-    
+
     private final CircuitBreaker circuitBreaker;
     private final CacheService<K, V> fallbackCache;
     private final String namespace;
-    
+
     /**
      * Creates a circuit breaker decorator.
      * 
@@ -48,29 +48,27 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
         super(delegate);
         this.fallbackCache = fallbackCache;
         this.namespace = namespace;
-        
-        // Configure circuit breaker
+
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
                 .failureRateThreshold(failureRateThreshold)
                 .waitDurationInOpenState(waitDuration)
                 .recordExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
                 .build();
-        
+
         CircuitBreakerRegistry registry = CircuitBreakerRegistry.of(config);
         this.circuitBreaker = registry.circuitBreaker(namespace);
-        
-        // Register metrics
+
         if (meterRegistry != null) {
             io.github.resilience4j.micrometer.tagged.TaggedCircuitBreakerMetrics
                     .ofCircuitBreakerRegistry(registry)
                     .bindTo(meterRegistry);
         }
-        
+
         log.debug("Circuit breaker decorator initialized for namespace: {} (failureRateThreshold: {}%, waitDuration: {})",
                 namespace, failureRateThreshold, waitDuration);
     }
-    
+
     @Override
     public void put(K key, V value) {
         try {
@@ -80,7 +78,7 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
             throw e;
         }
     }
-    
+
     @Override
     public void put(K key, V value, Duration ttl) {
         try {
@@ -90,15 +88,14 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
             throw e;
         }
     }
-    
+
     @Override
     public Optional<V> get(K key) {
         try {
             return circuitBreaker.executeSupplier(() -> delegate.get(key));
         } catch (Exception e) {
             log.warn("Circuit breaker open or error during get for namespace: {}, attempting fallback", namespace, e);
-            
-            // Try fallback cache if available
+
             if (fallbackCache != null) {
                 try {
                     Optional<V> fallbackResult = fallbackCache.get(key);
@@ -110,11 +107,11 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
                     log.error("Fallback cache also failed for key: {} in namespace: {}", key, namespace, fallbackError);
                 }
             }
-            
+
             return Optional.empty();
         }
     }
-    
+
     @Override
     public void remove(K key) {
         try {
@@ -124,7 +121,7 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
             throw e;
         }
     }
-    
+
     @Override
     public void clear() {
         try {
@@ -134,15 +131,14 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
             throw e;
         }
     }
-    
+
     @Override
     public boolean containsKey(K key) {
         try {
             return circuitBreaker.executeSupplier(() -> delegate.containsKey(key));
         } catch (Exception e) {
             log.warn("Circuit breaker open or error during containsKey for namespace: {}", namespace, e);
-            
-            // Try fallback cache if available
+
             if (fallbackCache != null) {
                 try {
                     return fallbackCache.containsKey(key);
@@ -150,11 +146,11 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
                     log.error("Fallback cache also failed for containsKey in namespace: {}", namespace, fallbackError);
                 }
             }
-            
+
             return false;
         }
     }
-    
+
     @Override
     public void putAll(Map<K, V> entries) {
         try {
@@ -164,15 +160,14 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
             throw e;
         }
     }
-    
+
     @Override
     public Map<K, V> getAll(Collection<K> keys) {
         try {
             return circuitBreaker.executeSupplier(() -> delegate.getAll(keys));
         } catch (Exception e) {
             log.warn("Circuit breaker open or error during getAll for namespace: {}", namespace, e);
-            
-            // Try fallback cache if available
+
             if (fallbackCache != null) {
                 try {
                     return fallbackCache.getAll(keys);
@@ -180,11 +175,11 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
                     log.error("Fallback cache also failed for getAll in namespace: {}", namespace, fallbackError);
                 }
             }
-            
+
             return Map.of();
         }
     }
-    
+
     @Override
     public boolean putIfAbsent(K key, V value) {
         try {
@@ -194,7 +189,7 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
             throw e;
         }
     }
-    
+
     @Override
     public boolean putIfAbsent(K key, V value, Duration ttl) {
         try {
@@ -204,7 +199,7 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
             throw e;
         }
     }
-    
+
     /**
      * Returns the current state of the circuit breaker.
      * 
@@ -213,7 +208,7 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
     public CircuitBreaker.State getCircuitBreakerState() {
         return circuitBreaker.getState();
     }
-    
+
     /**
      * Returns metrics about the circuit breaker.
      * 

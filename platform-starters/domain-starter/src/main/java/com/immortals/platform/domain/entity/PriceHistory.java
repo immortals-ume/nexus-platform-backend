@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @Builder
 public class PriceHistory extends BaseEntity {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @NotNull(message = "Product ID is required")
@@ -71,14 +73,14 @@ public class PriceHistory extends BaseEntity {
     public void calculateChanges() {
         if (oldPrice != null && newPrice != null) {
             this.priceDifference = newPrice.subtract(oldPrice);
-            
+
             if (oldPrice.compareTo(BigDecimal.ZERO) > 0) {
                 this.percentageChange = priceDifference
                     .divide(oldPrice, 4, java.math.RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
             }
         }
-        
+
         if (changedAt == null) {
             changedAt = Instant.now();
         }

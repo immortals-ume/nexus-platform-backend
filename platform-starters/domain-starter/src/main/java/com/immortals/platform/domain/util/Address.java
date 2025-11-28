@@ -34,7 +34,7 @@ public record Address(
         if (country.length() != 2) {
             throw new IllegalArgumentException("Country must be a 2-letter ISO code");
         }
-        
+
         street = street.trim();
         city = city.trim();
         state = state.trim();

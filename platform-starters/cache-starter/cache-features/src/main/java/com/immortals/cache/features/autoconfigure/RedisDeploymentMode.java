@@ -38,15 +38,6 @@ public enum RedisDeploymentMode {
     }
 
     /**
-     * Gets the string value of the deployment mode.
-     *
-     * @return the deployment mode as a string
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
      * Converts a string value to the corresponding deployment mode.
      *
      * @param value the string value
@@ -60,5 +51,14 @@ public enum RedisDeploymentMode {
             }
         }
         throw new IllegalArgumentException("Unknown Redis deployment mode: " + value);
+    }
+
+    /**
+     * Gets the string value of the deployment mode.
+     *
+     * @return the deployment mode as a string
+     */
+    public String getValue() {
+        return value;
     }
 }

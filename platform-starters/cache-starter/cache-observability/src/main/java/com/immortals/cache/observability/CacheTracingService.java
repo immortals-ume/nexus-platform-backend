@@ -5,7 +5,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -24,16 +23,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @ConditionalOnClass(OpenTelemetry.class)
 @Slf4j
 public class CacheTracingService {
-    
+
     private final Tracer tracer;
     private final Map<Object, SpanContext> activeSpans;
-    
+
     public CacheTracingService(OpenTelemetry openTelemetry) {
         this.tracer = openTelemetry.getTracer("cache-service", "2.0.0");
         this.activeSpans = new ConcurrentHashMap<>();
         log.info("OpenTelemetry tracing enabled for cache operations");
     }
-    
+
     /**
      * Starts a new span for a cache operation.
      * 
@@ -49,14 +48,14 @@ public class CacheTracingService {
             .setAttribute("cache.namespace", namespace)
             .setAttribute("cache.operation", operationName)
             .startSpan();
-        
+
         Scope scope = span.makeCurrent();
         SpanContext context = new SpanContext(span, scope);
         activeSpans.put(context, context);
-        
+
         return context;
     }
-    
+
     /**
      * Adds an attribute to an active span.
      * 
@@ -70,7 +69,7 @@ public class CacheTracingService {
             context.span.setAttribute(key, value);
         }
     }
-    
+
     /**
      * Adds a boolean attribute to an active span.
      * 
@@ -84,7 +83,7 @@ public class CacheTracingService {
             context.span.setAttribute(key, value);
         }
     }
-    
+
     /**
      * Adds a long attribute to an active span.
      * 
@@ -98,7 +97,7 @@ public class CacheTracingService {
             context.span.setAttribute(key, value);
         }
     }
-    
+
     /**
      * Records an error on the span.
      * 
@@ -112,7 +111,7 @@ public class CacheTracingService {
             context.span.setStatus(StatusCode.ERROR, error.getMessage());
         }
     }
-    
+
     /**
      * Ends the span and closes the scope.
      * 
@@ -129,14 +128,14 @@ public class CacheTracingService {
             }
         }
     }
-    
+
     /**
      * Internal class to hold span and scope together.
      */
     private static class SpanContext {
         final Span span;
         final Scope scope;
-        
+
         SpanContext(Span span, Scope scope) {
             this.span = span;
             this.scope = scope;

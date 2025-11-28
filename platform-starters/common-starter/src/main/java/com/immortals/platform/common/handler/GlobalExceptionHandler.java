@@ -1,8 +1,8 @@
 package com.immortals.platform.common.handler;
 
 import com.immortals.platform.common.exception.*;
-import com.immortals.platform.common.model.ErrorResponse;
-import com.immortals.platform.common.model.ValidationError;
+import com.immortals.platform.domain.dto.ErrorResponse;
+import com.immortals.platform.domain.dto.ErrorResponse.ValidationError;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -20,9 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.immortals.platform.common.constant.CommonConstant.CORRELATION_ID_HEADER;
@@ -44,21 +42,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
             ResourceNotFoundException ex, HttpServletRequest request) {
-        
+
         log.warn("Resource not found: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
@@ -68,15 +63,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
-        
+
         log.warn("Validation failed: {}", ex.getMessage());
-        
+
         List<ValidationError> validationErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(this::mapFieldError)
                 .collect(Collectors.toList());
-        
+
         ErrorResponse errorResponse = ErrorResponse.withValidationErrors(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -85,8 +80,67 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request),
                 validationErrors
         );
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handles ValidationException (400)
+     */
+    @ExceptionHandler(com.immortals.platform.common.exception.ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            com.immortals.platform.common.exception.ValidationException ex, HttpServletRequest request) {
+
+        log.warn("Validation exception: {}", ex.getMessage());
+
+        ErrorResponse errorResponse;
+
+        if (ex.getValidationErrors() != null && !ex.getValidationErrors().isEmpty()) {
+            List<ValidationError> validationErrors = ex.getValidationErrors().stream()
+                    .map(ve -> ValidationError.of(ve.getField(), ve.getRejectedValue(), ve.getMessage()))
+                    .collect(Collectors.toList());
+
+            errorResponse = ErrorResponse.withValidationErrors(
+                    HttpStatus.BAD_REQUEST.value(),
+                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                    ex.getMessage(),
+                    request.getRequestURI(),
+                    getCorrelationId(request),
+                    validationErrors
+            );
+        } else {
+            errorResponse = createErrorResponse(
+                    HttpStatus.BAD_REQUEST.value(),
+                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                    ex.getMessage(),
+                    request.getRequestURI(),
+                    getCorrelationId(request),
+                    ex.getErrorCode()
+            );
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handles BusinessRuleViolationException (422)
+     */
+    @ExceptionHandler(BusinessRuleViolationException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessRuleViolation(
+            BusinessRuleViolationException ex, HttpServletRequest request) {
+
+        log.warn("Business rule violation: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = createErrorResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                HttpStatus.UNPROCESSABLE_ENTITY.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI(),
+                getCorrelationId(request),
+                ex.getErrorCode()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
     }
 
     /**
@@ -95,21 +149,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(
             BusinessException ex, HttpServletRequest request) {
-        
+
         log.warn("Business exception: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -119,25 +170,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(com.immortals.platform.common.exception.SecurityException.class)
     public ResponseEntity<ErrorResponse> handleSecurityException(
             com.immortals.platform.common.exception.SecurityException ex, HttpServletRequest request) {
-        
+
         log.warn("Security exception: {}", ex.getMessage());
 
-        HttpStatus status = ex.getMessage().toLowerCase().contains("authentication") 
-                ? HttpStatus.UNAUTHORIZED 
+        HttpStatus status = ex.getMessage().toLowerCase().contains("authentication")
+                ? HttpStatus.UNAUTHORIZED
                 : HttpStatus.FORBIDDEN;
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 status.value(),
                 status.getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(status).body(errorResponse);
     }
 
@@ -147,21 +195,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TechnicalException.class)
     public ResponseEntity<ErrorResponse> handleTechnicalException(
             TechnicalException ex, HttpServletRequest request) {
-        
+
         log.error("Technical exception occurred", ex);
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                 "A technical error occurred. Please try again later.",
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
@@ -171,14 +216,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(
             ConstraintViolationException ex, HttpServletRequest request) {
-        
+
         log.warn("Constraint violation: {}", ex.getMessage());
-        
+
         List<ValidationError> validationErrors = ex.getConstraintViolations()
                 .stream()
                 .map(this::mapConstraintViolation)
                 .collect(Collectors.toList());
-        
+
         ErrorResponse errorResponse = ErrorResponse.withValidationErrors(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -187,7 +232,7 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request),
                 validationErrors
         );
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -197,13 +242,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(
             TypeMismatchException ex, HttpServletRequest request) {
-        
+
         log.warn("Type mismatch: {}", ex.getMessage());
-        
+
         String message = String.format("Invalid value '%s' for parameter '%s'. Expected type: %s",
-                ex.getValue(), ex.getPropertyName(), 
+                ex.getValue(), ex.getPropertyName(),
                 ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
-        
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -211,7 +256,7 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -221,13 +266,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
-        
+
         log.warn("Method argument type mismatch: {}", ex.getMessage());
-        
+
         String message = String.format("Parameter '%s' should be of type %s",
-                ex.getName(), 
+                ex.getName(),
                 ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
-        
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -235,7 +280,7 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -245,11 +290,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex, HttpServletRequest request) {
-        
+
         log.warn("Missing request parameter: {}", ex.getMessage());
-        
+
         String message = String.format("Required parameter '%s' is missing", ex.getParameterName());
-        
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -257,7 +302,7 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -267,11 +312,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingPathVariableException.class)
     public ResponseEntity<ErrorResponse> handleMissingPathVariable(
             MissingPathVariableException ex, HttpServletRequest request) {
-        
+
         log.warn("Missing path variable: {}", ex.getMessage());
-        
+
         String message = String.format("Required path variable '%s' is missing", ex.getVariableName());
-        
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -279,7 +324,7 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -289,12 +334,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFound(
             NoHandlerFoundException ex, HttpServletRequest request) {
-        
+
         log.warn("No handler found: {}", ex.getMessage());
-        
-        String message = String.format("No handler found for %s %s", 
+
+        String message = String.format("No handler found for %s %s",
                 ex.getHttpMethod(), ex.getRequestURL());
-        
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
@@ -302,7 +347,7 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
-        
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
@@ -312,9 +357,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupported(
             HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
-        
+
         log.warn("HTTP method not supported: {}", ex.getMessage());
-        
+
         StringBuilder message = new StringBuilder();
         message.append(ex.getMethod()).append(" method is not supported for this request. ");
         if (ex.getSupportedHttpMethods() != null && !ex.getSupportedHttpMethods().isEmpty()) {
@@ -323,7 +368,7 @@ public class GlobalExceptionHandler {
                            .map(Object::toString)
                            .collect(Collectors.joining(", ")));
         }
-        
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 HttpStatus.METHOD_NOT_ALLOWED.value(),
                 HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase(),
@@ -331,7 +376,7 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
-        
+
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
     }
 
@@ -341,21 +386,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CacheException.class)
     public ResponseEntity<ErrorResponse> handleCacheException(
             CacheException ex, HttpServletRequest request) {
-        
+
         log.error("Cache exception occurred", ex);
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                 "A caching error occurred. Please try again later.",
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                "CACHE_ERROR"
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
@@ -365,21 +407,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DatabaseException.class)
     public ResponseEntity<ErrorResponse> handleDatabaseException(
             DatabaseException ex, HttpServletRequest request) {
-        
+
         log.error("Database exception occurred", ex);
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                 "A database error occurred. Please try again later.",
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
@@ -389,21 +428,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateResource(
             DuplicateResourceException ex, HttpServletRequest request) {
-        
+
         log.warn("Duplicate resource: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
@@ -413,21 +449,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidOperationException.class)
     public ResponseEntity<ErrorResponse> handleInvalidOperation(
             InvalidOperationException ex, HttpServletRequest request) {
-        
+
         log.warn("Invalid operation: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -437,21 +470,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserException.class)
     public ResponseEntity<ErrorResponse> handleUserException(
             UserException ex, HttpServletRequest request) {
-        
+
         log.warn("User exception: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -461,21 +491,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
             AuthenticationException ex, HttpServletRequest request) {
-        
+
         log.warn("Authentication exception: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = ErrorResponse.of(
+
+        ErrorResponse errorResponse = createErrorResponse(
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                getCorrelationId(request)
+                getCorrelationId(request),
+                ex.getErrorCode()
         );
-        
-        if (ex.getErrorCode() != null) {
-            errorResponse.setErrorCode(ex.getErrorCode());
-        }
-        
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
@@ -486,9 +513,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {
-        
+
         log.error("Unexpected exception occurred", ex);
-        
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
@@ -496,8 +523,19 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    /**
+     * Creates ErrorResponse with optional error code
+     */
+    private ErrorResponse createErrorResponse(int status, String error, String message,
+                                              String path, String correlationId, String errorCode) {
+        if (errorCode != null) {
+            return ErrorResponse.of(status, error, message, path, correlationId, errorCode);
+        }
+        return ErrorResponse.of(status, error, message, path, correlationId);
     }
 
     /**

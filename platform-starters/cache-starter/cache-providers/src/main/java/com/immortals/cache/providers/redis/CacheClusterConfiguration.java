@@ -1,16 +1,14 @@
 package com.immortals.cache.providers.redis;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
@@ -35,9 +33,9 @@ public class CacheClusterConfiguration {
     @Bean(destroyMethod = "destroy")
     public LettuceConnectionFactory redisClusterConnectionFactory(final RedisProperties props) {
         log.info("Initializing Redis Cluster connection with nodes: {}", props.getCluster().getNodes());
-        
+
         RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration(props.getCluster().getNodes());
-        
+
         LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
                 .commandTimeout(props.getCommandTimeout())
                 .shutdownTimeout(Duration.ZERO)

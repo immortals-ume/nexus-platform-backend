@@ -1,8 +1,5 @@
 package com.immortals.cache.providers.caffeine;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
@@ -10,6 +7,7 @@ import com.immortals.cache.core.CacheService;
 import com.immortals.cache.core.CacheStatistics;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -26,20 +24,21 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Note: This service is namespace-agnostic. Namespace isolation is handled by NamespacedCacheService wrapper.
  * All metrics are recorded without namespace tags - the wrapper adds namespace context.
  */
+
+@Slf4j
 public class L1CacheService<K, V> implements CacheService<K, V> {
-    private static final Logger log = LoggerFactory.getLogger(L1CacheService.class);
 
     private final Cache<K, V> cache;
     private final MeterRegistry meterRegistry;
-    
+
     private final AtomicLong hits = new AtomicLong(0);
     private final AtomicLong misses = new AtomicLong(0);
 
     public L1CacheService(CaffeineProperties properties, MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
         this.cache = buildCache(properties);
-        
-        log.info("Caffeine cache service initialized with maxSize: {}, ttl: {}", 
+
+        log.info("Caffeine cache service initialized with maxSize: {}, ttl: {}",
                  properties.getMaximumSize(), properties.getTtl());
     }
 
@@ -47,11 +46,11 @@ public class L1CacheService<K, V> implements CacheService<K, V> {
         Caffeine<Object, Object> builder = Caffeine.newBuilder()
                 .maximumSize(properties.getMaximumSize())
                 .recordStats();
-        
+
         if (properties.getTtl() != null && !properties.getTtl().isZero()) {
             builder.expireAfterWrite(properties.getTtl().toMillis(), TimeUnit.MILLISECONDS);
         }
-        
+
         return builder.build();
     }
 
@@ -163,7 +162,7 @@ public class L1CacheService<K, V> implements CacheService<K, V> {
         CacheStats stats = cache.stats();
         long totalRequests = hits.get() + misses.get();
         double hitRate = totalRequests > 0 ? (double) hits.get() / totalRequests : 0.0;
-        
+
         return CacheStatistics.builder()
                 .namespace("caffeine")
                 .timestamp(Instant.now())

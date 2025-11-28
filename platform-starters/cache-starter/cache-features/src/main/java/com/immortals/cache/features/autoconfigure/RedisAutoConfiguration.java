@@ -6,7 +6,6 @@ import com.immortals.cache.providers.redis.CacheClusterConfiguration;
 import com.immortals.cache.providers.redis.CacheSentinelConfiguration;
 import com.immortals.cache.providers.redis.CacheStandaloneConfiguration;
 import com.immortals.cache.providers.redis.RedisProperties;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -14,7 +13,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * Auto-configuration for Redis cache provider.
@@ -49,9 +47,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 @ConditionalOnClass(name = {"org.springframework.data.redis.core.RedisTemplate", "io.lettuce.core.RedisClient"})
 @ConditionalOnProperty(name = "immortals.cache.type", havingValue = "redis")
 @Import({
-    CacheStandaloneConfiguration.class,
-    CacheSentinelConfiguration.class,
-    CacheClusterConfiguration.class
+        CacheStandaloneConfiguration.class,
+        CacheSentinelConfiguration.class,
+        CacheClusterConfiguration.class
 })
 public class RedisAutoConfiguration {
 
@@ -74,9 +72,8 @@ public class RedisAutoConfiguration {
             CachePropertiesMapper.validateRedisConfiguration(cacheProperties);
             RedisProperties properties = CachePropertiesMapper.mapToRedisProperties(cacheProperties);
 
-            // Determine deployment mode
             RedisDeploymentMode deploymentMode = determineDeploymentMode(properties);
-            log.info("Redis properties configured: host={}, port={}, database={}, useSsl={}, deploymentMode={}", 
+            log.info("Redis properties configured: host={}, port={}, database={}, useSsl={}, deploymentMode={}",
                     properties.getHost(), properties.getPort(), properties.getDatabase(), properties.getUseSsl(), deploymentMode.getValue());
 
             return properties;
@@ -87,7 +84,6 @@ public class RedisAutoConfiguration {
     }
 
 
-
     /**
      * Determines the Redis deployment mode based on configuration properties.
      *
@@ -95,9 +91,12 @@ public class RedisAutoConfiguration {
      * @return deployment mode enum value
      */
     private RedisDeploymentMode determineDeploymentMode(RedisProperties properties) {
-        if (properties.getCluster() != null && !properties.getCluster().getNodes().isEmpty()) {
+        if (properties.getCluster() != null && !properties.getCluster()
+                .getNodes()
+                .isEmpty()) {
             return RedisDeploymentMode.CLUSTER;
-        } else if (properties.getSentinel() != null && properties.getSentinel().getMaster() != null) {
+        } else if (properties.getSentinel() != null && properties.getSentinel()
+                .getMaster() != null) {
             return RedisDeploymentMode.SENTINEL;
         } else {
             return RedisDeploymentMode.STANDALONE;
@@ -106,11 +105,11 @@ public class RedisAutoConfiguration {
 
     /**
      * Creates a factory that returns the singleton Redis cache service instance.
-     * 
+     *
      * <p>This factory always returns the same instance, ensuring that all namespaces
      * share the same underlying cache. Namespace isolation is handled by NamespacedCacheService
      * through key prefixing.
-     * 
+     *
      * @param cacheService the singleton Redis cache service bean
      * @return a factory that returns the singleton instance
      */

@@ -12,7 +12,7 @@ import java.util.Map;
  * configurations and implementations.</p>
  */
 public interface UnifiedCacheManager {
-    
+
     /**
      * Get or create a cache instance for the given namespace with default configuration.
      * 
@@ -22,7 +22,7 @@ public interface UnifiedCacheManager {
      * @return a cache service instance for the specified namespace
      */
     <K, V> CacheService<K, V> getCache(String namespace);
-    
+
     /**
      * Get or create a cache instance for the given namespace with specific configuration.
      * 
@@ -33,21 +33,21 @@ public interface UnifiedCacheManager {
      * @return a cache service instance for the specified namespace
      */
     <K, V> CacheService<K, V> getCache(String namespace, CacheConfiguration config);
-    
+
     /**
      * Remove a cache namespace and all its entries.
      * 
      * @param namespace the namespace identifier to remove
      */
     void removeCache(String namespace);
-    
+
     /**
      * Get all registered cache namespace names.
      * 
      * @return a collection of all cache namespace names
      */
     Collection<String> getCacheNames();
-    
+
     /**
      * Get aggregated statistics across all caches.
      * 

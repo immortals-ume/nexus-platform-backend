@@ -8,12 +8,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
 @Getter
 public class UserPrincipal implements UserDetails {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private final Long userId;
     private final String userName;
@@ -28,9 +32,9 @@ public class UserPrincipal implements UserDetails {
     private final boolean credentialsNonExpired;
     private final boolean enabled;
 
-    private final Collection<? extends GrantedAuthority> authorities;
+    private final transient Collection<? extends GrantedAuthority> authorities;
 
-    private final Collection<String> permissions;
+    private final transient Collection<String> permissions;
 
     private UserPrincipal(Long userId,
                           String userName,
@@ -60,7 +64,7 @@ public class UserPrincipal implements UserDetails {
     public static UserPrincipal create(User user, Collection<Roles> roles, Collection<String> permissions) {
         Collection<? extends GrantedAuthority> authorities = extractAuthorities(roles);
         return new UserPrincipal(
-                user.getUserId(),
+                user.getId() != null ? user.getId().getMostSignificantBits() : null,
                 user.getUserName(),
                 user.getPassword(),
                 user.getEmail(),

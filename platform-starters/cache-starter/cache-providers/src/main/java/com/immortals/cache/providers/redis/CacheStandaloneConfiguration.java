@@ -1,15 +1,16 @@
 package com.immortals.cache.providers.redis;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.immortals.cache.providers.resilience.DecoratorChainFactory;
+import com.immortals.platform.common.exception.CacheConnectionException;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.SslOptions;
+import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -20,9 +21,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.StringUtils;
-import com.immortals.cache.core.exception.CacheConnectionException;
-import com.immortals.cache.providers.resilience.DecoratorChainFactory;
-import org.redisson.api.RedissonClient;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -56,15 +54,14 @@ public class CacheStandaloneConfiguration {
     @Bean(destroyMethod = "destroy")
     public LettuceConnectionFactory lettuceConnectionFactory(RedisProperties props) {
         try {
-            // Validate properties first
             validateRedisConfiguration(props);
-            
+
             log.info("Initializing LettuceConnectionFactory with host: {}, port: {}", props.getHost(), props.getPort());
 
             RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
             redisConfig.setHostName(props.getHost());
             redisConfig.setPort(props.getPort());
-            
+
             configureAuthentication(redisConfig, props);
             redisConfig.setDatabase(props.getDatabase());
 
@@ -89,7 +86,7 @@ public class CacheStandaloneConfiguration {
                             .pingBeforeActivateConnection(autoReconnect)
                             .build())
                     .build();
-          
+
 
             LettuceConnectionFactory factory = new LettuceConnectionFactory(redisConfig, clientConfig);
             factory.afterPropertiesSet();
@@ -123,7 +120,7 @@ public class CacheStandaloneConfiguration {
                         0,
                         new IllegalStateException("RedisConnectionFactory is null"));
             }
-            
+
             RedisTemplate<String, Object> template = new RedisTemplate<>();
             template.setConnectionFactory(factory);
 
@@ -155,7 +152,7 @@ public class CacheStandaloneConfiguration {
     /**
      * Creates RedisCacheService bean that wraps RedisTemplate.
      * Applies resilience decorators (metrics, circuit breaker, stampede protection).
-     * 
+     * <p>
      * Note: This is a prototype bean - a new instance is created for each namespace.
      * 
      * @param redisTemplate configured RedisTemplate
@@ -171,56 +168,53 @@ public class CacheStandaloneConfiguration {
             RedisProperties redisProperties,
             @org.springframework.beans.factory.annotation.Autowired(required = false) RedissonClient redissonClient) {
         try {
-            // Validate configuration
             validateRedisConfiguration(redisProperties);
-            
-            log.info("Creating RedisCacheService with namespace: default, ttl: {}", 
+
+            log.info("Creating RedisCacheService with namespace: default, ttl: {}",
                     redisProperties.getTimeToLive());
-            
-            // Create base cache service (namespace-agnostic)
+
             RedisCacheService<String, Object> baseCache = new RedisCacheService<>(
                     redisTemplate, meterRegistry, redisProperties);
-            
-            // Apply resilience decorators
+
             DecoratorChainFactory decoratorFactory = new DecoratorChainFactory(
                     meterRegistry,
                     redissonClient,
                     redisProperties.getResilience().getStampedeProtection().getLockTimeout(),
-                    Duration.ofSeconds(5),  // Default computation timeout
+                    Duration.ofSeconds(5),
                     redisProperties.getResilience().getCircuitBreaker().getFailureRateThreshold(),
                     redisProperties.getResilience().getCircuitBreaker().getWaitDurationInOpenState()
             );
-            
+
             boolean enableMetrics = true;
             boolean enableStampedeProtection = Boolean.TRUE.equals(
                     redisProperties.getResilience().getStampedeProtection().getEnabled());
             boolean enableCircuitBreaker = Boolean.TRUE.equals(
                     redisProperties.getResilience().getCircuitBreaker().getEnabled());
-            
+
             com.immortals.cache.core.CacheService<String, Object> decorated = decoratorFactory.buildDecoratorChain(
                     baseCache,
                     "default",
                     enableMetrics,
                     enableStampedeProtection,
                     enableCircuitBreaker,
-                    null  // No fallback cache for standalone Redis
+                    null
             );
-            
+
             log.info("RedisCacheService created with decorators: metrics={}, stampedeProtection={}, circuitBreaker={}",
                     enableMetrics, enableStampedeProtection, enableCircuitBreaker);
-            
+
             return decorated;
         } catch (IllegalArgumentException e) {
             log.error("Redis configuration validation failed: {}", e.getMessage());
-            throw new com.immortals.cache.core.exception.CacheConnectionException(
-                    "Redis configuration validation failed: " + e.getMessage(), 
+            throw new CacheConnectionException(
+                    "Redis configuration validation failed: " + e.getMessage(),
                     redisProperties != null ? redisProperties.getHost() : "unknown",
                     redisProperties != null ? redisProperties.getPort() : null,
                     e);
         } catch (Exception e) {
             log.error("Failed to create RedisCacheService: {}", e.getMessage(), e);
-            throw new com.immortals.cache.core.exception.CacheConnectionException(
-                    "Failed to create RedisCacheService: " + e.getMessage(), 
+            throw new CacheConnectionException(
+                    "Failed to create RedisCacheService: " + e.getMessage(),
                     redisProperties != null ? redisProperties.getHost() : "unknown",
                     redisProperties != null ? redisProperties.getPort() : null,
                     e);
@@ -237,16 +231,16 @@ public class CacheStandaloneConfiguration {
         if (props == null) {
             throw new IllegalArgumentException("RedisProperties cannot be null");
         }
-        
+
         if (props.getHost() == null || props.getHost().trim().isEmpty()) {
             throw new IllegalArgumentException("Redis host cannot be empty. Please set 'cache.redis.host' property");
         }
-        
+
         if (props.getPort() <= 0 || props.getPort() > 65535) {
             throw new IllegalArgumentException("Redis port must be between 1 and 65535. Current value: " + props.getPort());
         }
-        
-        log.debug("Redis configuration validated: host={}, port={}, database={}", 
+
+        log.debug("Redis configuration validated: host={}, port={}, database={}",
                 props.getHost(), props.getPort(), props.getDatabase());
     }
 
@@ -291,15 +285,15 @@ public class CacheStandaloneConfiguration {
      * @param clientConfigBuilder the Lettuce client configuration builder
      * @param props the cache properties containing SSL configuration
      */
-    private void configureSsl(LettuceClientConfiguration.LettuceClientConfigurationBuilder clientConfigBuilder, 
+    private void configureSsl(LettuceClientConfiguration.LettuceClientConfigurationBuilder clientConfigBuilder,
                              RedisProperties props) {
         int attempts = 0;
         Exception lastException = null;
-        
+
         while (attempts < SSL_RETRY_ATTEMPTS) {
             try {
                 SslOptions.Builder sslOptionsBuilder = SslOptions.builder();
-                
+
                 if (StringUtils.hasText(props.getSsl().getTrustStore())) {
                     TrustManagerFactory trustManagerFactory = createTrustManagerFactory(
                         props.getSsl().getTrustStore(),
@@ -308,7 +302,7 @@ public class CacheStandaloneConfiguration {
                     sslOptionsBuilder.trustManager(trustManagerFactory);
                     log.info("SSL trust store configured: {}", props.getSsl().getTrustStore());
                 }
-                
+
                 if (StringUtils.hasText(props.getSsl().getKeyStore())) {
                     KeyManagerFactory keyManagerFactory = createKeyManagerFactory(
                         props.getSsl().getKeyStore(),
@@ -317,14 +311,14 @@ public class CacheStandaloneConfiguration {
                     sslOptionsBuilder.keyManager(keyManagerFactory);
                     log.info("SSL key store configured for mutual TLS: {}", props.getSsl().getKeyStore());
                 }
-                
+
                 SslOptions sslOptions = sslOptionsBuilder.build();
                 clientConfigBuilder.useSsl().and().clientOptions(
                     ClientOptions.builder()
                         .sslOptions(sslOptions)
                         .build()
                 );
-                
+
                 log.info("SSL/TLS enabled for Redis connection");
                 return;
             } catch (Exception e) {
@@ -333,7 +327,7 @@ public class CacheStandaloneConfiguration {
                 log.warn("SSL/TLS configuration attempt {} failed: {}", attempts, e.getMessage());
                 if (attempts < SSL_RETRY_ATTEMPTS) {
                     try {
-                        Thread.sleep(100 * attempts);
+                        Thread.sleep(100L * attempts);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
                         break;
@@ -341,11 +335,11 @@ public class CacheStandaloneConfiguration {
                 }
             }
         }
-        
+
         log.error("Failed to configure SSL/TLS after {} attempts", SSL_RETRY_ATTEMPTS, lastException);
         throw new CacheConnectionException(
-                "SSL/TLS configuration failed after " + SSL_RETRY_ATTEMPTS + " attempts: " + 
-                (lastException != null ? lastException.getMessage() : "unknown error"),
+                "SSL/TLS configuration failed after " + SSL_RETRY_ATTEMPTS + " attempts: " +
+                        lastException.getMessage(),
                 props != null ? props.getHost() : "unknown",
                 props != null ? props.getPort() : null,
                 lastException);
@@ -354,14 +348,14 @@ public class CacheStandaloneConfiguration {
     /**
      * Creates a TrustManagerFactory from the specified trust store.
      */
-    private TrustManagerFactory createTrustManagerFactory(String trustStorePath, String trustStorePassword) 
+    private TrustManagerFactory createTrustManagerFactory(String trustStorePath, String trustStorePassword)
             throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
         try (FileInputStream trustStoreStream = new FileInputStream(trustStorePath)) {
-            trustStore.load(trustStoreStream, 
+            trustStore.load(trustStoreStream,
                 trustStorePassword != null ? trustStorePassword.toCharArray() : null);
         }
-        
+
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
             TrustManagerFactory.getDefaultAlgorithm()
         );
@@ -372,19 +366,19 @@ public class CacheStandaloneConfiguration {
     /**
      * Creates a KeyManagerFactory from the specified key store (for mutual TLS).
      */
-    private KeyManagerFactory createKeyManagerFactory(String keyStorePath, String keyStorePassword) 
-            throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, 
+    private KeyManagerFactory createKeyManagerFactory(String keyStorePath, String keyStorePassword)
+            throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
                    UnrecoverableKeyException {
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         try (FileInputStream keyStoreStream = new FileInputStream(keyStorePath)) {
-            keyStore.load(keyStoreStream, 
+            keyStore.load(keyStoreStream,
                 keyStorePassword != null ? keyStorePassword.toCharArray() : null);
         }
-        
+
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(
             KeyManagerFactory.getDefaultAlgorithm()
         );
-        keyManagerFactory.init(keyStore, 
+        keyManagerFactory.init(keyStore,
             keyStorePassword != null ? keyStorePassword.toCharArray() : null);
         return keyManagerFactory;
     }

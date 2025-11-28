@@ -1,12 +1,15 @@
 package com.immortals.platform.common.exception;
 
+import java.io.Serial;
+
 /**
  * Exception for technical/infrastructure failures.
  * Used when technical operations fail (database, cache, messaging, etc.).
  */
 public class TechnicalException extends PlatformException {
 
-    private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 12L;
 
     public TechnicalException(String message) {
         super(message);

@@ -100,7 +100,7 @@ public final class ValidationUtils {
         double value = number.doubleValue();
         double minValue = min.doubleValue();
         double maxValue = max.doubleValue();
-        
+
         if (value < minValue || value > maxValue) {
             throw new IllegalArgumentException(
                     String.format("%s must be between %s and %s", fieldName, min, max)
@@ -118,7 +118,7 @@ public final class ValidationUtils {
         int length = str.length();
         if (length < minLength || length > maxLength) {
             throw new IllegalArgumentException(
-                    String.format("%s length must be between %d and %d characters", 
+                    String.format("%s length must be between %d and %d characters",
                             fieldName, minLength, maxLength)
             );
         }

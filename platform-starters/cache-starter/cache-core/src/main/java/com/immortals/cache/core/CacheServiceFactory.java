@@ -8,7 +8,7 @@ package com.immortals.cache.core;
  * @param <V> the type of values
  */
 public interface CacheServiceFactory<K, V> {
-    
+
     /**
      * Creates a new cache service instance.
      * Each call creates a fresh instance.
