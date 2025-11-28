@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: discovery-service-test
+  cloud:
+    config:
+      enabled: false
+  security:
+    user:
+      name: test-user
+      password: test-password
+
+server:
+  port: 0
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://localhost:${server.port}/eureka/
+  server:
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 5000
+    response-cache-update-interval-ms: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,eureka
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.immortals.platform: DEBUG
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO

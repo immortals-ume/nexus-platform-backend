@@ -20,14 +20,11 @@ public class ConfigAccessInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        // Start timer for request duration
         Timer.Sample sample = configMetrics.startTimer();
         request.setAttribute(TIMER_ATTRIBUTE, sample);
         
-        // Record config request
         configMetrics.recordConfigRequest();
         
-        // Extract configuration details from request path
         String path = request.getRequestURI();
         if (path.contains("/encrypt") || path.contains("/decrypt")) {
             if (path.contains("/encrypt")) {
@@ -37,7 +34,6 @@ public class ConfigAccessInterceptor implements HandlerInterceptor {
             }
         }
         
-        // Log configuration access for audit
         if (isConfigRequest(path)) {
             String[] pathParts = path.split("/");
             String application = pathParts.length > 1 ? pathParts[1] : "unknown";
@@ -55,13 +51,11 @@ public class ConfigAccessInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
                                 Object handler, Exception ex) {
-        // Stop timer
         Timer.Sample sample = (Timer.Sample) request.getAttribute(TIMER_ATTRIBUTE);
         if (sample != null) {
             configMetrics.stopTimer(sample);
         }
         
-        // Record success or failure
         if (response.getStatus() >= 200 && response.getStatus() < 300) {
             configMetrics.recordConfigRequestSuccess();
         } else {
@@ -85,7 +79,6 @@ public class ConfigAccessInterceptor implements HandlerInterceptor {
     }
     
     private String getUserIdentity(HttpServletRequest request) {
-        // Try to get user from Basic Auth header
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Basic ")) {
             try {
@@ -99,7 +92,6 @@ public class ConfigAccessInterceptor implements HandlerInterceptor {
             }
         }
         
-        // Try to get user from remote user
         String remoteUser = request.getRemoteUser();
         if (remoteUser != null && !remoteUser.isEmpty()) {
             return remoteUser;

@@ -1,11 +1,14 @@
 package com.example.discovery.config;
 
+import com.example.discovery.metrics.EurekaMetrics;
+import com.example.discovery.metrics.RegistryStatistics;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.shared.Application;
 import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -16,38 +19,36 @@ import java.util.List;
 
 /**
  * Configuration class for Eureka Server with custom metrics and health checks
+ * Integrates with Micrometer/Prometheus for metrics exposure
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class EurekaServerMetricsConfig {
+
+    private final EurekaMetrics eurekaMetrics;
 
     /**
      * Custom health indicator for Eureka Server
+     * Provides detailed health information including registry state
      */
     @Bean
     public HealthIndicator eurekaServerHealthIndicator(EurekaServerContext eurekaServerContext) {
         return () -> {
             try {
-                PeerAwareInstanceRegistry registry = eurekaServerContext.getRegistry();
-                List<Application> applications = registry.getSortedApplications();
+                RegistryStatistics stats = eurekaMetrics.getRegistryStatistics();
                 
-                int registeredInstances = applications.stream()
-                    .mapToInt(app -> app.getInstances().size())
-                    .sum();
-                
-                int upInstances = applications.stream()
-                    .flatMap(app -> app.getInstances().stream())
-                    .filter(instance -> instance.getStatus() == InstanceInfo.InstanceStatus.UP)
-                    .mapToInt(instance -> 1)
-                    .sum();
-                
-                log.debug("Eureka health check - registered instances: {}, up instances: {}", 
-                    registeredInstances, upInstances);
+                log.debug("Eureka health check - registered instances: {}, up instances: {}",
+                    stats.getTotalInstances(), stats.getUpInstances());
                 
                 return Health.up()
-                    .withDetail("registeredInstances", registeredInstances)
-                    .withDetail("upInstances", upInstances)
-                    .withDetail("applications", applications.size())
+                    .withDetail("registeredInstances", stats.getTotalInstances())
+                    .withDetail("upInstances", stats.getUpInstances())
+                    .withDetail("downInstances", stats.getDownInstances())
+                    .withDetail("applications", stats.getTotalApplications())
+                    .withDetail("availableReplicas", stats.getAvailableReplicas())
+                    .withDetail("selfPreservationMode", stats.isSelfPreservationMode())
+                    .withDetail("renewsLastMinute", stats.getRenewsLastMinute())
                     .withDetail("status", "UP")
                     .build();
             } catch (Exception e) {
@@ -61,59 +62,27 @@ public class EurekaServerMetricsConfig {
 
     /**
      * Custom metrics for Eureka Server
+     * Exposes comprehensive registry metrics via Micrometer/Prometheus
      */
     @Bean
     public MeterBinder eurekaServerMetrics(EurekaServerContext eurekaServerContext) {
         return (MeterRegistry registry) -> {
-            // Gauge for total registered instances
-            registry.gauge("eureka.registered.instances", eurekaServerContext, context -> {
-                try {
-                    PeerAwareInstanceRegistry instanceRegistry = context.getRegistry();
-                    return instanceRegistry.getSortedApplications().stream()
-                        .mapToInt(app -> app.getInstances().size())
-                        .sum();
-                } catch (Exception e) {
-                    log.error("Error collecting registered instances metric", e);
-                    return 0;
-                }
-            });
+            registry.gauge("eureka.registered.instances", eurekaMetrics, EurekaMetrics::getRegisteredInstancesCount);
 
-            // Gauge for UP instances
-            registry.gauge("eureka.up.instances", eurekaServerContext, context -> {
-                try {
-                    PeerAwareInstanceRegistry instanceRegistry = context.getRegistry();
-                    return instanceRegistry.getSortedApplications().stream()
-                        .flatMap(app -> app.getInstances().stream())
-                        .filter(instance -> instance.getStatus() == InstanceInfo.InstanceStatus.UP)
-                        .count();
-                } catch (Exception e) {
-                    log.error("Error collecting UP instances metric", e);
-                    return 0;
-                }
-            });
+            registry.gauge("eureka.up.instances", eurekaMetrics, EurekaMetrics::getUpInstancesCount);
 
-            // Gauge for total registered applications
-            registry.gauge("eureka.registered.applications", eurekaServerContext, context -> {
-                try {
-                    PeerAwareInstanceRegistry instanceRegistry = context.getRegistry();
-                    return instanceRegistry.getSortedApplications().size();
-                } catch (Exception e) {
-                    log.error("Error collecting registered applications metric", e);
-                    return 0;
-                }
-            });
+            registry.gauge("eureka.down.instances", eurekaMetrics, EurekaMetrics::getDownInstancesCount);
 
-            // Gauge for available replicas
-            registry.gauge("eureka.available.replicas", eurekaServerContext, context -> {
-                try {
-                    return context.getPeerEurekaNodes().getPeerEurekaNodes().size();
-                } catch (Exception e) {
-                    log.error("Error collecting available replicas metric", e);
-                    return 0;
-                }
-            });
+            registry.gauge("eureka.registered.applications", eurekaMetrics, EurekaMetrics::getApplicationsCount);
 
-            log.info("Eureka Server custom metrics registered");
+            registry.gauge("eureka.available.replicas", eurekaMetrics, EurekaMetrics::getAvailableReplicasCount);
+
+            registry.gauge("eureka.self.preservation.mode", eurekaMetrics,
+                metrics -> metrics.isSelfPreservationModeEnabled() ? 1.0 : 0.0);
+
+            registry.gauge("eureka.renews.last.minute", eurekaMetrics, EurekaMetrics::getRenewsLastMinute);
+
+            log.info("Eureka Server custom metrics registered with Micrometer/Prometheus");
         };
     }
 }

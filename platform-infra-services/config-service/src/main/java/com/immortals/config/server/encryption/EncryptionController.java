@@ -15,19 +15,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 /**
- * REST controller for encryption and decryption operations.
+ * REST controller for custom encryption and decryption operations.
  * 
- * <p>Provides endpoints for encrypting and decrypting sensitive configuration values
+ * <p>Provides enhanced endpoints for encrypting and decrypting sensitive configuration values
  * using both symmetric and asymmetric algorithms. All operations are audited and
  * monitored for security and observability.</p>
  * 
  * <p><b>Endpoints:</b></p>
  * <ul>
- *   <li>{@code POST /encrypt} - Encrypt using symmetric encryption</li>
- *   <li>{@code POST /decrypt} - Decrypt using symmetric encryption</li>
- *   <li>{@code POST /encrypt/asymmetric} - Encrypt using asymmetric (RSA) encryption</li>
- *   <li>{@code POST /decrypt/asymmetric} - Decrypt using asymmetric (RSA) encryption</li>
- *   <li>{@code GET /encrypt/status} - Get encryption configuration status</li>
+ *   <li>{@code POST /api/encrypt} - Encrypt using symmetric encryption</li>
+ *   <li>{@code POST /api/decrypt} - Decrypt using symmetric encryption</li>
+ *   <li>{@code POST /api/encrypt/asymmetric} - Encrypt using asymmetric (RSA) encryption</li>
+ *   <li>{@code POST /api/decrypt/asymmetric} - Decrypt using asymmetric (RSA) encryption</li>
+ *   <li>{@code GET /api/encrypt/status} - Get encryption configuration status</li>
  * </ul>
  * 
  * <p><b>Security:</b></p>
@@ -46,7 +46,8 @@ import java.util.Map;
  * @see InputSanitizer
  */
 @Slf4j
-@RestController
+@RestController("customEncryptionController")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class EncryptionController {
 
@@ -79,8 +80,6 @@ public class EncryptionController {
             HttpServletRequest request) {
         log.info("Received encryption request");
         String clientIp = request.getRemoteAddr();
-        
-        // Validate input for malicious patterns
         inputSanitizer.validateOrThrow(encryptionRequest.getValue(), "value");
         
         String encrypted = encryptionService.encryptSymmetric(encryptionRequest.getValue());
@@ -100,8 +99,7 @@ public class EncryptionController {
             HttpServletRequest request) {
         log.info("Received decryption request");
         String clientIp = request.getRemoteAddr();
-        
-        // Validate input for malicious patterns
+
         inputSanitizer.validateOrThrow(encryptionRequest.getValue(), "value");
         
         String decrypted = encryptionService.decryptSymmetric(encryptionRequest.getValue());
@@ -121,8 +119,7 @@ public class EncryptionController {
             HttpServletRequest request) {
         log.info("Received asymmetric encryption request");
         String clientIp = request.getRemoteAddr();
-        
-        // Validate input for malicious patterns
+
         inputSanitizer.validateOrThrow(encryptionRequest.getValue(), "value");
         
         String encrypted = encryptionService.encryptAsymmetric(encryptionRequest.getValue());
@@ -142,8 +139,7 @@ public class EncryptionController {
             HttpServletRequest request) {
         log.info("Received asymmetric decryption request");
         String clientIp = request.getRemoteAddr();
-        
-        // Validate input for malicious patterns
+
         inputSanitizer.validateOrThrow(encryptionRequest.getValue(), "value");
         
         String decrypted = encryptionService.decryptAsymmetric(encryptionRequest.getValue());

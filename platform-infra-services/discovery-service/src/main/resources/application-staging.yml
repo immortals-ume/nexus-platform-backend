@@ -1,0 +1,39 @@
+# Staging Environment Configuration
+spring:
+  config:
+    import: configserver:${CONFIG_SERVER_URL:http://config-server:8888}
+
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:discovery-service}
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  server:
+    enable-self-preservation: true
+    renewal-percent-threshold: 0.85
+    eviction-interval-timer-in-ms: 45000  # Moderate frequency in staging
+    peer-node-connect-timeout-ms: 3000
+    peer-node-read-timeout-ms: 7000
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL:http://admin:admin123@discovery-service:8761/eureka/}
+
+# Logging - moderate verbosity in staging
+logging:
+  level:
+    root: INFO
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+    com.example.discovery: INFO
+
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 0.5  # 50% sampling in staging
+      zipkin-url: ${ZIPKIN_URL:http://zipkin:9411}
+    logging:
+      format: json  # JSON format for staging

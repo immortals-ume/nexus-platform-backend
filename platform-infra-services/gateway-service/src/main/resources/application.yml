@@ -25,8 +25,8 @@ spring:
                 fallbackUri: forward:/fallback/auth
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 1000
-                redis-rate-limiter.burstCapacity: 2000
+                redis-rate-limiter.replenishRate: 17
+                redis-rate-limiter.burstCapacity: 34
                 redis-rate-limiter.requestedTokens: 1
         
         # User Management Service Routes
@@ -41,8 +41,8 @@ spring:
                 fallbackUri: forward:/fallback/users
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 1000
-                redis-rate-limiter.burstCapacity: 2000
+                redis-rate-limiter.replenishRate: 17
+                redis-rate-limiter.burstCapacity: 34
         
         # Notification Service Routes
         - id: notification-service
@@ -56,8 +56,8 @@ spring:
                 fallbackUri: forward:/fallback/notifications
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 1000
-                redis-rate-limiter.burstCapacity: 2000
+                redis-rate-limiter.replenishRate: 17
+                redis-rate-limiter.burstCapacity: 34
         
         # Storage Service Routes
         - id: storage-service
@@ -71,8 +71,8 @@ spring:
                 fallbackUri: forward:/fallback/storage
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 500
-                redis-rate-limiter.burstCapacity: 1000
+                redis-rate-limiter.replenishRate: 9
+                redis-rate-limiter.burstCapacity: 17
         
         # OTP Service Routes
         - id: otp-service
@@ -86,8 +86,8 @@ spring:
                 fallbackUri: forward:/fallback/otp
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 500
-                redis-rate-limiter.burstCapacity: 1000
+                redis-rate-limiter.replenishRate: 9
+                redis-rate-limiter.burstCapacity: 17
         
         # URL Shortener Service Routes
         - id: url-shortener-service
@@ -101,8 +101,8 @@ spring:
                 fallbackUri: forward:/fallback/urls
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 1000
-                redis-rate-limiter.burstCapacity: 2000
+                redis-rate-limiter.replenishRate: 17
+                redis-rate-limiter.burstCapacity: 34
         
         # Customer Service Routes
         - id: customer-service
@@ -116,8 +116,8 @@ spring:
                 fallbackUri: forward:/fallback/customers
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 1000
-                redis-rate-limiter.burstCapacity: 2000
+                redis-rate-limiter.replenishRate: 17
+                redis-rate-limiter.burstCapacity: 34
         
         # Order Service Routes
         - id: order-service
@@ -131,8 +131,8 @@ spring:
                 fallbackUri: forward:/fallback/orders
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 1000
-                redis-rate-limiter.burstCapacity: 2000
+                redis-rate-limiter.replenishRate: 17
+                redis-rate-limiter.burstCapacity: 34
         
         # Payment Service Routes
         - id: payment-service
@@ -146,8 +146,8 @@ spring:
                 fallbackUri: forward:/fallback/payments
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 500
-                redis-rate-limiter.burstCapacity: 1000
+                redis-rate-limiter.replenishRate: 9
+                redis-rate-limiter.burstCapacity: 17
         
         # Product Service Routes
         - id: product-service
@@ -161,8 +161,8 @@ spring:
                 fallbackUri: forward:/fallback/products
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 1000
-                redis-rate-limiter.burstCapacity: 2000
+                redis-rate-limiter.replenishRate: 17
+                redis-rate-limiter.burstCapacity: 34
       
       # Global CORS Configuration
       globalcors:
@@ -251,6 +251,48 @@ resilience4j:
     configs:
       default:
         timeout-duration: 5s
+        cancel-running-future: true
+    instances:
+      auth-service-cb:
+        timeout-duration: 3s
+      user-service-cb:
+        timeout-duration: 3s
+      notification-service-cb:
+        timeout-duration: 5s
+      storage-service-cb:
+        timeout-duration: 10s
+      otp-service-cb:
+        timeout-duration: 3s
+      url-shortener-cb:
+        timeout-duration: 3s
+      customer-service-cb:
+        timeout-duration: 3s
+      order-service-cb:
+        timeout-duration: 5s
+      payment-service-cb:
+        timeout-duration: 5s
+      product-service-cb:
+        timeout-duration: 3s
+  
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 100ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+          - java.lang.IllegalStateException
+    instances:
+      serviceDiscovery:
+        base-config: default
+      configFetch:
+        base-config: default
+        max-attempts: 3
 
 # Actuator Configuration
 management:
@@ -283,4 +325,4 @@ logging:
     org.springframework.cloud.gateway: DEBUG
     com.immortals.platform: DEBUG
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId:-}] [%thread] %-5level %logger{36} - %msg%n"

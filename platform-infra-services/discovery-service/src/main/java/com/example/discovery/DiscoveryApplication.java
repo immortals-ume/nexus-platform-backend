@@ -16,6 +16,7 @@ import java.net.UnknownHostException;
 @Slf4j
 @EnableEurekaServer
 @SpringBootApplication
+@org.springframework.boot.context.properties.EnableConfigurationProperties(com.example.discovery.config.EurekaProperties.class)
 public class DiscoveryApplication {
 
 	public static void main(String[] args) {
@@ -42,10 +43,10 @@ public class DiscoveryApplication {
 			----------------------------------------------------------
 			Application '{}' is running!
 			Access URLs:
-			\tLocal:      {}://localhost:{}{}
-			\tExternal:   {}://{}:{}{}
-			\tDashboard:  {}://localhost:{}/
-			\tActuator:   {}://localhost:{}/actuator
+			\tLocal:      {}:
+			\tExternal:   {}:
+			\tDashboard:  {}:
+			\tActuator:   {}:
 			Profile(s): {}
 			----------------------------------------------------------
 			""",

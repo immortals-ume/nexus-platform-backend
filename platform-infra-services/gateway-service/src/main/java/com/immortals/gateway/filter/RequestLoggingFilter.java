@@ -37,21 +37,17 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         
-        // Capture request start time
         exchange.getAttributes().put(REQUEST_START_TIME, Instant.now());
         
-        // Extract request details
         HttpMethod method = request.getMethod();
         String path = request.getPath().value();
         String correlationId = request.getHeaders().getFirst(CORRELATION_ID_HEADER);
         InetSocketAddress remoteAddress = request.getRemoteAddress();
         String ipAddress = remoteAddress != null ? remoteAddress.getAddress().getHostAddress() : "unknown";
         
-        // Log incoming request
         logger.info("Incoming request: method={}, path={}, ip={}, correlationId={}",
             method, path, ipAddress, correlationId);
         
-        // Record request metric
         Counter.builder("gateway.requests.total")
             .tag("method", method != null ? method.name() : "UNKNOWN")
             .tag("path", path)
@@ -59,7 +55,6 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
             .increment();
         
         return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            // Log response details
             int statusCode = exchange.getResponse().getStatusCode() != null
                 ? exchange.getResponse().getStatusCode().value()
                 : 0;
@@ -72,7 +67,6 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
             logger.info("Request completed: method={}, path={}, status={}, duration={}ms, correlationId={}",
                 method, path, statusCode, duration, correlationId);
             
-            // Record request duration metric
             Timer.builder("gateway.requests.duration")
                 .tag("method", method != null ? method.name() : "UNKNOWN")
                 .tag("path", path)

@@ -40,7 +40,6 @@ public class CircuitBreakerFilter implements GlobalFilter, Ordered {
                         event.getStateTransition().getFromState(),
                         event.getStateTransition().getToState());
                     
-                    // Record metric for circuit breaker state transitions
                     Counter.builder("gateway.circuitbreaker.state.transitions")
                         .tag("name", circuitBreaker.getName())
                         .tag("from", event.getStateTransition().getFromState().name())
@@ -48,7 +47,6 @@ public class CircuitBreakerFilter implements GlobalFilter, Ordered {
                         .register(meterRegistry)
                         .increment();
                     
-                    // Record metric specifically for OPEN state (activation)
                     if (event.getStateTransition().getToState() == CircuitBreaker.State.OPEN) {
                         Counter.builder("gateway.circuitbreaker.activations")
                             .tag("name", circuitBreaker.getName())
@@ -61,7 +59,6 @@ public class CircuitBreakerFilter implements GlobalFilter, Ordered {
                         circuitBreaker.getName(),
                         event.getThrowable().getMessage());
                     
-                    // Record error metric
                     Counter.builder("gateway.circuitbreaker.errors")
                         .tag("name", circuitBreaker.getName())
                         .register(meterRegistry)
@@ -77,8 +74,6 @@ public class CircuitBreakerFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // This filter primarily monitors circuit breaker events
-        // The actual circuit breaking is handled by Spring Cloud Gateway's CircuitBreaker filter
         return chain.filter(exchange);
     }
 

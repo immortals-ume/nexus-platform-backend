@@ -44,7 +44,6 @@ public class ResponseTimeLoggingFilter implements GlobalFilter, Ordered {
                     ? exchange.getRequest().getMethod().name()
                     : "UNKNOWN";
                 
-                // Log response time
                 if (millis > 1000) {
                     logger.warn("Slow request detected: method={}, path={}, duration={}ms",
                         method, path, millis);
@@ -53,7 +52,6 @@ public class ResponseTimeLoggingFilter implements GlobalFilter, Ordered {
                         method, path, millis);
                 }
                 
-                // Record metric
                 Timer.builder("gateway.request.duration")
                     .tag("method", method)
                     .tag("path", path)

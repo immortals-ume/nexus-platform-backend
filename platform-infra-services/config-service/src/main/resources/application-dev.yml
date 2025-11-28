@@ -1,19 +1,51 @@
+# Development Environment Configuration
 spring:
+  profiles:
+    active: native
   cloud:
     config:
       server:
         native:
-          search-locations: classpath:/configurations
-    bus:
-      enabled: false  # Disable bus in dev for simplicity
+          search-locations: classpath:/configurations/
+  security:
+    user:
+      name: admin
+      password: admin123
 
-# Encryption configuration for development
-encrypt:
-  key: ${CONFIG_ENCRYPT_KEY:dev-secret-key-change-in-production}
+server:
+  port: 8888
 
-# Logging
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# Logging - more verbose in dev
 logging:
   level:
     root: INFO
     org.springframework.cloud.config: DEBUG
-    com.example: DEBUG
+    com.example.config: DEBUG
+
+# Observability - full sampling in dev
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 1.0  # 100% sampling in dev
+      zipkin-url: http://localhost:9411
+    logging:
+      format: console  # Console format for dev
+      level: DEBUG
+
+# Resilience4j - faster retries in dev
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 2
+        wait-duration: 50ms
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 3s

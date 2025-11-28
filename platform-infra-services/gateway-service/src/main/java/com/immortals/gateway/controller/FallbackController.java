@@ -135,7 +135,6 @@ public class FallbackController {
      * Creates a standardized fallback response
      */
     private ResponseEntity<Map<String, Object>> createFallbackResponse(String serviceName, String message, String correlationId) {
-        // Record fallback invocation metric
         Counter.builder("gateway.fallback.invocations")
             .tag("service", serviceName)
             .register(meterRegistry)
@@ -150,7 +149,6 @@ public class FallbackController {
         response.put("fallback", true);
         response.put("correlationId", correlationId);
         
-        // Add Retry-After header (suggest retry after 30 seconds)
         return ResponseEntity
             .status(HttpStatus.SERVICE_UNAVAILABLE)
             .header("Retry-After", "30")

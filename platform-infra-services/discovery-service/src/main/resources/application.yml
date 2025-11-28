@@ -90,6 +90,39 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
+# Resilience4j Retry Configuration
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 100ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+          - java.lang.IllegalStateException
+    instances:
+      peerReplication:
+        base-config: default
+      configFetch:
+        base-config: default
+        max-attempts: 3
+  
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+        cancel-running-future: true
+    instances:
+      peerReplication:
+        timeout-duration: 3s
+      configFetch:
+        timeout-duration: 5s
+
 # Platform Observability Configuration
 platform:
   observability:

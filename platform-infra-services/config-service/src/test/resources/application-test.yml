@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: config-service-test
+  cloud:
+    config:
+      server:
+        git:
+          uri: file://${java.io.tmpdir}/config-repo
+          default-label: main
+        native:
+          search-locations: classpath:/config
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  security:
+    user:
+      name: test-user
+      password: test-password
+
+server:
+  port: 0
+
+eureka:
+  client:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.immortals.platform: DEBUG

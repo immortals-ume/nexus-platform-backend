@@ -16,34 +16,11 @@ import org.springframework.validation.annotation.Validated;
 public class ConfigServerProperties {
     
     @Valid
-    @NotNull(message = "Git configuration is required")
-    private Git git = new Git();
-    
-    @Valid
     private Encryption encryption = new Encryption();
     
     @Valid
     @NotNull(message = "Refresh configuration is required")
     private Refresh refresh = new Refresh();
-    
-    @Data
-    @Validated
-    public static class Git {
-        private String uri;
-        private String username;
-        private String password;
-        
-        @NotBlank(message = "Git default label is required")
-        private String defaultLabel = "main";
-        
-        @NotBlank(message = "Git search paths are required")
-        private String searchPaths = "{application}";
-        
-        private boolean cloneOnStart = true;
-        
-        @Min(value = 1, message = "Git timeout must be at least 1 second")
-        private int timeout = 10;
-    }
     
     @Data
     @Validated

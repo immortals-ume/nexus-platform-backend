@@ -30,7 +30,6 @@ public class CorrelationIdFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         HttpHeaders headers = exchange.getRequest().getHeaders();
         
-        // Get existing correlation ID or generate a new one
         String correlationId = headers.getFirst(CORRELATION_ID_HEADER);
         if (correlationId == null || correlationId.isEmpty()) {
             correlationId = UUID.randomUUID().toString();
@@ -41,25 +40,20 @@ public class CorrelationIdFilter implements GlobalFilter, Ordered {
         
         final String finalCorrelationId = correlationId;
         
-        // Add correlation ID to request headers for downstream services
         ServerWebExchange modifiedExchange = exchange.mutate()
             .request(builder -> builder.header(CORRELATION_ID_HEADER, finalCorrelationId))
             .build();
         
-        // Add correlation ID to response headers
         modifiedExchange.getResponse().getHeaders().add(CORRELATION_ID_HEADER, finalCorrelationId);
         
-        // Add correlation ID to reactor context for logging
         return chain.filter(modifiedExchange)
             .contextWrite(Context.of(CORRELATION_ID_KEY, finalCorrelationId))
             .doOnEach(signal -> {
-                // Add to MDC for logging in reactive context
                 if (signal.getContextView().hasKey(CORRELATION_ID_KEY)) {
                     MDC.put(CORRELATION_ID_KEY, signal.getContextView().get(CORRELATION_ID_KEY));
                 }
             })
             .doFinally(signalType -> {
-                // Clean up MDC after request processing
                 MDC.remove(CORRELATION_ID_KEY);
             });
     }

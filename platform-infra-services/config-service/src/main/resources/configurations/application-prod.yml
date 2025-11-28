@@ -1,0 +1,29 @@
+# Production profile configuration
+# These settings override the default application.yml for production environment
+
+# Production-specific Eureka configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-prod:8761/eureka/}
+  instance:
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# Production observability - low sampling for performance
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 0.1
+      exporter: zipkin
+      zipkin-url: ${ZIPKIN_URL:http://zipkin-prod:9411}
+    logging:
+      level: INFO
+
+# Production logging - minimal verbosity
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    com.immortals: INFO

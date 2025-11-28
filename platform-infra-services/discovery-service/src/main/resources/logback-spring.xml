@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <!-- Console appender with JSON format for structured logging -->
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>correlationId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>serviceId</includeMdcKeyName>
+            <includeMdcKeyName>instanceId</includeMdcKeyName>
+            <customFields>{"service":"discovery-service"}</customFields>
+        </encoder>
+    </appender>
+    
+    <!-- Console appender with standard format for local development -->
+    <appender name="CONSOLE_STANDARD" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{correlationId:-NO_CORRELATION_ID}] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- File appender for persistent logs -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/discovery-service.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/discovery-service.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>correlationId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>serviceId</includeMdcKeyName>
+            <includeMdcKeyName>instanceId</includeMdcKeyName>
+            <customFields>{"service":"discovery-service"}</customFields>
+        </encoder>
+    </appender>
+    
+    <!-- Spring profile specific configuration -->
+    <springProfile name="dev,local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_STANDARD"/>
+        </root>
+        <logger name="com.example.discovery" level="DEBUG"/>
+    </springProfile>
+    
+    <springProfile name="staging,prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+            <appender-ref ref="FILE"/>
+        </root>
+        <logger name="com.example.discovery" level="INFO"/>
+    </springProfile>
+    
+    <!-- Default configuration (when no profile is active) -->
+    <springProfile name="!dev &amp; !local &amp; !staging &amp; !prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </root>
+        <logger name="com.example.discovery" level="INFO"/>
+    </springProfile>
+    
+    <!-- Reduce noise from Spring framework -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="com.netflix.eureka" level="INFO"/>
+    <logger name="com.netflix.discovery" level="INFO"/>
+    <logger name="org.springframework.security" level="WARN"/>
+</configuration>

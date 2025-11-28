@@ -1,0 +1,29 @@
+# Staging profile configuration
+# These settings override the default application.yml for staging environment
+
+# Staging-specific Eureka configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-staging:8761/eureka/}
+  instance:
+    lease-renewal-interval-in-seconds: 20
+    lease-expiration-duration-in-seconds: 60
+
+# Staging observability - moderate sampling
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 0.5
+      exporter: zipkin
+      zipkin-url: ${ZIPKIN_URL:http://zipkin-staging:9411}
+    logging:
+      level: INFO
+
+# Staging logging
+logging:
+  level:
+    root: INFO
+    org.springframework: WARN
+    com.immortals: INFO

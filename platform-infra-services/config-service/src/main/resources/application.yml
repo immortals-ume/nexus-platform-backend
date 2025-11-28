@@ -6,6 +6,15 @@ spring:
     name: config-server
   profiles:
     active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/configurations/
+        # Profile merging configuration - later profiles override earlier ones
+        overrides:
+          # These properties cannot be overridden by clients
+          spring.cloud.config.enabled: true
   security:
     user:
       name: ${CONFIG_SERVER_USERNAME:admin}
@@ -36,6 +45,44 @@ eureka:
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
+
+# Resilience4j Retry Configuration
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 100ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+          - java.lang.IllegalStateException
+    instances:
+      kafkaPublish:
+        base-config: default
+      gitSync:
+        base-config: default
+        max-attempts: 3
+      eurekaRegistration:
+        base-config: default
+        max-attempts: 3
+  
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+        cancel-running-future: true
+    instances:
+      kafkaPublish:
+        timeout-duration: 3s
+      gitSync:
+        timeout-duration: 10s
+      eurekaRegistration:
+        timeout-duration: 5s
 
 # Observability Configuration
 platform:

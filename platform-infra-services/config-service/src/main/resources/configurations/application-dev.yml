@@ -1,0 +1,29 @@
+# Development profile configuration
+# These settings override the default application.yml for dev environment
+
+# Development-specific Eureka configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# Development observability - higher sampling rate for debugging
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 1.0
+      exporter: zipkin
+      zipkin-url: ${ZIPKIN_URL:http://localhost:9411}
+    logging:
+      level: DEBUG
+
+# Development logging - more verbose
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    com.immortals: DEBUG

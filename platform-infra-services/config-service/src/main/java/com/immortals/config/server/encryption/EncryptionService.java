@@ -60,7 +60,6 @@ public class EncryptionService {
             @Value("${encrypt.key:}") String encryptKey,
             @Value("${encrypt.key-store.location:}") String keyStoreLocation) {
         
-        // Initialize symmetric encryption
         if (encryptKey != null && !encryptKey.isEmpty()) {
             this.symmetricEncryptor = Encryptors.text(encryptKey, "deadbeef");
             log.info("Symmetric encryption initialized");
@@ -69,7 +68,6 @@ public class EncryptionService {
             log.warn("No encryption key configured, encryption disabled");
         }
         
-        // Check if asymmetric encryption is configured
         this.asymmetricEnabled = keyStoreLocation != null && !keyStoreLocation.isEmpty();
         if (asymmetricEnabled) {
             log.info("Asymmetric encryption configured with keystore: {}", keyStoreLocation);

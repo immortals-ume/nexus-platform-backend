@@ -1,39 +1,62 @@
+# Production Environment Configuration
 spring:
+  profiles:
+    active: git
   cloud:
     config:
       server:
         git:
-          uri: ${CONFIG_GIT_URI}
+          uri: ${GIT_REPO_URI}
+          username: ${GIT_USERNAME}
+          password: ${GIT_PASSWORD}
           default-label: main
-          search-paths: '{application}'
           clone-on-start: true
-          timeout: 10
-          username: ${CONFIG_GIT_USERNAME}
-          password: ${CONFIG_GIT_PASSWORD}
+          timeout: 15
           force-pull: true
-          refresh-rate: 60
-    bus:
-      enabled: true
-      refresh:
-        enabled: true
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    properties:
-      security.protocol: SASL_SSL
-      sasl.mechanism: PLAIN
-      sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG}
+  security:
+    user:
+      name: ${CONFIG_SERVER_USERNAME}
+      password: ${CONFIG_SERVER_PASSWORD}
 
-# Encryption configuration for production (use asymmetric encryption)
-encrypt:
-  key-store:
-    location: ${CONFIG_KEYSTORE_LOCATION:classpath:/config-server.jks}
-    password: ${CONFIG_KEYSTORE_PASSWORD}
-    alias: ${CONFIG_KEYSTORE_ALIAS:config-server-key}
-    secret: ${CONFIG_KEYSTORE_SECRET}
+server:
+  port: 8888
 
-# Logging
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+
+# Logging - minimal verbosity in production
 logging:
   level:
     root: WARN
     org.springframework.cloud.config: INFO
-    com.example: INFO
+    com.example.config: INFO
+
+# Observability - low sampling in production
+platform:
+  observability:
+    tracing:
+      enabled: true
+      sampling-rate: 0.1  # 10% sampling in production
+      zipkin-url: ${ZIPKIN_URL}
+    logging:
+      format: json  # JSON format for production
+      level: INFO
+
+# Resilience4j - production settings
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 100ms
+        exponential-backoff-multiplier: 2
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+        cancel-running-future: true

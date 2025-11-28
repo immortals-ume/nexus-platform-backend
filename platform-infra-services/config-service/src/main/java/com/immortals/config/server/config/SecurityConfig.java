@@ -51,8 +51,7 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
         log.info("Configuring user details service with admin user: {}", adminUsername);
-        
-        // Admin user with full access
+
         UserDetails admin = User.builder()
             .username(adminUsername)
             .password(passwordEncoder.encode(adminPassword))
@@ -73,15 +72,11 @@ public class SecurityConfig {
         log.info("Configuring security for Config Server");
         
         http
-            // Disable CSRF for REST API endpoints
             .csrf(AbstractHttpConfigurer::disable)
-            
-            // Configure authorization rules
+
             .authorizeHttpRequests(authorize -> authorize
-                // Public endpoints - no authentication required
                 .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
-                
-                // Sensitive actuator endpoints - require ADMIN role
+
                 .requestMatchers(
                     "/actuator/env/**",
                     "/actuator/configprops/**",
@@ -91,36 +86,29 @@ public class SecurityConfig {
                     "/actuator/threaddump/**",
                     "/actuator/heapdump/**"
                 ).hasRole("ADMIN")
-                
-                // Metrics and Prometheus endpoints - require authentication
+
                 .requestMatchers("/actuator/metrics/**", "/actuator/prometheus").authenticated()
-                
-                // Encryption/decryption endpoints - require authentication
+
                 .requestMatchers("/encrypt/**", "/decrypt/**").authenticated()
-                
-                // Configuration endpoints - require authentication
+
                 .requestMatchers("/**/*.yml", "/**/*.yaml", "/**/*.properties", "/**/*.json").authenticated()
-                
-                // Refresh endpoints - require authentication
+
                 .requestMatchers("/actuator/refresh", "/actuator/busrefresh/**").authenticated()
                 
-                // Monitor/webhook endpoints - require authentication
+
                 .requestMatchers("/monitor/**").authenticated()
-                
-                // All other actuator endpoints - require authentication
+
                 .requestMatchers("/actuator/**").authenticated()
-                
-                // All other requests require authentication
+                    
                 .anyRequest().authenticated()
             )
-            
-            // Enable HTTP Basic authentication
+
             .httpBasic(Customizer.withDefaults());
         
-        log.info("Security configuration completed:");
-        log.info("  - Public: /actuator/health, /actuator/info");
-        log.info("  - Authenticated: Config, encryption, refresh, metrics");
-        log.info("  - ADMIN role: Sensitive actuator endpoints");
+        log.debug("Security configuration completed:");
+        log.debug("  - Public: /actuator/health, /actuator/info");
+        log.debug("  - Authenticated: Config, encryption, refresh, metrics");
+        log.debug("  - ADMIN role: Sensitive actuator endpoints");
         
         return http.build();
     }

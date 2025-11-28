@@ -36,15 +36,12 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         
-        // Parse and set allowed origins
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
         corsConfig.setAllowedOrigins(origins);
         
-        // Parse and set allowed methods
         List<String> methods = Arrays.asList(allowedMethods.split(","));
         corsConfig.setAllowedMethods(methods);
         
-        // Set allowed headers
         if ("*".equals(allowedHeaders)) {
             corsConfig.addAllowedHeader("*");
         } else {
@@ -52,13 +49,10 @@ public class CorsConfig {
             corsConfig.setAllowedHeaders(headers);
         }
         
-        // Set credentials support
         corsConfig.setAllowCredentials(allowCredentials);
         
-        // Set max age for preflight requests
         corsConfig.setMaxAge(maxAge);
         
-        // Expose common headers
         corsConfig.addExposedHeader("X-Correlation-Id");
         corsConfig.addExposedHeader("X-RateLimit-Limit");
         corsConfig.addExposedHeader("X-RateLimit-Remaining");

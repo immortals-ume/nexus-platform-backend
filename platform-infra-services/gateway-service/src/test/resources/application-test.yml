@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: gateway-service-test
+  cloud:
+    config:
+      enabled: false
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes: []
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+server:
+  port: 0
+
+eureka:
+  client:
+    enabled: false
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  retry:
+    instances:
+      default:
+        max-attempts: 3
+        wait-duration: 100ms
+        exponential-backoff-multiplier: 2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.immortals.platform: DEBUG
+    org.springframework.cloud.gateway: DEBUG
