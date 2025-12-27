@@ -1,0 +1,14 @@
+# Cache observability default configuration
+immortals:
+  cache:
+    observability:
+      metrics:
+        enabled: true
+        prefix: cache
+      health:
+        enabled: true
+      tracing:
+        enabled: false
+      logging:
+        enabled: true
+        include-correlation-id: true

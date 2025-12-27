@@ -1,0 +1,166 @@
+# Notification Service - Development Environment Configuration
+# Overrides notification-service.yml for local development
+
+server:
+  port: 8081
+
+spring:
+  # Development Database
+  datasource:
+    url: jdbc:postgresql://localhost:5432/notification_db_dev
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:pgpassword}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+  
+  # Development Flyway
+  flyway:
+    clean-disabled: false
+    clean-on-validation-error: true
+
+# Development Kafka
+platform:
+  messaging:
+    kafka:
+      bootstrap-servers: localhost:9092
+      consumer-group-prefix: notification-service-dev
+      concurrency: 2
+  
+  # Development Redis
+  cache:
+    redis:
+      host: localhost
+      port: 6379
+      password: ""
+      database: 0
+  
+  # Development Notification Configuration
+  notification:
+    # Provider Configurations - Development
+    providers:
+      twilio:
+        enabled: true
+        credentials:
+          account-sid: ${TWILIO_DEV_ACCOUNT_SID:ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx}
+          auth-token: ${TWILIO_DEV_AUTH_TOKEN:}
+        configuration:
+          from-number: ${TWILIO_DEV_FROM_NUMBER:+15005550006}
+          whatsapp-from: whatsapp:+14155238886
+        rate-limit:
+          requests-per-second: 5  # Lower for dev
+      
+      gupshup:
+        enabled: false  # Disabled in dev by default
+      
+      aws-sns:
+        enabled: true
+        credentials:
+          access-key-id: ${AWS_DEV_ACCESS_KEY_ID:}
+          secret-access-key: ${AWS_DEV_SECRET_ACCESS_KEY:}
+          region: us-east-1
+        rate-limit:
+          requests-per-second: 10
+      
+      mailchimp:
+        enabled: true
+        credentials:
+          api-key: ${MAILCHIMP_DEV_API_KEY:}
+        configuration:
+          from-email: dev-noreply@example.com
+          from-name: Dev Notification Service
+          track-opens: false
+          track-clicks: false
+    
+    # Development Retry Configuration
+    retry:
+      max-attempts: 2  # Fewer retries in dev
+      initial-interval: 500
+      max-interval: 5000
+    
+    # Development Rate Limiting - More lenient
+    rate-limiting:
+      enabled: true
+      default-limits:
+        email:
+          per-minute: 20
+          per-hour: 200
+          per-day: 1000
+        sms:
+          per-minute: 10
+          per-hour: 100
+          per-day: 500
+        whatsapp:
+          per-minute: 10
+          per-hour: 100
+          per-day: 500
+        push:
+          per-minute: 30
+          per-hour: 300
+          per-day: 2000
+    
+    # Development Deduplication - Shorter window
+    deduplication:
+      window-seconds: 60  # 1 minute for dev
+      email-window-seconds: 60
+      sms-window-seconds: 30
+      whatsapp-window-seconds: 30
+      push-window-seconds: 30
+    
+    # Development Scheduling
+    scheduling:
+      poll-interval-ms: 30000  # 30 seconds for faster testing
+      batch-size: 50
+    
+    # Development Analytics
+    analytics:
+      retention-days: 30  # Shorter retention in dev
+
+# Development Logging - More verbose
+logging:
+  level:
+    root: INFO
+    com.immortals.notification: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.data.redis: DEBUG
+    com.twilio: DEBUG
+    software.amazon.awssdk: DEBUG
+
+# Development Actuator - All endpoints exposed
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# Development Resilience4j - More lenient
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 50
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 70
+        wait-duration-in-open-state: 10s
+  
+  retry:
+    configs:
+      default:
+        max-attempts: 2
+        wait-duration: 500ms
+  
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 200
+        limit-refresh-period: 1s

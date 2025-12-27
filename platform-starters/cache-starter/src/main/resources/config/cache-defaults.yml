@@ -1,0 +1,39 @@
+# Default cache configuration
+immortals:
+  cache:
+    enabled: true
+    type: caffeine
+    default-ttl: 1h
+    
+    # Multi-level cache configuration
+    multi-level:
+      distributed-eviction: true
+      eviction-channel: "cache:eviction"
+    
+    # Feature configuration
+    features:
+      compression:
+        enabled: false
+        algorithm: gzip
+        threshold: 1024
+      encryption:
+        enabled: false
+        algorithm: AES-GCM
+        key-size: 256
+      serialization:
+        strategy: jackson
+    
+    # Resilience configuration
+    resilience:
+      circuit-breaker:
+        enabled: false
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+      stampede-protection:
+        enabled: false
+        lock-timeout: 5s
+      timeout:
+        enabled: true
+        operation-timeout: 5s

@@ -1,0 +1,10 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - com.immortals.cache.providers.redis.CacheStandaloneConfiguration
+      - com.immortals.cache.features.autoconfigure.CacheAutoConfiguration
+      - com.immortals.cache.features.annotations.CacheAnnotationAutoConfiguration
+      - com.immortals.platform.common.config.DataSourceAutoConfiguration

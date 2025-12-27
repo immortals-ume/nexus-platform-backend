@@ -1,0 +1,192 @@
+# Notification Service - Staging Environment Configuration
+# Overrides notification-service.yml for staging environment
+
+server:
+  port: 8081
+
+spring:
+  # Staging Database
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:staging-db.example.com}:5432/notification_db_staging
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 3
+  
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+  
+  # Staging Flyway
+  flyway:
+    clean-disabled: true
+    clean-on-validation-error: false
+
+# Staging Kafka
+platform:
+  messaging:
+    kafka:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:staging-kafka.example.com:9092}
+      consumer-group-prefix: notification-service-staging
+      concurrency: 5
+  
+  # Staging Redis
+  cache:
+    redis:
+      host: ${REDIS_HOST:staging-redis.example.com}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: 0
+  
+  # Staging Notification Configuration
+  notification:
+    # Provider Configurations - Staging
+    providers:
+      twilio:
+        enabled: true
+        credentials:
+          account-sid: ${TWILIO_STAGING_ACCOUNT_SID}
+          auth-token: ${TWILIO_STAGING_AUTH_TOKEN}
+        configuration:
+          from-number: ${TWILIO_STAGING_FROM_NUMBER}
+          whatsapp-from: ${TWILIO_STAGING_WHATSAPP_FROM}
+          status-callback-url: https://staging-api.example.com/api/v1/notifications/webhooks/twilio
+        rate-limit:
+          requests-per-second: 8
+          burst-capacity: 15
+      
+      gupshup:
+        enabled: true
+        credentials:
+          api-key: ${GUPSHUP_STAGING_API_KEY}
+          app-name: ${GUPSHUP_STAGING_APP_NAME}
+        configuration:
+          callback-url: https://staging-api.example.com/api/v1/notifications/webhooks/gupshup
+        rate-limit:
+          requests-per-second: 4
+          burst-capacity: 8
+      
+      aws-sns:
+        enabled: true
+        credentials:
+          access-key-id: ${AWS_STAGING_ACCESS_KEY_ID}
+          secret-access-key: ${AWS_STAGING_SECRET_ACCESS_KEY}
+          region: ${AWS_REGION:us-east-1}
+        configuration:
+          sender-id: ${AWS_SNS_STAGING_SENDER_ID}
+          topic-arn: ${AWS_SNS_STAGING_TOPIC_ARN}
+        rate-limit:
+          requests-per-second: 15
+          burst-capacity: 30
+      
+      mailchimp:
+        enabled: true
+        credentials:
+          api-key: ${MAILCHIMP_STAGING_API_KEY}
+        configuration:
+          from-email: ${MAILCHIMP_STAGING_FROM_EMAIL:staging-noreply@example.com}
+          from-name: ${MAILCHIMP_STAGING_FROM_NAME:Staging Notification Service}
+          webhook-url: https://staging-api.example.com/api/v1/notifications/webhooks/mailchimp
+        rate-limit:
+          requests-per-second: 12
+          burst-capacity: 25
+    
+    # Staging Retry Configuration
+    retry:
+      max-attempts: 3
+      initial-interval: 1000
+      max-interval: 10000
+    
+    # Staging Rate Limiting
+    rate-limiting:
+      enabled: true
+      default-limits:
+        email:
+          per-minute: 12
+          per-hour: 120
+          per-day: 600
+        sms:
+          per-minute: 6
+          per-hour: 60
+          per-day: 250
+        whatsapp:
+          per-minute: 6
+          per-hour: 60
+          per-day: 250
+        push:
+          per-minute: 25
+          per-hour: 250
+          per-day: 1200
+      queue:
+        max-size: 5000
+    
+    # Staging Deduplication
+    deduplication:
+      window-seconds: 300
+      email-window-seconds: 300
+      sms-window-seconds: 60
+      whatsapp-window-seconds: 60
+      push-window-seconds: 60
+    
+    # Staging Scheduling
+    scheduling:
+      poll-interval-ms: 60000
+      batch-size: 75
+      look-ahead-minutes: 5
+    
+    # Staging Analytics
+    analytics:
+      retention-days: 60
+
+# Staging Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://staging-eureka.example.com:8761/eureka/}
+  instance:
+    metadata-map:
+      environment: staging
+
+# Staging Logging
+logging:
+  level:
+    root: INFO
+    com.immortals.notification: INFO
+    org.springframework.kafka: INFO
+    org.springframework.data.redis: INFO
+
+# Staging Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Staging Resilience4j
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 75
+        minimum-number-of-calls: 8
+        failure-rate-threshold: 55
+        wait-duration-in-open-state: 20s
+  
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 1s
+  
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 150
+        limit-refresh-period: 1s

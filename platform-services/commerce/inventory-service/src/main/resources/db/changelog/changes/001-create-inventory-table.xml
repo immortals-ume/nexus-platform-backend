@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001-create-inventory-table" author="system">
+        <createTable tableName="inventory">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="product_id" type="UUID">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="sku" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="available_quantity" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reserved_quantity" type="INTEGER" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_quantity" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="warehouse_location" type="VARCHAR(100)"/>
+            <column name="reorder_threshold" type="INTEGER" defaultValue="10"/>
+            <column name="last_restocked_at" type="TIMESTAMP"/>
+            <column name="last_restocked_by" type="VARCHAR(100)"/>
+            <column name="version" type="INTEGER" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="VARCHAR(100)"/>
+            <column name="updated_by" type="VARCHAR(100)"/>
+        </createTable>
+
+        <createIndex tableName="inventory" indexName="idx_inventory_product_id">
+            <column name="product_id"/>
+        </createIndex>
+
+        <createIndex tableName="inventory" indexName="idx_inventory_sku">
+            <column name="sku"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

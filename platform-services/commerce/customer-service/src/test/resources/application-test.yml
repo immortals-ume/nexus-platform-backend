@@ -1,0 +1,9 @@
+spring:
+  autoconfigure:
+    exclude:
+      - com.immortals.cache.providers.redis.CacheStandaloneConfiguration
+      - com.immortals.cache.features.autoconfigure.CacheAutoConfiguration
+      - com.immortals.cache.features.annotations.CacheAnnotationAutoConfiguration
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/test

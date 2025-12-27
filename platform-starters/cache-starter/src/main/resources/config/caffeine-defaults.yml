@@ -1,0 +1,8 @@
+# Caffeine cache default configuration
+immortals:
+  cache:
+    caffeine:
+      maximum-size: 10000
+      expire-after-write: 1h
+      record-stats: true
+      initial-capacity: 100

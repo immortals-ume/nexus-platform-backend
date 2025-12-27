@@ -1,0 +1,21 @@
+# Redis cache default configuration
+immortals:
+  cache:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      command-timeout: 5s
+      use-ssl: false
+      pool:
+        max-total: 8
+        max-idle: 8
+        min-idle: 0
+      pipelining:
+        enabled: true
+        batch-size: 100
+      cluster:
+        max-redirects: 5
+      read-strategy:
+        read-from-replica: false
+        replica-preference: REPLICA_PREFERRED

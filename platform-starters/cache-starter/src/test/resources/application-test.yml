@@ -1,0 +1,28 @@
+spring:
+  profiles:
+    active: test
+
+platform:
+  cache:
+    enabled: true
+    default-ttl: PT1M
+    caffeine:
+      enabled: true
+      maximum-size: 100
+      record-stats: true
+    redis:
+      enabled: false
+      host: localhost
+      port: 6379
+    features:
+      compression:
+        enabled: false
+      serialization:
+        strategy: jackson
+      encryption:
+        enabled: false
+
+logging:
+  level:
+    com.immortals.platform.cache: DEBUG
+    org.springframework.cache: DEBUG

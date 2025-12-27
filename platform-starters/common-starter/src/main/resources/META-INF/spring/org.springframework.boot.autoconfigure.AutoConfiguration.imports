@@ -1,1 +1,2 @@
 com.immortals.platform.common.handler.GlobalExceptionHandler
+com.immortals.platform.common.db.config.DataSourceAutoConfiguration

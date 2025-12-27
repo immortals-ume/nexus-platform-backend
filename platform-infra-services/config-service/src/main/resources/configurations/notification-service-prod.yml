@@ -1,0 +1,340 @@
+# Notification Service - Production Environment Configuration
+# Overrides notification-service.yml for production environment
+
+server:
+  port: 8081
+
+spring:
+  # Production Database
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:prod-db.example.com}:5432/notification_db_prod
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        generate_statistics: false
+  
+  # Production Flyway
+  flyway:
+    clean-disabled: true
+    clean-on-validation-error: false
+    validate-on-migrate: true
+
+# Production Kafka
+platform:
+  messaging:
+    kafka:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:prod-kafka-1.example.com:9092,prod-kafka-2.example.com:9092,prod-kafka-3.example.com:9092}
+      consumer-group-prefix: notification-service-prod
+      concurrency: 10
+      max-poll-records: 500
+      session-timeout: 30s
+      heartbeat-interval: 10s
+  
+  # Production Redis
+  cache:
+    redis:
+      host: ${REDIS_HOST:prod-redis.example.com}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: 0
+      timeout: 5000
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 2000
+  
+  # Production Notification Configuration
+  notification:
+    # Provider Configurations - Production
+    providers:
+      twilio:
+        enabled: true
+        credentials:
+          account-sid: ${TWILIO_PROD_ACCOUNT_SID}
+          auth-token: ${TWILIO_PROD_AUTH_TOKEN}
+        configuration:
+          from-number: ${TWILIO_PROD_FROM_NUMBER}
+          whatsapp-from: ${TWILIO_PROD_WHATSAPP_FROM}
+          messaging-service-sid: ${TWILIO_PROD_MESSAGING_SERVICE_SID}
+          status-callback-url: https://api.example.com/api/v1/notifications/webhooks/twilio
+        rate-limit:
+          requests-per-second: 10
+          burst-capacity: 20
+        health-check:
+          enabled: true
+          interval-seconds: 60
+          timeout-seconds: 5
+      
+      gupshup:
+        enabled: true
+        credentials:
+          api-key: ${GUPSHUP_PROD_API_KEY}
+          app-name: ${GUPSHUP_PROD_APP_NAME}
+        configuration:
+          base-url: https://api.gupshup.io
+          source: ${GUPSHUP_PROD_SOURCE}
+          callback-url: https://api.example.com/api/v1/notifications/webhooks/gupshup
+        rate-limit:
+          requests-per-second: 5
+          burst-capacity: 10
+        health-check:
+          enabled: true
+          interval-seconds: 60
+          timeout-seconds: 5
+      
+      aws-sns:
+        enabled: true
+        credentials:
+          access-key-id: ${AWS_PROD_ACCESS_KEY_ID}
+          secret-access-key: ${AWS_PROD_SECRET_ACCESS_KEY}
+          region: ${AWS_REGION:us-east-1}
+        configuration:
+          sender-id: ${AWS_SNS_PROD_SENDER_ID}
+          sms-type: Transactional
+          max-price: 0.50
+          topic-arn: ${AWS_SNS_PROD_TOPIC_ARN}
+        rate-limit:
+          requests-per-second: 20
+          burst-capacity: 40
+        health-check:
+          enabled: true
+          interval-seconds: 60
+          timeout-seconds: 5
+      
+      mailchimp:
+        enabled: true
+        credentials:
+          api-key: ${MAILCHIMP_PROD_API_KEY}
+        configuration:
+          base-url: https://mandrillapp.com/api/1.0
+          from-email: ${MAILCHIMP_PROD_FROM_EMAIL:noreply@example.com}
+          from-name: ${MAILCHIMP_PROD_FROM_NAME:Notification Service}
+          track-opens: true
+          track-clicks: true
+          inline-css: true
+          webhook-url: https://api.example.com/api/v1/notifications/webhooks/mailchimp
+        rate-limit:
+          requests-per-second: 15
+          burst-capacity: 30
+        health-check:
+          enabled: true
+          interval-seconds: 60
+          timeout-seconds: 5
+    
+    # Production Retry Configuration
+    retry:
+      enabled: true
+      max-attempts: 3
+      initial-interval: 1000
+      multiplier: 2.0
+      max-interval: 10000
+      non-retryable-errors:
+        - INVALID_RECIPIENT
+        - INVALID_CREDENTIALS
+        - PERMISSION_DENIED
+        - TEMPLATE_NOT_FOUND
+      failover-on-retry: true
+    
+    # Production Rate Limiting
+    rate-limiting:
+      enabled: true
+      algorithm: TOKEN_BUCKET
+      default-limits:
+        email:
+          per-minute: 10
+          per-hour: 100
+          per-day: 500
+        sms:
+          per-minute: 5
+          per-hour: 50
+          per-day: 200
+        whatsapp:
+          per-minute: 5
+          per-hour: 50
+          per-day: 200
+        push:
+          per-minute: 20
+          per-hour: 200
+          per-day: 1000
+      queue:
+        enabled: true
+        max-size: 10000
+        processing-interval-ms: 1000
+    
+    # Production Deduplication
+    deduplication:
+      enabled: true
+      window-seconds: 300
+      email-window-seconds: 300
+      sms-window-seconds: 60
+      whatsapp-window-seconds: 60
+      push-window-seconds: 60
+      fallback-on-cache-failure: true
+    
+    # Production Scheduling
+    scheduling:
+      enabled: true
+      poll-interval-ms: 60000
+      batch-size: 100
+      look-ahead-minutes: 5
+    
+    # Production Templates
+    templates:
+      cache-enabled: true
+      cache-ttl-seconds: 600
+      default-engine: THYMELEAF
+    
+    # Production User Preferences
+    preferences:
+      cache-enabled: true
+      cache-ttl-seconds: 300
+      default-enabled: true
+      respect-quiet-hours: true
+    
+    # Production Webhooks
+    webhooks:
+      signature-validation:
+        enabled: true
+        twilio:
+          enabled: true
+          auth-token: ${TWILIO_PROD_AUTH_TOKEN}
+        sns:
+          enabled: true
+          verify-certificate: true
+      retry-on-failure:
+        enabled: true
+        max-attempts: 3
+        initial-interval: 1000
+    
+    # Production Analytics
+    analytics:
+      enabled: true
+      retention-days: 90
+      aggregation-interval-minutes: 5
+
+# Production Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://prod-eureka-1.example.com:8761/eureka/,http://prod-eureka-2.example.com:8761/eureka/}
+    registry-fetch-interval-seconds: 30
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    metadata-map:
+      version: 1.0.0
+      environment: production
+
+# Production Logging - Minimal verbosity
+logging:
+  level:
+    root: WARN
+    com.immortals.notification: INFO
+    org.springframework.kafka: WARN
+    org.springframework.data.redis: WARN
+    com.twilio: WARN
+    software.amazon.awssdk: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Production Actuator - Limited exposure
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    enable:
+      all: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# Production Resilience4j - Strict settings
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+        slow-call-duration-threshold: 5s
+        slow-call-rate-threshold: 50
+    instances:
+      emailService:
+        base-config: default
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 60s
+      smsService:
+        base-config: default
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 60s
+  
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 1s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+    instances:
+      emailService:
+        max-attempts: 5
+      smsService:
+        max-attempts: 3
+  
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 10s
+    instances:
+      emailService:
+        timeout-duration: 15s
+      smsService:
+        timeout-duration: 10s
+  
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 100
+        limit-refresh-period: 1s
+        timeout-duration: 5s
+    instances:
+      emailService:
+        limit-for-period: 100
+      smsService:
+        limit-for-period: 50

@@ -64,7 +64,7 @@ public class UserPrincipal implements UserDetails {
     public static UserPrincipal create(User user, Collection<Roles> roles, Collection<String> permissions) {
         Collection<? extends GrantedAuthority> authorities = extractAuthorities(roles);
         return new UserPrincipal(
-                user.getId() != null ? user.getId().getMostSignificantBits() : null,
+                user.getId() != null ? user.getId() : null,
                 user.getUserName(),
                 user.getPassword(),
                 user.getEmail(),

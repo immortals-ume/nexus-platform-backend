@@ -14,7 +14,6 @@
 
     <artifactId>platform-starters</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
 
     <name>Platform Starters</name>
     <description>Reusable Spring Boot starters for cross-cutting concerns</description>
