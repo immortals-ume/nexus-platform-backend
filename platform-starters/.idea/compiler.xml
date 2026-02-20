@@ -15,10 +15,50 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="messaging-starter" />
-        <module name="common-starter" />
         <module name="observability-starter" />
         <module name="security-starter" />
+      </profile>
+      <profile name="Annotation profile for common-starter" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.9/spring-boot-configuration-processor-3.5.9.jar" />
+        </processorPath>
+        <module name="common-starter" />
+      </profile>
+      <profile name="Annotation profile for domain-starter" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.9/spring-boot-configuration-processor-3.5.9.jar" />
+        </processorPath>
+        <module name="domain-starter" />
+      </profile>
+      <profile name="Annotation profile for messaging-starter" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.9/spring-boot-configuration-processor-3.5.9.jar" />
+        </processorPath>
+        <module name="messaging-starter" />
+      </profile>
+      <profile name="Annotation profile for Platform Starters" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.7/spring-boot-configuration-processor-3.5.7.jar" />
+        </processorPath>
         <module name="cache-starter" />
       </profile>
     </annotationProcessing>
@@ -28,6 +68,7 @@
       <module name="cache-service-spring-boot-starter" options="-parameters" />
       <module name="cache-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
       <module name="common-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
+      <module name="domain-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
       <module name="messaging-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
       <module name="observability-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />
       <module name="security-starter" options="-parameters -parameters -Xlint:all,-processing -Werror" />

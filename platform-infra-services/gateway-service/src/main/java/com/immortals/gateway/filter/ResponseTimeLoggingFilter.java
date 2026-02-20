@@ -2,8 +2,7 @@ package com.immortals.gateway.filter;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -19,9 +18,9 @@ import java.time.Instant;
  * Also publishes metrics for monitoring
  */
 @Component
+@Slf4j
 public class ResponseTimeLoggingFilter implements GlobalFilter, Ordered {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResponseTimeLoggingFilter.class);
     private static final String REQUEST_START_TIME = "responseTimeStartTime";
     private final MeterRegistry meterRegistry;
 
@@ -40,15 +39,15 @@ public class ResponseTimeLoggingFilter implements GlobalFilter, Ordered {
                 long millis = duration.toMillis();
                 
                 String path = exchange.getRequest().getPath().value();
-                String method = exchange.getRequest().getMethod() != null
-                    ? exchange.getRequest().getMethod().name()
-                    : "UNKNOWN";
+                exchange.getRequest()
+                        .getMethod();
+                String method = exchange.getRequest().getMethod().name();
                 
                 if (millis > 1000) {
-                    logger.warn("Slow request detected: method={}, path={}, duration={}ms",
+                    log.warn("Slow request detected: method={}, path={}, duration={}ms",
                         method, path, millis);
                 } else {
-                    logger.debug("Request completed: method={}, path={}, duration={}ms",
+                    log.debug("Request completed: method={}, path={}, duration={}ms",
                         method, path, millis);
                 }
                 

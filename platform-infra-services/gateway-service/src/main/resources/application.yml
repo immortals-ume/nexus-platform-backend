@@ -11,9 +11,7 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
-      
       routes:
-        # Auth Service Routes
         - id: auth-service
           uri: lb://auth-service
           predicates:
@@ -28,8 +26,6 @@ spring:
                 redis-rate-limiter.replenishRate: 17
                 redis-rate-limiter.burstCapacity: 34
                 redis-rate-limiter.requestedTokens: 1
-        
-        # User Management Service Routes
         - id: user-management-service
           uri: lb://user-management-service
           predicates:
@@ -43,8 +39,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 17
                 redis-rate-limiter.burstCapacity: 34
-        
-        # Notification Service Routes
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -56,10 +50,10 @@ spring:
                 fallbackUri: forward:/fallback/notifications
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 17
-                redis-rate-limiter.burstCapacity: 34
-        
-        # Storage Service Routes
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
         - id: storage-service
           uri: lb://storage-service
           predicates:
@@ -73,8 +67,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 9
                 redis-rate-limiter.burstCapacity: 17
-        
-        # OTP Service Routes
         - id: otp-service
           uri: lb://otp-service
           predicates:
@@ -88,8 +80,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 9
                 redis-rate-limiter.burstCapacity: 17
-        
-        # URL Shortener Service Routes
         - id: url-shortener-service
           uri: lb://url-shortener-service
           predicates:
@@ -103,8 +93,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 17
                 redis-rate-limiter.burstCapacity: 34
-        
-        # Customer Service Routes
         - id: customer-service
           uri: lb://customer-service
           predicates:
@@ -118,8 +106,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 17
                 redis-rate-limiter.burstCapacity: 34
-        
-        # Order Service Routes
         - id: order-service
           uri: lb://order-service
           predicates:
@@ -133,8 +119,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 17
                 redis-rate-limiter.burstCapacity: 34
-        
-        # Payment Service Routes
         - id: payment-service
           uri: lb://payment-service
           predicates:
@@ -148,8 +132,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 9
                 redis-rate-limiter.burstCapacity: 17
-        
-        # Product Service Routes
         - id: product-service
           uri: lb://product-service
           predicates:
@@ -163,8 +145,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 17
                 redis-rate-limiter.burstCapacity: 34
-      
-      # Global CORS Configuration
       globalcors:
         cors-configurations:
           '[/**]':
@@ -180,8 +160,6 @@ spring:
               - "*"
             allowCredentials: true
             maxAge: 3600
-      
-      # Default Filters
       default-filters:
         - name: Retry
           args:
@@ -193,8 +171,6 @@ spring:
               maxBackoff: 500ms
               factor: 2
               basedOnPreviousValue: false
-
-# Eureka Client Configuration
 eureka:
   client:
     service-url:
@@ -206,14 +182,12 @@ eureka:
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
 
-# Redis Configuration for Rate Limiting
 spring.data.redis:
   host: ${REDIS_HOST:localhost}
   port: ${REDIS_PORT:6379}
   password: ${REDIS_PASSWORD:}
   timeout: 2000ms
 
-# Resilience4j Circuit Breaker Configuration
 resilience4j:
   circuitbreaker:
     configs:
@@ -294,7 +268,6 @@ resilience4j:
         base-config: default
         max-attempts: 3
 
-# Actuator Configuration
 management:
   endpoints:
     web:
@@ -304,21 +277,19 @@ management:
     health:
       show-details: always
     gateway:
-      enabled: true
-  metrics:
-    export:
-      prometheus:
-        enabled: true
+      access: read_only
   tracing:
     sampling:
       probability: 0.1
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
-# Server Configuration
 server:
   port: ${SERVER_PORT:8080}
   shutdown: graceful
 
-# Logging Configuration
 logging:
   level:
     root: INFO

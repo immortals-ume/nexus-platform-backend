@@ -24,11 +24,28 @@
         <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- Force specific versions to resolve convergence issues -->
+            <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>3.43.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>2.28.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <!-- Platform Starters -->
         <dependency>
             <groupId>com.immortals.platform</groupId>
-            <artifactId>cache-starter</artifactId>
+            <artifactId>cache-features</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>

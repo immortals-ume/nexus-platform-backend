@@ -1,2 +1,4 @@
-com.immortals.platform.common.handler.GlobalExceptionHandler
-com.immortals.platform.common.db.config.DataSourceAutoConfiguration
+com.immortals.platform.common.autoconfigure.DatabaseAutoConfiguration
+com.immortals.platform.common.autoconfigure.ExceptionAutoConfiguration
+com.immortals.platform.common.autoconfigure.SwitchesAutoConfiguration
+com.immortals.platform.common.autoconfigure.CacheAutoConfiguration

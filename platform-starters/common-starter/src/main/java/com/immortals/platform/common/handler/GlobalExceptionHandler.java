@@ -1,8 +1,7 @@
 package com.immortals.platform.common.handler;
 
 import com.immortals.platform.common.exception.*;
-import com.immortals.platform.domain.dto.ErrorResponse;
-import com.immortals.platform.domain.dto.ErrorResponse.ValidationError;
+import com.immortals.platform.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -23,56 +22,74 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.immortals.platform.common.constant.CommonConstant.CORRELATION_ID_HEADER;
-import static com.immortals.platform.common.constant.CommonConstant.GENERIC_ERROR_MESSAGE;
+import static com.immortals.platform.common.constants.CommonConstant.CORRELATION_ID_HEADER;
+import static com.immortals.platform.common.constants.CommonConstant.GENERIC_ERROR_MESSAGE;
 
-/**
- * Global exception handler for all REST controllers.
- * Provides consistent error responses across all services.
- */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(RedirectionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRedirectionException(
+            RedirectionException ex, HttpServletRequest request) {
 
+        log.info("Redirection: {} to {}", ex.getMessage(), ex.getRedirectLocation());
 
-    /**
-     * Handles ResourceNotFoundException (404)
-     */
+        ApiResponse<Void> response = ApiResponse.redirection(ex.getMessage(), ex.getErrorCode());
+
+        return ResponseEntity.status(ex.getHttpStatus())
+                .header("Location", ex.getRedirectLocation())
+                .body(response);
+    }
+
+    @ExceptionHandler(PlatformException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePlatformException(
+            PlatformException ex, HttpServletRequest request) {
+
+        log.warn("Platform exception: {} - {}", ex.getClass()
+                .getSimpleName(), ex.getMessage());
+
+        ApiResponse<Void> response = ApiResponse.error(
+                ex.getMessage(),
+                ex.getErrorCode(),
+                request.getRequestURI(),
+                getCorrelationId(request)
+        );
+
+        return ResponseEntity.status(ex.getHttpStatus())
+                .body(response);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(
+    public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(
             ResourceNotFoundException ex, HttpServletRequest request) {
 
         log.warn("Resource not found: {}", ex.getMessage());
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 ex.getMessage(),
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(ex.getHttpStatus())
+                .body(response);
     }
 
-    /**
-     * Handles validation exceptions (400)
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
 
         log.warn("Validation failed: {}", ex.getMessage());
 
-        List<ValidationError> validationErrors = ex.getBindingResult()
+        List<ApiResponse.ValidationError> validationErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(this::mapFieldError)
                 .collect(Collectors.toList());
 
-        ErrorResponse errorResponse = ErrorResponse.withValidationErrors(
+        ApiResponse<Void> response = ApiResponse.validationError(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 "Validation failed",
@@ -81,26 +98,26 @@ public class GlobalExceptionHandler {
                 validationErrors
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles ValidationException (400)
-     */
     @ExceptionHandler(com.immortals.platform.common.exception.ValidationException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(
             com.immortals.platform.common.exception.ValidationException ex, HttpServletRequest request) {
 
         log.warn("Validation exception: {}", ex.getMessage());
 
-        ErrorResponse errorResponse;
+        ApiResponse<Void> response;
 
-        if (ex.getValidationErrors() != null && !ex.getValidationErrors().isEmpty()) {
-            List<ValidationError> validationErrors = ex.getValidationErrors().stream()
-                    .map(ve -> ValidationError.of(ve.getField(), ve.getRejectedValue(), ve.getMessage()))
+        if (ex.getValidationErrors() != null && !ex.getValidationErrors()
+                .isEmpty()) {
+            List<ApiResponse.ValidationError> validationErrors = ex.getValidationErrors()
+                    .stream()
+                    .map(ve -> ApiResponse.ValidationError.of(ve.getField(), ve.getRejectedValue(), ve.getMessage()))
                     .collect(Collectors.toList());
 
-            errorResponse = ErrorResponse.withValidationErrors(
+            response = ApiResponse.validationError(
                     HttpStatus.BAD_REQUEST.value(),
                     HttpStatus.BAD_REQUEST.getReasonPhrase(),
                     ex.getMessage(),
@@ -109,122 +126,98 @@ public class GlobalExceptionHandler {
                     validationErrors
             );
         } else {
-            errorResponse = createErrorResponse(
-                    HttpStatus.BAD_REQUEST.value(),
-                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
+            response = ApiResponse.error(
                     ex.getMessage(),
+                    ex.getErrorCode(),
                     request.getRequestURI(),
-                    getCorrelationId(request),
-                    ex.getErrorCode()
+                    getCorrelationId(request)
             );
         }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles BusinessRuleViolationException (422)
-     */
     @ExceptionHandler(BusinessRuleViolationException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessRuleViolation(
+    public ResponseEntity<ApiResponse<Void>> handleBusinessRuleViolation(
             BusinessRuleViolationException ex, HttpServletRequest request) {
 
         log.warn("Business rule violation: {}", ex.getMessage());
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                HttpStatus.UNPROCESSABLE_ENTITY.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 ex.getMessage(),
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
+        return ResponseEntity.status(ex.getHttpStatus())
+                .body(response);
     }
 
-    /**
-     * Handles BusinessException (400)
-     */
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(
+    public ResponseEntity<ApiResponse<Void>> handleBusinessException(
             BusinessException ex, HttpServletRequest request) {
 
         log.warn("Business exception: {}", ex.getMessage());
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 ex.getMessage(),
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(ex.getHttpStatus())
+                .body(response);
     }
 
-    /**
-     * Handles SecurityException (401/403)
-     */
     @ExceptionHandler(com.immortals.platform.common.exception.SecurityException.class)
-    public ResponseEntity<ErrorResponse> handleSecurityException(
+    public ResponseEntity<ApiResponse<Void>> handleSecurityException(
             com.immortals.platform.common.exception.SecurityException ex, HttpServletRequest request) {
 
         log.warn("Security exception: {}", ex.getMessage());
 
-        HttpStatus status = ex.getMessage().toLowerCase().contains("authentication")
-                ? HttpStatus.UNAUTHORIZED
-                : HttpStatus.FORBIDDEN;
-
-        ErrorResponse errorResponse = createErrorResponse(
-                status.value(),
-                status.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 ex.getMessage(),
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(status).body(errorResponse);
+        return ResponseEntity.status(ex.getHttpStatus())
+                .body(response);
     }
 
-    /**
-     * Handles TechnicalException (500)
-     */
     @ExceptionHandler(TechnicalException.class)
-    public ResponseEntity<ErrorResponse> handleTechnicalException(
+    public ResponseEntity<ApiResponse<Void>> handleTechnicalException(
             TechnicalException ex, HttpServletRequest request) {
 
         log.error("Technical exception occurred", ex);
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 "A technical error occurred. Please try again later.",
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseEntity.status(ex.getHttpStatus())
+                .body(response);
     }
 
-    /**
-     * Handles ConstraintViolationException (400)
-     */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleConstraintViolation(
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(
             ConstraintViolationException ex, HttpServletRequest request) {
 
         log.warn("Constraint violation: {}", ex.getMessage());
 
-        List<ValidationError> validationErrors = ex.getConstraintViolations()
+        List<ApiResponse.ValidationError> validationErrors = ex.getConstraintViolations()
                 .stream()
                 .map(this::mapConstraintViolation)
                 .collect(Collectors.toList());
 
-        ErrorResponse errorResponse = ErrorResponse.withValidationErrors(
+        ApiResponse<Void> response = ApiResponse.validationError(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 "Constraint violation",
@@ -233,23 +226,22 @@ public class GlobalExceptionHandler {
                 validationErrors
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles TypeMismatchException (400)
-     */
     @ExceptionHandler(TypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleTypeMismatch(
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(
             TypeMismatchException ex, HttpServletRequest request) {
 
         log.warn("Type mismatch: {}", ex.getMessage());
 
         String message = String.format("Invalid value '%s' for parameter '%s'. Expected type: %s",
                 ex.getValue(), ex.getPropertyName(),
-                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
+                ex.getRequiredType() != null ? ex.getRequiredType()
+                        .getSimpleName() : "unknown");
 
-        ErrorResponse errorResponse = ErrorResponse.of(
+        ApiResponse<Void> response = ApiResponse.error(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 message,
@@ -257,23 +249,22 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles MethodArgumentTypeMismatchException (400)
-     */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentTypeMismatch(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
 
         log.warn("Method argument type mismatch: {}", ex.getMessage());
 
         String message = String.format("Parameter '%s' should be of type %s",
                 ex.getName(),
-                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
+                ex.getRequiredType() != null ? ex.getRequiredType()
+                        .getSimpleName() : "unknown");
 
-        ErrorResponse errorResponse = ErrorResponse.of(
+        ApiResponse<Void> response = ApiResponse.error(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 message,
@@ -281,21 +272,19 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles MissingServletRequestParameterException (400)
-     */
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(
+    public ResponseEntity<ApiResponse<Void>> handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex, HttpServletRequest request) {
 
         log.warn("Missing request parameter: {}", ex.getMessage());
 
         String message = String.format("Required parameter '%s' is missing", ex.getParameterName());
 
-        ErrorResponse errorResponse = ErrorResponse.of(
+        ApiResponse<Void> response = ApiResponse.error(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 message,
@@ -303,21 +292,19 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles MissingPathVariableException (400)
-     */
     @ExceptionHandler(MissingPathVariableException.class)
-    public ResponseEntity<ErrorResponse> handleMissingPathVariable(
+    public ResponseEntity<ApiResponse<Void>> handleMissingPathVariable(
             MissingPathVariableException ex, HttpServletRequest request) {
 
         log.warn("Missing path variable: {}", ex.getMessage());
 
         String message = String.format("Required path variable '%s' is missing", ex.getVariableName());
 
-        ErrorResponse errorResponse = ErrorResponse.of(
+        ApiResponse<Void> response = ApiResponse.error(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 message,
@@ -325,14 +312,12 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles NoHandlerFoundException (404)
-     */
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoHandlerFound(
+    public ResponseEntity<ApiResponse<Void>> handleNoHandlerFound(
             NoHandlerFoundException ex, HttpServletRequest request) {
 
         log.warn("No handler found: {}", ex.getMessage());
@@ -340,7 +325,7 @@ public class GlobalExceptionHandler {
         String message = String.format("No handler found for %s %s",
                 ex.getHttpMethod(), ex.getRequestURL());
 
-        ErrorResponse errorResponse = ErrorResponse.of(
+        ApiResponse<Void> response = ApiResponse.error(
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
                 message,
@@ -348,28 +333,29 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(response);
     }
 
-    /**
-     * Handles HttpRequestMethodNotSupportedException (405)
-     */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupported(
+    public ResponseEntity<ApiResponse<Void>> handleHttpRequestMethodNotSupported(
             HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
 
         log.warn("HTTP method not supported: {}", ex.getMessage());
 
         StringBuilder message = new StringBuilder();
-        message.append(ex.getMethod()).append(" method is not supported for this request. ");
-        if (ex.getSupportedHttpMethods() != null && !ex.getSupportedHttpMethods().isEmpty()) {
+        message.append(ex.getMethod())
+                .append(" method is not supported for this request. ");
+        if (ex.getSupportedHttpMethods() != null && !ex.getSupportedHttpMethods()
+                .isEmpty()) {
             message.append("Supported methods are: ")
-                   .append(ex.getSupportedHttpMethods().stream()
-                           .map(Object::toString)
-                           .collect(Collectors.joining(", ")));
+                    .append(ex.getSupportedHttpMethods()
+                            .stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining(", ")));
         }
 
-        ErrorResponse errorResponse = ErrorResponse.of(
+        ApiResponse<Void> response = ApiResponse.error(
                 HttpStatus.METHOD_NOT_ALLOWED.value(),
                 HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase(),
                 message.toString(),
@@ -377,146 +363,119 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(response);
     }
 
-    /**
-     * Handles CacheException (500)
-     */
     @ExceptionHandler(CacheException.class)
-    public ResponseEntity<ErrorResponse> handleCacheException(
+    public ResponseEntity<ApiResponse<Void>> handleCacheException(
             CacheException ex, HttpServletRequest request) {
 
         log.error("Cache exception occurred", ex);
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 "A caching error occurred. Please try again later.",
+                "CACHE_ERROR",
                 request.getRequestURI(),
-                getCorrelationId(request),
-                "CACHE_ERROR"
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
     }
 
-    /**
-     * Handles DatabaseException (500)
-     */
     @ExceptionHandler(DatabaseException.class)
-    public ResponseEntity<ErrorResponse> handleDatabaseException(
+    public ResponseEntity<ApiResponse<Void>> handleDatabaseException(
             DatabaseException ex, HttpServletRequest request) {
 
         log.error("Database exception occurred", ex);
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 "A database error occurred. Please try again later.",
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
     }
 
-    /**
-     * Handles DuplicateResourceException (409)
-     */
     @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateResource(
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateResource(
             DuplicateResourceException ex, HttpServletRequest request) {
 
         log.warn("Duplicate resource: {}", ex.getMessage());
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 ex.getMessage(),
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(response);
     }
 
-    /**
-     * Handles InvalidOperationException (400)
-     */
     @ExceptionHandler(InvalidOperationException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidOperation(
+    public ResponseEntity<ApiResponse<Void>> handleInvalidOperation(
             InvalidOperationException ex, HttpServletRequest request) {
 
         log.warn("Invalid operation: {}", ex.getMessage());
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 ex.getMessage(),
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles UserException (400)
-     */
     @ExceptionHandler(UserException.class)
-    public ResponseEntity<ErrorResponse> handleUserException(
+    public ResponseEntity<ApiResponse<Void>> handleUserException(
             UserException ex, HttpServletRequest request) {
 
         log.warn("User exception: {}", ex.getMessage());
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 ex.getMessage(),
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    /**
-     * Handles AuthenticationException (401)
-     */
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(
             AuthenticationException ex, HttpServletRequest request) {
 
         log.warn("Authentication exception: {}", ex.getMessage());
 
-        ErrorResponse errorResponse = createErrorResponse(
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+        ApiResponse<Void> response = ApiResponse.error(
                 ex.getMessage(),
+                ex.getErrorCode(),
                 request.getRequestURI(),
-                getCorrelationId(request),
-                ex.getErrorCode()
+                getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(response);
     }
 
-    /**
-     * Handles all other exceptions (500)
-     * Does not expose internal implementation details
-     */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(
             Exception ex, HttpServletRequest request) {
 
         log.error("Unexpected exception occurred", ex);
 
-        ErrorResponse errorResponse = ErrorResponse.of(
+        ApiResponse<Void> response = ApiResponse.error(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                 GENERIC_ERROR_MESSAGE,
@@ -524,25 +483,12 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request)
         );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
     }
 
-    /**
-     * Creates ErrorResponse with optional error code
-     */
-    private ErrorResponse createErrorResponse(int status, String error, String message,
-                                              String path, String correlationId, String errorCode) {
-        if (errorCode != null) {
-            return ErrorResponse.of(status, error, message, path, correlationId, errorCode);
-        }
-        return ErrorResponse.of(status, error, message, path, correlationId);
-    }
-
-    /**
-     * Maps a Spring FieldError to our ValidationError model
-     */
-    private ValidationError mapFieldError(FieldError fieldError) {
-        return ValidationError.of(
+    private ApiResponse.ValidationError mapFieldError(FieldError fieldError) {
+        return ApiResponse.ValidationError.of(
                 fieldError.getField(),
                 fieldError.getRejectedValue(),
                 fieldError.getDefaultMessage(),
@@ -550,12 +496,10 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * Maps a ConstraintViolation to our ValidationError model
-     */
-    private ValidationError mapConstraintViolation(ConstraintViolation<?> violation) {
-        String field = violation.getPropertyPath().toString();
-        return ValidationError.of(
+    private ApiResponse.ValidationError mapConstraintViolation(ConstraintViolation<?> violation) {
+        String field = violation.getPropertyPath()
+                .toString();
+        return ApiResponse.ValidationError.of(
                 field,
                 violation.getInvalidValue(),
                 violation.getMessage(),
@@ -563,9 +507,6 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * Extracts correlation ID from request headers or attributes
-     */
     private String getCorrelationId(HttpServletRequest request) {
         String correlationId = request.getHeader(CORRELATION_ID_HEADER);
         if (correlationId == null) {

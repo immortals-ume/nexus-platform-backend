@@ -1,6 +1,6 @@
 package com.immortals.platform.messaging.publisher;
 
-import com.immortals.platform.messaging.event.DomainEvent;
+import com.immortals.platform.domain.shared.event.DomainEvent;
 
 import java.util.concurrent.CompletableFuture;
 

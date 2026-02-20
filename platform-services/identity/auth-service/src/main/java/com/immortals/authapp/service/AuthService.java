@@ -1,7 +1,7 @@
 package com.immortals.authapp.service;
 
-import com.immortals.platform.domain.dto.LoginDto;
-import com.immortals.platform.domain.dto.LoginResponse;
+import com.immortals.platform.domain.auth.dto.LoginDto;
+import com.immortals.platform.domain.auth.dto.LoginResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthService {

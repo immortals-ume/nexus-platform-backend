@@ -7,23 +7,28 @@ spring:
     virtual:
       enabled: true
   
-  # Database Configuration
-  datasource:
-    url: jdbc:postgresql://localhost:5432/product_db
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+  # Database Configuration - Separate Read/Write DataSources
+  # Note: These configurations are typically provided by config-server
+  # The values below are for local development only
+
+# Separate Read/Write DataSource Configuration
+datasource:
+  write:
+    url: jdbc:postgresql://${DB_WRITE_HOST:localhost}:${DB_WRITE_PORT:5432}/product_db
+    username: ${DB_WRITE_USERNAME:postgres}
+    password: ${DB_WRITE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-  
+  read:
+    url: jdbc:postgresql://${DB_READ_HOST:localhost}:${DB_READ_PORT:5432}/product_db
+    username: ${DB_READ_USERNAME:postgres}
+    password: ${DB_READ_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -34,11 +39,12 @@ spring:
         order_inserts: true
         order_updates: true
   
-  # Flyway
-  flyway:
+  # Liquibase
+  liquibase:
     enabled: true
-    baseline-on-migrate: true
-    locations: classpath:db/migration
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: false
+    default-schema: public
   
   # Kafka
   kafka:
@@ -135,10 +141,144 @@ resilience4j:
         max-concurrent-calls: 10
         max-wait-duration: 1000ms
 
+# Cache Configuration - Multi-Level (L1: Caffeine + L2: Redis)
+immortals:
+  cache:
+    enabled: true
+    type: MULTI_LEVEL  # Use multi-level cache for optimal performance
+    default-ttl: 5m
+    
+    # Namespace-specific configurations
+    namespaces:
+      products:
+        ttl: 5m  # 5 minutes for product details
+        compressionEnabled: false
+        encryptionEnabled: false
+        stampedeProtectionEnabled: true
+      categories:
+        ttl: 15m  # 15 minutes for category tree
+        compressionEnabled: false
+        encryptionEnabled: false
+        stampedeProtectionEnabled: true
+      product-list:
+        ttl: 2m  # 2 minutes for product lists
+        compressionEnabled: false
+        encryptionEnabled: false
+        stampedeProtectionEnabled: false
+    
+    # L1 Cache - Caffeine (In-Memory)
+    caffeine:
+      maximum-size: 10000  # Maximum entries in L1 cache
+      initial-capacity: 1000
+      expire-after-write: 5m
+      expire-after-access: 3m
+      record-stats: true
+    
+    # L2 Cache - Redis (Distributed)
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 5s
+      deployment-mode: STANDALONE
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
+        max-wait: 2s
+    
+    # Multi-Level Cache Configuration
+    multi-level:
+      l1-enabled: true
+      l2-enabled: true
+      write-mode: WRITE_THROUGH  # Write to both L1 and L2
+      read-mode: READ_THROUGH    # Read from L1, fallback to L2
+      sync-on-update: true       # Sync L1 and L2 on updates
+    
+    # Resilience Configuration
+    resilience:
+      circuit-breaker:
+        enabled: true
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+      stampede-protection:
+        enabled: true
+        lock-timeout: 5s
+      timeout:
+        enabled: true
+        operation-timeout: 5s
+    
+    # Feature Configuration
+    features:
+      compression:
+        enabled: false
+        threshold: 1024  # Compress values larger than 1KB
+      encryption:
+        enabled: false
+      serialization:
+        type: JACKSON  # Use Jackson for JSON serialization
+    
+    # Observability Configuration
+    observability:
+      metrics:
+        enabled: true
+        include-cache-size: true
+        include-hit-rate: true
+      health:
+        enabled: true
+      tracing:
+        enabled: true
+      logging:
+        enabled: true
+        log-cache-hits: false
+        log-cache-misses: true
+
+# Platform Messaging Configuration (messaging-starter)
+platform:
+  messaging:
+    kafka:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      consumer-group-prefix: product-service
+      concurrency: 3
+      auto-commit: false
+      auto-offset-reset: earliest
+      max-poll-records: 500
+      session-timeout: 30s
+      heartbeat-interval: 10s
+    
+    retry:
+      enabled: true
+      max-attempts: 3
+      initial-interval: 1s
+      max-interval: 30s
+      multiplier: 2.0
+    
+    dlq:
+      enabled: true
+      topic-suffix: .dlq
+      enable-manual-retry: true
+      retention-time: 7d
+    
+    idempotency:
+      enabled: true
+      key-prefix: "product-service:idempotency:"
+      ttl: 24h
+
+# Kafka Topics Configuration
+kafka:
+  topics:
+    product-created: product.created
+    product-updated: product.updated
+    product-deleted: product.deleted
+
 # Logging
 logging:
   level:
     root: INFO
     com.immortals.platform: DEBUG
+    com.immortals.cache: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

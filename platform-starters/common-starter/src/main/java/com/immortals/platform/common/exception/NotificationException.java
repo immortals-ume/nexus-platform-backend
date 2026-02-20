@@ -5,7 +5,7 @@ import java.io.Serial;
 /**
  * Base exception for notification-related errors
  */
-public class NotificationException extends PlatformException {
+public class NotificationException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = 1L;
     public NotificationException(String message) {

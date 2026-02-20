@@ -140,6 +140,233 @@ platform:
     topics:
       notification-requests: notification-requests
       notification-sent: notification-sent
+      notification-dlq: notification-dlq
+  
+  # Redis Cache Configuration (using cache-starter)
+  cache:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 5000
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 2000
+      ttl:
+        deduplication: 300  # 5 minutes
+        provider-health: 60  # 1 minute
+        template: 600  # 10 minutes
+        user-preference: 300  # 5 minutes
+        rate-limit: 3600  # 1 hour
+  
+  # Multi-Channel Notification System Configuration
+  notification:
+    # Provider Configurations
+    providers:
+      # Twilio - SMS and WhatsApp
+      twilio:
+        enabled: ${TWILIO_ENABLED:true}
+        provider-id: TWILIO
+        provider-name: Twilio
+        channel: SMS,WHATSAPP
+        priority: 10
+        supported-countries: US,CA,GB,AU,NZ,IE,SG,HK
+        credentials:
+          account-sid: ${TWILIO_ACCOUNT_SID:}
+          auth-token: ${TWILIO_AUTH_TOKEN:}
+        configuration:
+          from-number: ${TWILIO_FROM_NUMBER:}
+          whatsapp-from: ${TWILIO_WHATSAPP_FROM:whatsapp:+14155238886}
+          messaging-service-sid: ${TWILIO_MESSAGING_SERVICE_SID:}
+          status-callback-url: ${TWILIO_STATUS_CALLBACK_URL:}
+        rate-limit:
+          requests-per-second: 10
+          burst-capacity: 20
+        health-check:
+          enabled: true
+          interval-seconds: 60
+          timeout-seconds: 5
+      
+      # Gupshup - SMS and WhatsApp (India and South Asia)
+      gupshup:
+        enabled: ${GUPSHUP_ENABLED:true}
+        provider-id: GUPSHUP
+        provider-name: Gupshup
+        channel: SMS,WHATSAPP
+        priority: 20
+        supported-countries: IN,PK,BD,LK,NP,BT,MV
+        credentials:
+          api-key: ${GUPSHUP_API_KEY:}
+          app-name: ${GUPSHUP_APP_NAME:}
+        configuration:
+          base-url: https://api.gupshup.io
+          source: ${GUPSHUP_SOURCE:}
+          callback-url: ${GUPSHUP_CALLBACK_URL:}
+        rate-limit:
+          requests-per-second: 5
+          burst-capacity: 10
+        health-check:
+          enabled: true
+          interval-seconds: 60
+          timeout-seconds: 5
+      
+      # AWS SNS - SMS and Push Notifications (Global fallback)
+      aws-sns:
+        enabled: ${AWS_SNS_ENABLED:true}
+        provider-id: AWS_SNS
+        provider-name: AWS SNS
+        channel: SMS,PUSH_NOTIFICATION
+        priority: 30
+        supported-countries: "*"  # Global fallback
+        credentials:
+          access-key-id: ${AWS_ACCESS_KEY_ID:}
+          secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+          region: ${AWS_REGION:us-east-1}
+        configuration:
+          sender-id: ${AWS_SNS_SENDER_ID:}
+          sms-type: Transactional
+          max-price: 0.50
+          topic-arn: ${AWS_SNS_TOPIC_ARN:}
+        rate-limit:
+          requests-per-second: 20
+          burst-capacity: 40
+        health-check:
+          enabled: true
+          interval-seconds: 60
+          timeout-seconds: 5
+      
+      # Mailchimp - Email (Transactional)
+      mailchimp:
+        enabled: ${MAILCHIMP_ENABLED:true}
+        provider-id: MAILCHIMP
+        provider-name: Mailchimp Transactional
+        channel: EMAIL
+        priority: 10
+        supported-countries: "*"  # Global
+        credentials:
+          api-key: ${MAILCHIMP_API_KEY:}
+        configuration:
+          base-url: https://mandrillapp.com/api/1.0
+          from-email: ${MAILCHIMP_FROM_EMAIL:noreply@example.com}
+          from-name: ${MAILCHIMP_FROM_NAME:Notification Service}
+          track-opens: true
+          track-clicks: true
+          inline-css: true
+          webhook-url: ${MAILCHIMP_WEBHOOK_URL:}
+        rate-limit:
+          requests-per-second: 15
+          burst-capacity: 30
+        health-check:
+          enabled: true
+          interval-seconds: 60
+          timeout-seconds: 5
+    
+    # Retry Configuration
+    retry:
+      enabled: true
+      max-attempts: 3
+      initial-interval: 1000  # 1 second
+      multiplier: 2.0
+      max-interval: 10000  # 10 seconds
+      non-retryable-errors:
+        - INVALID_RECIPIENT
+        - INVALID_CREDENTIALS
+        - PERMISSION_DENIED
+        - TEMPLATE_NOT_FOUND
+      failover-on-retry: true
+    
+    # Rate Limiting Configuration
+    rate-limiting:
+      enabled: true
+      algorithm: TOKEN_BUCKET
+      default-limits:
+        email:
+          per-minute: 10
+          per-hour: 100
+          per-day: 500
+        sms:
+          per-minute: 5
+          per-hour: 50
+          per-day: 200
+        whatsapp:
+          per-minute: 5
+          per-hour: 50
+          per-day: 200
+        push:
+          per-minute: 20
+          per-hour: 200
+          per-day: 1000
+      queue:
+        enabled: true
+        max-size: 10000
+        processing-interval-ms: 1000
+    
+    # Scheduled Notifications Configuration
+    scheduling:
+      enabled: true
+      poll-interval-ms: 60000  # 1 minute
+      batch-size: 100
+      look-ahead-minutes: 5
+    
+    # Deduplication Configuration
+    deduplication:
+      enabled: true
+      window-seconds: 300  # Default: 5 minutes
+      email-window-seconds: 300  # 5 minutes for emails
+      sms-window-seconds: 60  # 1 minute for SMS
+      whatsapp-window-seconds: 60  # 1 minute for WhatsApp
+      push-window-seconds: 60  # 1 minute for push notifications
+      fallback-on-cache-failure: true
+    
+    # Template Configuration
+    templates:
+      cache-enabled: true
+      cache-ttl-seconds: 600  # 10 minutes
+      default-engine: THYMELEAF
+      supported-engines:
+        - THYMELEAF
+        - FREEMARKER
+        - PLAIN_TEXT
+      default-locale: en_US
+    
+    # User Preferences Configuration
+    preferences:
+      cache-enabled: true
+      cache-ttl-seconds: 300  # 5 minutes
+      default-enabled: true
+      respect-quiet-hours: true
+    
+    # Webhook Configuration
+    webhooks:
+      signature-validation:
+        enabled: true
+        twilio:
+          enabled: true
+          auth-token: ${TWILIO_AUTH_TOKEN:}
+        sns:
+          enabled: true
+          verify-certificate: true
+        mailchimp:
+          enabled: false  # Mailchimp doesn't use signature validation
+        gupshup:
+          enabled: false  # Gupshup uses IP whitelisting
+      retry-on-failure:
+        enabled: true
+        max-attempts: 3
+        initial-interval: 1000
+    
+    # Analytics Configuration
+    analytics:
+      enabled: true
+      retention-days: 90
+      aggregation-interval-minutes: 5
+      export-formats:
+        - CSV
+        - JSON
 
 # Resilience4j Configuration
 resilience4j:

@@ -1,0 +1,15 @@
+flowchart TB
+    User --> CDN
+    CDN --> LB
+    LB --> API_Gateway
+
+    API_Gateway --> Auth_Service
+    API_Gateway --> Catalog_Service
+    API_Gateway --> Order_Service
+    API_Gateway --> Payment_Service
+
+    Catalog_Service --> Catalog_DB[(Product DB)]
+    Order_Service --> Order_DB[(Order DB)]
+    Payment_Service --> Payment_Gateway
+
+    Order_Service --> Cache[(Redis)]

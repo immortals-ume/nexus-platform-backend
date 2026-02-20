@@ -9,7 +9,7 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import static com.immortals.authapp.constants.AuthAppConstant.MDC_USER_AGENT_KEY;
+import static com.immortals.platform.domain.auth.constants.AuthAppConstant.MDC_USER_AGENT_KEY;
 
 @Component
 @Slf4j

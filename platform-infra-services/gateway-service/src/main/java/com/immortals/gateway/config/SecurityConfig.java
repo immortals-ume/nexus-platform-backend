@@ -50,15 +50,15 @@ public class SecurityConfig {
     @Bean
     public MapReactiveUserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
         log.info("Configuring reactive user details service with admin user: {}", adminUsername);
-        
+
         UserDetails admin = User.builder()
-            .username(adminUsername)
-            .password(passwordEncoder.encode(adminPassword))
-            .roles("ADMIN", "USER")
-            .build();
-        
+                .username(adminUsername)
+                .password(passwordEncoder.encode(adminPassword))
+                .roles("ADMIN", "USER")
+                .build();
+
         log.info("Admin user configured with ADMIN and USER roles");
-        
+
         return new MapReactiveUserDetailsService(admin);
     }
 
@@ -69,41 +69,48 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         log.info("Configuring security for API Gateway");
-        
+
         http
-            .csrf(ServerHttpSecurity.CsrfSpec::disable)
-            
-            .authorizeExchange(authorize -> authorize
-                .pathMatchers("/actuator/health/**", "/actuator/info").permitAll()
-                
-                .pathMatchers(
-                    "/actuator/env/**",
-                    "/actuator/configprops/**",
-                    "/actuator/beans/**",
-                    "/actuator/mappings/**",
-                    "/actuator/shutdown/**",
-                    "/actuator/threaddump/**",
-                    "/actuator/heapdump/**"
-                ).hasRole("ADMIN")
-                
-                .pathMatchers("/actuator/metrics/**", "/actuator/prometheus").authenticated()
-                
-                .pathMatchers("/actuator/gateway/**").authenticated()
-                
-                .pathMatchers("/actuator/**").authenticated()
-                
-                .pathMatchers("/fallback/**").permitAll()
-                
-                .anyExchange().permitAll()
-            )
-            
-            .httpBasic(Customizer.withDefaults());
-        
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+
+                .authorizeExchange(authorize -> authorize
+                        .pathMatchers("/actuator/health/**", "/actuator/info")
+                        .permitAll()
+
+                        .pathMatchers(
+                                "/actuator/env/**",
+                                "/actuator/configprops/**",
+                                "/actuator/beans/**",
+                                "/actuator/mappings/**",
+                                "/actuator/shutdown/**",
+                                "/actuator/threaddump/**",
+                                "/actuator/heapdump/**"
+                        )
+                        .hasRole("ADMIN")
+
+                        .pathMatchers("/actuator/metrics/**", "/actuator/prometheus")
+                        .authenticated()
+
+                        .pathMatchers("/actuator/gateway/**")
+                        .authenticated()
+
+                        .pathMatchers("/actuator/**")
+                        .authenticated()
+
+                        .pathMatchers("/fallback/**")
+                        .permitAll()
+
+                        .anyExchange()
+                        .permitAll()
+                )
+
+                .httpBasic(Customizer.withDefaults());
+
         log.info("Security configuration completed:");
         log.info("  - Public: /actuator/health, /actuator/info, /fallback/**, proxied requests");
         log.info("  - Authenticated: Gateway actuator, metrics");
         log.info("  - ADMIN role: Sensitive actuator endpoints");
-        
+
         return http.build();
     }
 }

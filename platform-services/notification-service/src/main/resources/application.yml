@@ -1,0 +1,147 @@
+# Local application.yml - Minimal defaults only
+# All configuration should come from Config Server
+# This file only contains fallback values for local development
+
+spring:
+  application:
+    name: notification-service
+
+# Server Configuration - Local development only
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+
+# Eureka Client Configuration - Fallback for local development
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:true}
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 30
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    hostname: ${HOSTNAME:localhost}
+    metadata-map:
+      version: ${project.version:1.0.0}
+      environment: ${spring.profiles.active:dev}
+      zone: ${ZONE:default}
+      # Custom metadata for notification service
+      channels: EMAIL,SMS,WHATSAPP,PUSH_NOTIFICATION
+      providers: TWILIO,GUPSHUP,AWS_SNS,MAILCHIMP
+      management-port: ${management.server.port:${server.port}}
+
+# Logging Configuration - Local development only  
+logging:
+  level:
+    root: INFO
+    com.immortals.notificationservice: DEBUG
+    com.netflix.discovery: INFO
+    com.netflix.eureka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId},%X{spanId}] %-5level %logger{36} - %msg%n"
+
+# Distributed Tracing Configuration
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URL:http://localhost:9411/api/v2/spans}
+
+# Actuator Configuration - Local development fallback
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers,env
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+    db:
+      enabled: true
+    redis:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active:dev}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        notification.delivery.time: true
+        template.render.time: true
+
+# Platform Notification Configuration - Local development defaults
+platform:
+  notification:
+    retry:
+      max-attempts: 3
+      initial-interval: 1000
+      multiplier: 2.0
+      max-interval: 10000
+
+# Notification Service Configuration
+notification:
+  service:
+    events:
+      notification-request-type: NotificationRequest
+      notification-sent-type: NotificationSent
+      notification-sent-topic: notification-sent
+      metrics-listener-name: NotificationEventListener
+    providers:
+      sms-provider-id: SMS_TWILIO
+      failover-strategy-name: FAILOVER
+    metrics:
+      sent-counter-name: notification.sent.total
+      delivery-timer-name: notification.delivery.time
+      retry-counter-name: notification.retry.count
+      provider-health-gauge-name: provider.health.status
+      template-render-timer-name: template.render.time
+      rate-limit-counter-name: rate.limit.exceeded
+      failed-counter-name: notification.failed.total
+      deduplication-counter-name: notification.deduplication.hit
+      scheduled-counter-name: notification.scheduled.processed
+      webhook-counter-name: notification.webhook.received
+    cache:
+      provider-health-prefix: "provider:health"
+      deduplication-prefix: "notification:dedup"
+      rate-limit-prefix: "notification:ratelimit"
+      template-prefix: "notification:template"
+      preference-prefix: "notification:preference"
+    retry:
+      max-attempts: 3
+      initial-interval-ms: 1000
+      multiplier: 2.0
+      max-interval-ms: 10000
+    health-check:
+      database-timeout-seconds: 2
+      redis-health-command: PONG
+      healthy-status: UP
+      unhealthy-status: DOWN
+      healthy-message: "Provider is healthy"
+      unhealthy-message: "Provider is unhealthy"
+
+# Note: All other configuration (database, Kafka, Redis, providers, etc.) 
+# should be managed through Config Server for centralized configuration management

@@ -9,6 +9,63 @@ spring:
 server:
   port: ${SERVER_PORT:8083}
 
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      otpService:
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 3s
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 5
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+      databaseOperations:
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 3s
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 5
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+  retry:
+    instances:
+      databaseOperations:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.dao.TransientDataAccessException
+          - org.springframework.dao.QueryTimeoutException
+          - java.sql.SQLException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+      otpService:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+  timelimiter:
+    instances:
+      otpService:
+        timeout-duration: 5s
+        cancel-running-future: true
+      externalService:
+        timeout-duration: 5s
+        cancel-running-future: true
+  bulkhead:
+    instances:
+      otpService:
+        max-concurrent-calls: 10
+        max-wait-duration: 500ms
+      authenticationService:
+        max-concurrent-calls: 10
+        max-wait-duration: 500ms
+
 # Messaging configuration
 messaging:
   topics:

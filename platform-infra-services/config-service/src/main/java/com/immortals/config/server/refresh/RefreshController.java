@@ -16,7 +16,6 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@SuppressWarnings("")
 public class RefreshController {
 
     private final ApplicationEventPublisher eventPublisher;

@@ -2,14 +2,15 @@ package com.immortals.config.server.config;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
-@Data
+@Getter
+@Setter
 @Configuration
 @ConfigurationProperties(prefix = "config-server")
 @Validated
@@ -21,16 +22,18 @@ public class ConfigServerProperties {
     @Valid
     @NotNull(message = "Refresh configuration is required")
     private Refresh refresh = new Refresh();
-    
-    @Data
+
+    @Getter
+    @Setter
     @Validated
     public static class Encryption {
         private String key;
-        
+
         @Valid
-        private KeyStore keyStore = new KeyStore();
-        
-        @Data
+        private ConfigServerProperties.Encryption.KeyStore keyStore = new KeyStore();
+
+        @Getter
+        @Setter
         @Validated
         public static class KeyStore {
             private String location;
@@ -39,13 +42,14 @@ public class ConfigServerProperties {
             private String secret;
         }
     }
-    
-    @Data
+
+    @Getter
+    @Setter
     @Validated
     public static class Refresh {
-        private boolean enabled = true;
-        
+        private boolean enabled;
+
         @Min(value = 1, message = "Refresh rate must be at least 1 second")
-        private int rate = 60;
+        private int rate;
     }
 }

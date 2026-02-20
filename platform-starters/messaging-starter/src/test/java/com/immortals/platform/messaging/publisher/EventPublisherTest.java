@@ -1,6 +1,6 @@
 package com.immortals.platform.messaging.publisher;
 
-import com.immortals.platform.messaging.event.DomainEvent;
+import com.immortals.platform.domain.shared.event.DomainEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -25,18 +25,23 @@ class EventPublisherTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        testEvent = new DomainEvent<>("test-event-id", "TestEvent", "test-payload", Instant.now());
+        testEvent = DomainEvent.<String>builder()
+                .eventId("test-event-id")
+                .eventType("TestEvent")
+                .payload("test-payload")
+                .timestamp(Instant.now())
+                .build();
     }
 
     @Test
     void shouldPublishEventAsynchronously() {
         String topic = "test-topic";
         CompletableFuture<Void> expectedFuture = CompletableFuture.completedFuture(null);
-        
+
         when(eventPublisher.publish(topic, testEvent)).thenReturn(expectedFuture);
-        
+
         CompletableFuture<Void> result = eventPublisher.publish(topic, testEvent);
-        
+
         assertThat(result).isEqualTo(expectedFuture);
         verify(eventPublisher).publish(topic, testEvent);
     }
@@ -46,11 +51,11 @@ class EventPublisherTest {
         String topic = "test-topic";
         String key = "test-key";
         CompletableFuture<Void> expectedFuture = CompletableFuture.completedFuture(null);
-        
+
         when(eventPublisher.publish(topic, key, testEvent)).thenReturn(expectedFuture);
-        
+
         CompletableFuture<Void> result = eventPublisher.publish(topic, key, testEvent);
-        
+
         assertThat(result).isEqualTo(expectedFuture);
         verify(eventPublisher).publish(topic, key, testEvent);
     }
@@ -58,9 +63,9 @@ class EventPublisherTest {
     @Test
     void shouldPublishEventSynchronously() {
         String topic = "test-topic";
-        
+
         eventPublisher.publishSync(topic, testEvent);
-        
+
         verify(eventPublisher).publishSync(topic, testEvent);
     }
 
@@ -68,18 +73,18 @@ class EventPublisherTest {
     void shouldPublishEventWithKeySynchronously() {
         String topic = "test-topic";
         String key = "test-key";
-        
+
         eventPublisher.publishSync(topic, key, testEvent);
-        
+
         verify(eventPublisher).publishSync(topic, key, testEvent);
     }
 
     @Test
     void shouldHandleNullTopic() {
         String nullTopic = null;
-        
+
         eventPublisher.publish(nullTopic, testEvent);
-        
+
         verify(eventPublisher).publish(nullTopic, testEvent);
     }
 
@@ -87,9 +92,9 @@ class EventPublisherTest {
     void shouldHandleNullKey() {
         String topic = "test-topic";
         String nullKey = null;
-        
+
         eventPublisher.publish(topic, nullKey, testEvent);
-        
+
         verify(eventPublisher).publish(topic, nullKey, testEvent);
     }
 
@@ -97,22 +102,27 @@ class EventPublisherTest {
     void shouldHandleNullEvent() {
         String topic = "test-topic";
         DomainEvent<String> nullEvent = null;
-        
+
         eventPublisher.publish(topic, nullEvent);
-        
+
         verify(eventPublisher).publish(topic, nullEvent);
     }
 
     @Test
     void shouldSupportGenericEventTypes() {
-        DomainEvent<Integer> integerEvent = new DomainEvent<>("int-event-id", "IntegerEvent", 42, Instant.now());
+        DomainEvent<Integer> integerEvent = DomainEvent.<Integer>builder()
+                .eventId("int-event-id")
+                .eventType("IntegerEvent")
+                .payload(42)
+                .timestamp(Instant.now())
+                .build();
         String topic = "integer-topic";
         CompletableFuture<Void> expectedFuture = CompletableFuture.completedFuture(null);
-        
+
         when(eventPublisher.publish(topic, integerEvent)).thenReturn(expectedFuture);
-        
+
         CompletableFuture<Void> result = eventPublisher.publish(topic, integerEvent);
-        
+
         assertThat(result).isEqualTo(expectedFuture);
         verify(eventPublisher).publish(topic, integerEvent);
     }
@@ -120,11 +130,16 @@ class EventPublisherTest {
     @Test
     void shouldSupportComplexEventPayloads() {
         TestPayload payload = new TestPayload("test-name", 123);
-        DomainEvent<TestPayload> complexEvent = new DomainEvent<>("complex-event-id", "ComplexEvent", payload, Instant.now());
+        DomainEvent<TestPayload> complexEvent = DomainEvent.<TestPayload>builder()
+                .eventId("complex-event-id")
+                .eventType("ComplexEvent")
+                .payload(payload)
+                .timestamp(Instant.now())
+                .build();
         String topic = "complex-topic";
-        
+
         eventPublisher.publishSync(topic, complexEvent);
-        
+
         verify(eventPublisher).publishSync(topic, complexEvent);
     }
 
@@ -132,12 +147,22 @@ class EventPublisherTest {
     void shouldAllowMultiplePublishCalls() {
         String topic1 = "topic-1";
         String topic2 = "topic-2";
-        DomainEvent<String> event1 = new DomainEvent<>("event-1", "Event1", "payload-1", Instant.now());
-        DomainEvent<String> event2 = new DomainEvent<>("event-2", "Event2", "payload-2", Instant.now());
-        
+        DomainEvent<String> event1 = DomainEvent.<String>builder()
+                .eventId("event-1")
+                .eventType("Event1")
+                .payload("payload-1")
+                .timestamp(Instant.now())
+                .build();
+        DomainEvent<String> event2 = DomainEvent.<String>builder()
+                .eventId("event-2")
+                .eventType("Event2")
+                .payload("payload-2")
+                .timestamp(Instant.now())
+                .build();
+
         eventPublisher.publishSync(topic1, event1);
         eventPublisher.publishSync(topic2, event2);
-        
+
         verify(eventPublisher).publishSync(topic1, event1);
         verify(eventPublisher).publishSync(topic2, event2);
     }

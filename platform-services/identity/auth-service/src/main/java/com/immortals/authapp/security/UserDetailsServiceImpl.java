@@ -1,16 +1,15 @@
 package com.immortals.authapp.security;
 
-import com.immortals.platform.domain.helper.UserPrincipal;
-import com.immortals.platform.domain.entity.Permissions;
-import com.immortals.platform.domain.entity.Roles;
-import com.immortals.platform.domain.entity.User;
+import com.immortals.platform.domain.auth.entity.Permissions;
+import com.immortals.platform.domain.auth.entity.Roles;
+import com.immortals.platform.domain.auth.entity.User;
 import com.immortals.authapp.repository.RoleRepository;
-import com.immortals.authapp.repository.UserRepository;
-import com.immortals.authapp.service.cache.CacheService;
-
-import com.immortals.authapp.utils.JsonUtils;
+import com.immortals.authapp.repository.AuthRepository;
+import com.immortals.platform.cache.providers.redis.RedisHashCacheService;
+import com.immortals.platform.common.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,14 +22,14 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.immortals.authapp.constants.CacheConstants.USER_HASH_KEY;
+import static com.immortals.platform.domain.auth.constants.CacheConstants.USER_HASH_KEY;
 
 @Service
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final UserRepository userRepository;
-    private final CacheService<String, String, String> hashCacheService;
+    private final AuthRepository authRepository;
+    private final RedisHashCacheService<String, String, Object> hashCacheService;
     private final RoleRepository roleRepository;
 
     @Value("${auth.access-token-expiry-ms}")
@@ -38,11 +37,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Transactional
     @Override
+    @Cacheable(value = "user-details", key = "#userNameOrEmailOrPhone", condition = "#userNameOrEmailOrPhone != null")
     public UserDetails loadUserByUsername(String userNameOrEmailOrPhone) throws UsernameNotFoundException {
-        User user = userRepository.findUser(userNameOrEmailOrPhone)
+        User user = authRepository.findUser(userNameOrEmailOrPhone)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username or email: " + userNameOrEmailOrPhone));
 
-        Set<Roles> roles = userRepository.findByIdWithRoles(user.getUserId())
+        Set<Roles> roles = authRepository.findByIdWithRoles(user.getId())
                 .get()
                 .getRoles();
 
@@ -52,14 +52,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .get()
                 .getPermissions()));
 
-
         String userJson = JsonUtils.toJson(user);
         hashCacheService.put(
-                USER_HASH_KEY+":"+user.getUserName(),
+                USER_HASH_KEY + ":" + user.getUserName(),
                 user.getUserName(),
                 userJson,
-                Duration.ofMillis(jwtExpirationMs),
-                user.getUserName()
+                Duration.ofMillis(jwtExpirationMs)
         );
 
         return UserPrincipal.create(

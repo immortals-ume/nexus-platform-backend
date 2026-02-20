@@ -1,0 +1,484 @@
+openapi: 3.0.3
+
+info:
+  title: Auth Platform API
+  version: 1.0.0
+  description: |
+    Production-grade Authentication and Authorization platform.
+    Supports Login, MFA, OAuth, Token lifecycle, Admin RBAC,
+    idempotency, standardized error handling, rate limiting,
+    and security-compliant headers.
+
+servers:
+  - url: https://api.example.com
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth-Write
+  - name: Auth-Read
+  - name: MFA
+  - name: Tokens
+  - name: OAuth
+  - name: Admin
+
+paths:
+
+  /auth/login:
+    post:
+      tags: [ Auth-Write ]
+      summary: Login with username and password
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Pragma:
+              $ref: '#/components/headers/Pragma'
+            x-idempotency-key:
+              $ref: '#/components/headers/Idempotency-Echo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '202':
+          description: MFA required
+          headers:
+            x-idempotency-key:
+              $ref: '#/components/headers/Idempotency-Echo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaRequired'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/mfa/verify:
+    post:
+      tags: [ MFA ]
+      summary: Verify OTP for MFA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+      responses:
+        '200':
+          description: MFA verified
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Pragma:
+              $ref: '#/components/headers/Pragma'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '400':
+          $ref: '#/components/responses/InvalidOtp'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/register:
+    post:
+      tags: [ Auth-Write ]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/password/reset/request:
+    post:
+      tags: [ Auth-Write ]
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '202':
+          description: Reset initiated
+
+  /auth/password/reset/confirm:
+    post:
+      tags: [ Auth-Write ]
+      summary: Confirm password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+      responses:
+        '200':
+          description: Password updated
+
+  /auth/refresh:
+    post:
+      tags: [ Tokens ]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Pragma:
+              $ref: '#/components/headers/Pragma'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [ Tokens ]
+      summary: Logout user
+      responses:
+        '204':
+          description: Logged out
+          headers: {}
+
+  /auth/me:
+    get:
+      tags: [ Auth-Read ]
+      summary: Get authenticated user context
+      responses:
+        '200':
+          description: User context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserContext'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/oauth/{provider}/callback:
+    get:
+      tags: [ OAuth ]
+      summary: OAuth callback
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [ google, apple, sso ]
+      responses:
+        '200':
+          description: OAuth success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/users/{userId}/disable:
+    post:
+      tags: [ Admin ]
+      summary: Disable user account
+      security:
+        - oauth2:
+            - admin:user:disable
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User disabled
+          headers: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+
+  # =========================
+  # PARAMETERS
+  # =========================
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+
+  # =========================
+  # HEADERS (AUTH + RATE)
+  # =========================
+  headers:
+    Cache-Control:
+      schema:
+        type: string
+        example: no-store
+    Pragma:
+      schema:
+        type: string
+        example: no-cache
+    Location:
+      schema:
+        type: string
+        format: uri
+    Idempotency-Echo:
+      schema:
+        type: string
+        description: Echo of Idempotency-Key
+    WWW-Authenticate:
+      schema:
+        type: string
+        example: Bearer error="invalid_token"
+    RateLimit-Limit:
+      schema: { type: integer }
+    RateLimit-Remaining:
+      schema: { type: integer }
+    RateLimit-Reset:
+      schema: { type: integer }
+    Retry-After:
+      schema: { type: integer }
+
+  # =========================
+  # SECURITY SCHEMES
+  # =========================
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.example.com/oauth/token
+          scopes:
+            admin:user:disable: Disable user accounts
+            admin:user:read: Read user details
+            admin:token:revoke: Revoke tokens
+
+  # =========================
+  # SCHEMAS
+  # =========================
+  schemas:
+    LoginRequest:
+      type: object
+      required: [ username, password ]
+      properties:
+        username:
+          type: string
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 72
+        deviceId:
+          type: string
+
+    RegisterRequest:
+      type: object
+      required: [ email, password, confirmPassword ]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        confirmPassword:
+          type: string
+          minLength: 8
+
+    PasswordResetRequest:
+      type: object
+      required: [ email ]
+      properties:
+        email:
+          type: string
+          format: email
+
+    PasswordResetConfirm:
+      type: object
+      required: [ token, newPassword, confirmPassword ]
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+        confirmPassword:
+          type: string
+
+    OtpVerifyRequest:
+      type: object
+      required: [ otp ]
+      properties:
+        otp:
+          type: string
+          pattern: '^[0-9]{6}$'
+
+    RefreshTokenRequest:
+      type: object
+      required: [ refreshToken ]
+      properties:
+        refreshToken:
+          type: string
+
+    MfaRequired:
+      type: object
+      properties:
+        mfaType:
+          type: string
+          enum: [ SMS, EMAIL, TOTP ]
+
+    AuthTokens:
+      type: object
+      required: [ accessToken, refreshToken, expiresIn ]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+
+    AccessToken:
+      type: object
+      required: [ accessToken, expiresIn ]
+      properties:
+        accessToken:
+          type: string
+        expiresIn:
+          type: integer
+
+    UserContext:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+        roles:
+          type: array
+          items: { type: string }
+        permissions:
+          type: array
+          items: { type: string }
+
+    ErrorResponse:
+      type: object
+      required: [ code, message ]
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          type: string
+        traceId:
+          type: string
+
+    ErrorCode:
+      type: string
+      enum:
+        - AUTH_INVALID_CREDENTIALS
+        - AUTH_ACCOUNT_LOCKED
+        - AUTH_ACCOUNT_DISABLED
+        - MFA_REQUIRED
+        - MFA_INVALID_OTP
+        - TOKEN_EXPIRED
+        - TOKEN_REVOKED
+        - RATE_LIMITED
+        - CONFLICT
+        - UNAUTHORIZED
+        - FORBIDDEN
+        - INTERNAL_ERROR
+
+  # =========================
+  # RESPONSES
+  # =========================
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      headers:
+        WWW-Authenticate:
+          $ref: '#/components/headers/WWW-Authenticate'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    RateLimited:
+      description: Too many requests
+      headers:
+        RateLimit-Limit:
+          $ref: '#/components/headers/RateLimit-Limit'
+        RateLimit-Remaining:
+          $ref: '#/components/headers/RateLimit-Remaining'
+        RateLimit-Reset:
+          $ref: '#/components/headers/RateLimit-Reset'
+        Retry-After:
+          $ref: '#/components/headers/Retry-After'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InvalidOtp:
+      description: Invalid or expired OTP
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

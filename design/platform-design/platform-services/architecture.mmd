@@ -1,0 +1,56 @@
+flowchart LR
+    Client[Client] --> CDN[CDN] --> LB[Load Balancer] --> API[API Gateway]
+
+    API --> IdemRedis[(Redis Idempotency Cluster)]
+
+    IdemRedis --> AuthOrch[Auth Orchestrator]
+    AuthOrch --> AuthWrite[Auth Write Service]
+    AuthOrch --> AuthRead[Auth Read Service]
+
+    AuthOrch --> ServiceDiscovery[Service Discovery]
+    AuthWrite --> ServiceDiscovery
+    AuthRead --> ServiceDiscovery
+
+    ServiceDiscovery --> Consul[Consul]
+    ServiceDiscovery --> Eureka[Eureka]
+
+    AuthOrch --> ConfigServer[Config Server]
+    AuthWrite --> ConfigServer
+    AuthRead --> ConfigServer
+    ConfigServer --> ConfigRepo[(Central Config Repo)]
+
+    AuthOrch --> Vault[Vault]
+    AuthWrite --> Vault
+    AuthRead --> Vault
+
+    AuthWrite --> OTP[OTP Service] --> Notify[SMS / Email Gateway]
+
+    AuthWrite --> CircuitBreaker[Circuit Breaker] --> OAuth[Google / Apple / Enterprise SSO]
+
+    AuthWrite --> Kafka[Kafka]
+    Kafka --> Audit[Audit Service]
+    Kafka --> Fraud[Fraud Service]
+    Kafka --> Analytics[Analytics Service]
+    Kafka --> AsyncNotify[Async Notification Service]
+
+    AuthWrite --> ShardRouter[Shard Router]
+
+    ShardRouter --> WriteShard1[(User Write DB Shard 1)]
+    ShardRouter --> WriteShard2[(User Write DB Shard 2)]
+    ShardRouter --> WriteShard3[(User Write DB Shard 3)]
+
+    WriteShard1 --> ReadReplica1[(User Read DB Replica 1)]
+    WriteShard2 --> ReadReplica2[(User Read DB Replica 2)]
+    WriteShard3 --> ReadReplica3[(User Read DB Replica 3)]
+
+    AuthRead --> ReadCache[(Redis Read Cache Cluster)]
+    ReadCache -->|MISS| ReadReplica1
+    ReadCache -->|MISS| ReadReplica2
+    ReadCache -->|MISS| ReadReplica3
+
+    ReadReplica1 --> ReadCache
+    ReadReplica2 --> ReadCache
+    ReadReplica3 --> ReadCache
+
+    AuthRead --> TokenStore[(Redis Token Cluster)]
+    OTP --> OTPStore[(Redis OTP Cluster)]

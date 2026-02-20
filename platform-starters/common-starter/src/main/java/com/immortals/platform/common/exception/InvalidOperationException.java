@@ -1,8 +1,5 @@
 package com.immortals.platform.common.exception;
 
-/**
- * Exception thrown when an operation is invalid in the current context.
- */
 public class InvalidOperationException extends BusinessException {
 
     private static final long serialVersionUID = 1L;

@@ -1,0 +1,75 @@
+flowchart LR
+
+    subgraph Edge_Layer
+        Client --> CDN --> Load_Balancer --> API_Gateway
+        API_Gateway --> Idempotency_Cluster[(Redis Idempotency Cluster)]
+    end
+
+    subgraph Auth_Core
+        Idempotency_Cluster --> Auth_Service_Orchestrator
+        Auth_Service_Orchestrator --> Auth_Write_Service
+        Auth_Service_Orchestrator --> Auth_Read_Service
+    end
+
+    subgraph Platform_Services
+        Service_Discovery
+        Config_Server
+        Vault
+
+        Service_Discovery --> Consul
+        Service_Discovery --> Eureka
+
+        Config_Server --> Config_Repo[(Config Repo)]
+    end
+
+    Auth_Service_Orchestrator --> Service_Discovery
+    Auth_Write_Service --> Service_Discovery
+    Auth_Read_Service --> Service_Discovery
+
+    Auth_Service_Orchestrator --> Config_Server
+    Auth_Write_Service --> Config_Server
+    Auth_Read_Service --> Config_Server
+
+    Auth_Service_Orchestrator --> Vault
+    Auth_Write_Service --> Vault
+    Auth_Read_Service --> Vault
+
+    subgraph Security_Integration
+        Auth_Write_Service --> OTP_Service
+        OTP_Service --> Notification_Service[(SMS / Email)]
+
+        Auth_Write_Service --> Circuit_Breaker
+        Circuit_Breaker --> OAuth_Provider[(Google / Apple / SSO)]
+    end
+
+    subgraph Async_Events
+        Auth_Write_Service --> Kafka
+        Kafka --> Audit_Service
+        Kafka --> Fraud_Service
+        Kafka --> Analytics_Service
+        Kafka --> Notification_Async
+    end
+
+    subgraph Data_Layer
+        Shard_Router
+        User_DB_Shard_1[(User DB Shard 1<br/>users, roles, permissions)]
+        User_DB_Shard_2[(User DB Shard 2<br/>users, roles, permissions)]
+        User_DB_Shard_3[(User DB Shard 3<br/>users, roles, permissions)]
+
+        Cache_Cluster[(Redis Read Cache Cluster)]
+        Token_Cluster[(Redis Token Cluster)]
+        OTP_Cluster[(Redis OTP Cluster)]
+        Read_Replica[(Read Replica)]
+    end
+
+    Auth_Write_Service --> Shard_Router
+    Shard_Router --> User_DB_Shard_1
+    Shard_Router --> User_DB_Shard_2
+    Shard_Router --> User_DB_Shard_3
+
+    Auth_Read_Service --> Cache_Cluster
+    Cache_Cluster -->|Miss| Read_Replica
+    Read_Replica --> Cache_Cluster
+
+    Auth_Read_Service --> Token_Cluster
+    OTP_Service --> OTP_Cluster

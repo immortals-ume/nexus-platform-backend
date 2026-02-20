@@ -165,11 +165,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>redis</artifactId>
-            <scope>test</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.testcontainers</groupId>

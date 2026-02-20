@@ -2,10 +2,8 @@ package com.immortals.platform.product.config.db;
 
 import com.immortals.platform.domain.properties.JpaProperties;
 import jakarta.persistence.EntityManagerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -13,7 +11,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -44,18 +41,6 @@ public class JpaConfig {
             adapter.setDatabasePlatform(jpaProperties.getDatabasePlatform());
         }
         return adapter;
-    }
-
-    @Bean
-    public EntityManagerFactoryBuilder entityManagerFactoryBuilder(
-            JpaVendorAdapter jpaVendorAdapter,
-            ObjectProvider<PersistenceUnitManager> persistenceUnitManager) {
-
-        return new EntityManagerFactoryBuilder(
-                jpaVendorAdapter,
-                new HashMap<>(),
-                persistenceUnitManager.getIfAvailable()
-        );
     }
 
     @Bean(name = "entityManagerFactory")

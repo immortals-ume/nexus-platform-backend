@@ -1,14 +1,13 @@
 package com.immortals.platform.messaging.dlq;
 
-import com.immortals.platform.messaging.config.MessagingProperties;
-import com.immortals.platform.messaging.event.DomainEvent;
+import com.immortals.platform.domain.shared.config.MessagingProperties;
+import com.immortals.platform.domain.shared.event.DomainEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.stereotype.Component;
 
 import java.io.Serial;
 import java.time.Instant;
@@ -18,9 +17,7 @@ import java.time.Instant;
  * Provides retry logic for DLQ messages and manual intervention support.
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class DeadLetterQueueHandler {
     private final MessagingProperties messagingProperties;
     private final com.immortals.platform.messaging.publisher.EventPublisher eventPublisher;

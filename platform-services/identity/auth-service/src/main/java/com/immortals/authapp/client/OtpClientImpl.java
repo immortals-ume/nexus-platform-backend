@@ -14,11 +14,6 @@ import java.util.concurrent.CompletableFuture;
  * Implementation of OTP client with resilience patterns.
  * Demonstrates circuit breaker, retry, timeout, and bulkhead patterns for external service calls.
  * 
- * Requirements:
- * - 5.1: Circuit breaker for external OTP service calls
- * - 5.2: Retry logic for transient failures
- * - 5.3: Timeout configuration (5 seconds max)
- * - 5.4: Bulkhead for thread pool isolation
  */
 @Component
 @Slf4j

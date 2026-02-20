@@ -1,7 +1,7 @@
 package com.immortals.platform.common.db.aop;
 
 import com.immortals.platform.common.db.context.DbContextHolder;
-import com.immortals.platform.domain.enums.DbType;
+import com.immortals.platform.common.props.DbType;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;

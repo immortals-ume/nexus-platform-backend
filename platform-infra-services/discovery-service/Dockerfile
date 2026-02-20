@@ -6,8 +6,6 @@ WORKDIR /app
 
 # Copy parent POM and platform dependencies
 COPY ../platform-parent/pom.xml ../platform-parent/
-COPY ../observability-starter/pom.xml ../observability-starter/
-COPY ../observability-starter/src ../observability-starter/src
 
 # Copy discovery service files
 COPY pom.xml .

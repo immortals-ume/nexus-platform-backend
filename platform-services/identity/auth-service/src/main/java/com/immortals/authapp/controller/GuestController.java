@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.immortals.authapp.constants.AuthAppConstant.HEADER_STRING;
-import static com.immortals.authapp.constants.AuthAppConstant.TOKEN_PREFIX;
+import static com.immortals.platform.domain.auth.constants.AuthAppConstant.HEADER_STRING;
+import static com.immortals.platform.domain.auth.constants.AuthAppConstant.TOKEN_PREFIX;
 
 @RestController
 @RequestMapping("/api/v1/guest")

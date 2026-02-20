@@ -1,0 +1,53 @@
+flowchart TB
+    LLM[MCP Client / LLM / CLI]
+
+    subgraph MCP_Server["Local MCP Server (Ktor)"]
+        TR[Tool Router]
+        QP[Query Planner]
+        QE[Query Engine]
+    end
+
+    subgraph Intelligence["Code Intelligence Engine"]
+        CI[Codebase Scanner]
+        AST[AST Indexer]
+        PSI[Kotlin PSI Resolver]
+        GE[Graph Engine]
+        KA[Kafka Analyzer]
+        GM[Git Metadata Analyzer]
+    end
+
+    subgraph Storage["In-Memory Indexes"]
+        SI[Symbol Index]
+        RG[Reference Graph]
+        CG[Call Graph]
+        DG[Dependency Graph]
+        TG[Topic Graph]
+        GMETA[Git Metadata Store]
+    end
+
+    Repo[Local Git Repository]
+
+    LLM -->|MCP Tool Calls| TR
+    TR --> QP
+    QP --> QE
+
+    QE --> CI
+    CI --> AST
+    AST --> SI
+    AST --> RG
+
+    QE --> PSI
+    PSI --> SI
+    PSI --> RG
+
+    QE --> GE
+    GE --> CG
+    GE --> DG
+
+    QE --> KA
+    KA --> TG
+
+    QE --> GM
+    GM --> GMETA
+
+    CI --> Repo

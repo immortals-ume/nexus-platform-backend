@@ -9,7 +9,6 @@
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
     <artifactId>gateway-service</artifactId>
-	<version>1.0.0</version>
 	<name>gateway-service</name>
 	<description>API Gateway Service for Microservices Platform</description>
 	<properties>
@@ -186,8 +185,6 @@
 								<rule>
 									<element>BUNDLE</element>
 									<limits>
-										<!-- Coverage requirements relaxed for configuration management task (Task 8) -->
-										<!-- Configuration properties tests are comprehensive but excluded from coverage -->
 										<limit>
 											<counter>INSTRUCTION</counter>
 											<value>COVEREDRATIO</value>

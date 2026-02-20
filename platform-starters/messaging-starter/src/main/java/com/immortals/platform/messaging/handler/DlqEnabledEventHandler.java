@@ -1,9 +1,11 @@
 package com.immortals.platform.messaging.handler;
 
-import com.immortals.platform.messaging.event.DomainEvent;
+import com.immortals.platform.domain.shared.config.MessagingProperties;
+import com.immortals.platform.domain.shared.event.DomainEvent;
 import com.immortals.platform.messaging.publisher.EventPublisher;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * Extended event handler that automatically publishes failed events to DLQ.
@@ -15,8 +17,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 public abstract class DlqEnabledEventHandler<T> extends AbstractEventHandler<T> {
 
-    @Autowired(required = false)
-    private EventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
+
+    public DlqEnabledEventHandler(StringRedisTemplate redisTemplate, 
+                                  MessagingProperties messagingProperties, 
+                                  MeterRegistry meterRegistry,
+                                  EventPublisher eventPublisher) {
+        super(redisTemplate, messagingProperties, meterRegistry);
+        this.eventPublisher = eventPublisher;
+    }
 
     @Override
     protected EventPublisher getEventPublisher() {

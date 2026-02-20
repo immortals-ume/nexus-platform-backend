@@ -4,7 +4,6 @@ import com.immortals.platform.cache.core.CacheConfiguration;
 import com.immortals.platform.cache.core.CacheService;
 import com.immortals.platform.cache.core.CacheServiceFactory;
 import com.immortals.platform.cache.core.DefaultUnifiedCacheManager;
-import com.immortals.platform.cache.config.CacheProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -50,9 +49,9 @@ public class CacheAutoConfiguration {
      *   <li>Consistent API across all cache providers</li>
      * </ul>
      *
-     * @param cacheServiceFactory factory for creating cache service instances
-     * @param cacheProperties cache configuration properties
-     * @param meterRegistry meter registry for metrics
+     * @param cacheServiceFactory   factory for creating cache service instances
+     * @param cacheProperties       cache configuration properties
+     * @param meterRegistry         meter registry for metrics
      * @param decoratorChainBuilder builder for applying decorators
      * @return configured unified cache manager
      */
@@ -63,23 +62,23 @@ public class CacheAutoConfiguration {
             CacheProperties cacheProperties,
             MeterRegistry meterRegistry,
             ObjectProvider<DefaultUnifiedCacheManager.DecoratorChainBuilder> decoratorChainBuilder) {
-        
+
         log.info("Creating unified cache manager with type: {}", cacheProperties.getType());
-        
-        DefaultUnifiedCacheManager.DecoratorChainBuilder builder = 
-            decoratorChainBuilder.getIfAvailable(() -> {
-                log.debug("Using default decorator chain builder");
-                return new DefaultDecoratorChainBuilder(meterRegistry, null, null, 0, null, false);
-            });
-        
+
+        DefaultUnifiedCacheManager.DecoratorChainBuilder builder =
+                decoratorChainBuilder.getIfAvailable(() -> {
+                    log.debug("Using default decorator chain builder");
+                    return new DefaultDecoratorChainBuilder(meterRegistry, null, null, 0, null, false);
+                });
+
         CacheService<?, ?> sharedCacheInstance = cacheServiceFactory.createCacheService();
         CacheConfiguration cacheConfiguration = new CacheConfiguration();
         DefaultUnifiedCacheManager manager = new DefaultUnifiedCacheManager(
-            sharedCacheInstance,
-            cacheConfiguration,
-            builder
+                sharedCacheInstance,
+                cacheConfiguration,
+                builder
         );
-        
+
         log.info("Unified cache manager created successfully");
         return manager;
     }
@@ -96,9 +95,10 @@ public class CacheAutoConfiguration {
         log.info("Cache Type: {}", cacheProperties.getType());
         log.info("Default TTL: {}", cacheProperties.getDefaultTtl());
         log.info("Enabled: {}", cacheProperties.getEnabled());
-        log.info("Namespaces configured: {}", cacheProperties.getNamespaces().size());
+        log.info("Namespaces configured: {}", cacheProperties.getNamespaces()
+                .size());
         log.info("===================================");
-        
+
         return new CacheConfigurationSummary();
     }
 

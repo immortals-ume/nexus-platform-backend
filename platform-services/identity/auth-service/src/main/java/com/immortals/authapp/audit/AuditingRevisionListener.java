@@ -1,8 +1,7 @@
 package com.immortals.authapp.audit;
 
 
-import com.immortals.platform.domain.entity.AuditingRevisionEntity;
-import com.immortals.platform.domain.enums.UserTypes;
+
 import com.immortals.platform.common.exception.AuthenticationException;
 import org.hibernate.envers.RevisionListener;
 import org.springframework.security.core.context.SecurityContextHolder;

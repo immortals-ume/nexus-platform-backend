@@ -1,0 +1,47 @@
+flowchart LR
+%% Client Layer
+    Client[Web / Mobile Client]
+
+%% Gateway
+    APIGW[API Gateway]
+
+%% Core Services
+    Auth["Auth Service(JWT + OAuth2)"]
+    OTP[OTP Service]
+    Identity[Identity Service]
+    UserMgmt[User Management Service]
+    EmployeeMgmt[Employee Management Service]
+    CustomerMgmt[Customer Management Service]
+    Ecommerce[E-Commerce Service]
+    Catalog[Catalog / Discovery Service]
+
+    Notification[Notification Service]
+    Storage[Storage Service]
+
+    Discovery[Service Discovery]
+
+    config[Config Server]
+
+    Kafka1[(Kafka Event Broker - 1)]
+    Kafka2[(Kafka Event Broker - 2)]
+    Kafka3[(Kafka Event Broker - 3)]
+
+    %% Client Flow
+    Client --> APIGW
+
+    %% Gateway Routing
+    APIGW --> Auth --> OTP --> Kafka1
+    APIGW --> Ecommerce
+    APIGW --> Catalog
+    APIGW --> UserMgmt
+    %% Event Consumers
+    Kafka1 --> Notification
+    Kafka2 --> Storage
+
+    %% Service Discovery
+    Auth --> Discovery
+    Ecommerce --> Discovery
+    Catalog --> Discovery
+    UserMgmt --> Discovery
+
+

@@ -3,10 +3,6 @@ package com.immortals.platform.common.exception;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Exception thrown when validation fails.
- * Used for input validation errors and constraint violations.
- */
 public class ValidationException extends BusinessException {
 
     private static final long serialVersionUID = 1L;
@@ -37,9 +33,6 @@ public class ValidationException extends BusinessException {
         this.validationErrors = validationErrors;
     }
 
-    /**
-     * Inner class to represent individual validation errors
-     */
     public static class ValidationError implements java.io.Serializable {
         private static final long serialVersionUID = 1L;
 

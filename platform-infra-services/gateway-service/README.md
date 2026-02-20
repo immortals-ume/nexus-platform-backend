@@ -28,23 +28,23 @@ Client → Gateway → [Auth Service, User Service, Notification Service, etc.]
 
 All environment-specific settings are externalized using environment variables with sensible defaults for development.
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| **Server Configuration** |
-| `SERVER_PORT` | Gateway server port | `8080` | No |
-| **Service Discovery** |
-| `EUREKA_SERVER_URL` | Eureka server URL | `http://localhost:8761/eureka/` | No |
+| Variable                  | Description                       | Default                                       | Required           |
+|---------------------------|-----------------------------------|-----------------------------------------------|--------------------|
+| **Server Configuration**  |
+| `SERVER_PORT`             | Gateway server port               | `8080`                                        | No                 |
+| **Service Discovery**     |
+| `EUREKA_SERVER_URL`       | Eureka server URL                 | `http://localhost:8761/eureka/`               | No                 |
 | **Redis (Rate Limiting)** |
-| `REDIS_HOST` | Redis host | `localhost` | Yes (staging/prod) |
-| `REDIS_PORT` | Redis port | `6379` | No |
-| `REDIS_PASSWORD` | Redis password | `` | Yes (staging/prod) |
-| **CORS Configuration** |
-| `CORS_ALLOWED_ORIGINS` | Allowed CORS origins | `http://localhost:3000,http://localhost:4200` | Yes (staging/prod) |
-| **Config Server** |
-| `CONFIG_SERVER_URL` | Config server URL | `http://localhost:8888` | Yes (staging/prod) |
-| **Observability** |
-| `ZIPKIN_URL` | Zipkin server URL | `http://localhost:9411` | No |
-| `SPRING_PROFILES_ACTIVE` | Active profile (dev/staging/prod) | `dev` | No |
+| `REDIS_HOST`              | Redis host                        | `localhost`                                   | Yes (staging/prod) |
+| `REDIS_PORT`              | Redis port                        | `6379`                                        | No                 |
+| `REDIS_PASSWORD`          | Redis password                    | ``                                            | Yes (staging/prod) |
+| **CORS Configuration**    |
+| `CORS_ALLOWED_ORIGINS`    | Allowed CORS origins              | `http://localhost:3000,http://localhost:4200` | Yes (staging/prod) |
+| **Config Server**         |
+| `CONFIG_SERVER_URL`       | Config server URL                 | `http://localhost:8888`                       | Yes (staging/prod) |
+| **Observability**         |
+| `ZIPKIN_URL`              | Zipkin server URL                 | `http://localhost:9411`                       | No                 |
+| `SPRING_PROFILES_ACTIVE`  | Active profile (dev/staging/prod) | `dev`                                         | No                 |
 
 **Example Configuration:**
 
@@ -158,11 +158,13 @@ curl http://localhost:8080/actuator/health/circuitBreakers
 ## Rate Limiting
 
 Rate limiting is applied per IP address:
+
 - **Default**: 1000 requests/minute
 - **Burst Capacity**: 2000 requests
 - **Storage**: Redis
 
 Rate limit headers are included in responses:
+
 - `X-RateLimit-Limit`: Maximum requests allowed
 - `X-RateLimit-Remaining`: Remaining requests
 - `X-RateLimit-Reset`: Time when limit resets
@@ -170,6 +172,7 @@ Rate limit headers are included in responses:
 ## Circuit Breaker
 
 Circuit breakers protect downstream services:
+
 - **Sliding Window**: 10 calls
 - **Failure Threshold**: 50%
 - **Wait Duration**: 10 seconds
@@ -180,6 +183,7 @@ When a circuit breaker opens, requests are routed to fallback endpoints.
 ## Fallback Endpoints
 
 Fallback endpoints provide graceful degradation:
+
 - `/fallback/auth` - Auth service fallback
 - `/fallback/users` - User service fallback
 - `/fallback/notifications` - Notification service fallback
@@ -193,11 +197,13 @@ Fallback endpoints provide graceful degradation:
 
 ## CORS Configuration
 
-CORS is configured to allow cross-origin requests from web clients. Configure allowed origins using the `CORS_ALLOWED_ORIGINS` environment variable.
+CORS is configured to allow cross-origin requests from web clients. Configure allowed origins using the
+`CORS_ALLOWED_ORIGINS` environment variable.
 
 ## Distributed Tracing
 
 The gateway integrates with Zipkin/Jaeger for distributed tracing:
+
 - Correlation IDs are automatically added to all requests
 - Trace context is propagated to downstream services
 - Sampling rate: 10% (production), 100% (development)
@@ -205,6 +211,7 @@ The gateway integrates with Zipkin/Jaeger for distributed tracing:
 ## Logging
 
 Structured logging with correlation IDs:
+
 - Request/response logging for audit
 - Response time logging with warnings for slow requests (>1s)
 - Circuit breaker state transitions
@@ -243,6 +250,7 @@ gateway/
 **Symptom**: Requests to gateway return 404 errors
 
 **Solutions**:
+
 1. Verify target service is registered in Eureka: check dashboard at http://localhost:8761
 2. Check route configuration: `curl http://localhost:8080/actuator/gateway/routes`
 3. Verify request path matches configured route predicates
@@ -255,6 +263,7 @@ gateway/
 **Symptom**: Rate limits not being enforced
 
 **Solutions**:
+
 1. Verify Redis is running and accessible: `redis-cli ping`
 2. Check Redis connection: `curl http://localhost:8080/actuator/health`
 3. Review rate limit configuration in application.yml
@@ -267,6 +276,7 @@ gateway/
 **Symptom**: Circuit breaker not activating despite service failures
 
 **Solutions**:
+
 1. Check circuit breaker configuration: sliding window size and failure threshold
 2. Verify enough calls have been made to trigger evaluation (minimum 10 by default)
 3. Review circuit breaker metrics: `curl http://localhost:8080/actuator/health/circuitBreakers`
@@ -279,6 +289,7 @@ gateway/
 **Symptom**: Browser shows CORS policy errors
 
 **Solutions**:
+
 1. Verify `CORS_ALLOWED_ORIGINS` includes the requesting origin
 2. Check CORS configuration in CorsConfig.java
 3. Ensure preflight OPTIONS requests are allowed
@@ -291,6 +302,7 @@ gateway/
 **Symptom**: Gateway responses are slow
 
 **Solutions**:
+
 1. Check downstream service response times
 2. Review gateway metrics: `curl http://localhost:8080/actuator/metrics/gateway.requests`
 3. Monitor response time logs (warnings for >1s)
@@ -304,6 +316,7 @@ gateway/
 **Symptom**: Gateway cannot discover backend services
 
 **Solutions**:
+
 1. Verify Eureka server is accessible: `curl http://localhost:8761/actuator/health`
 2. Check Eureka client configuration in gateway
 3. Ensure gateway is registered with Eureka
@@ -316,6 +329,7 @@ gateway/
 **Symptom**: Circuit breaker opens but fallback not triggered
 
 **Solutions**:
+
 1. Verify FallbackController is properly configured
 2. Check circuit breaker filter configuration
 3. Review fallback route mappings
@@ -328,6 +342,7 @@ gateway/
 **Symptom**: Gateway fails to connect to Redis
 
 **Solutions**:
+
 1. Verify Redis is running: `docker ps | grep redis`
 2. Check Redis host and port configuration
 3. Test Redis connection: `redis-cli -h <host> -p <port> ping`
@@ -340,6 +355,7 @@ gateway/
 **Symptom**: Gateway consuming excessive memory
 
 **Solutions**:
+
 1. Adjust JVM heap settings: `-XX:MaxRAMPercentage=75.0`
 2. Monitor memory metrics: `curl http://localhost:8080/actuator/metrics/jvm.memory.used`
 3. Review connection pool sizes
@@ -352,6 +368,7 @@ gateway/
 **Symptom**: Correlation IDs missing in downstream services
 
 **Solutions**:
+
 1. Verify CorrelationIdFilter is enabled
 2. Check filter order in configuration
 3. Review logs to confirm correlation ID generation
@@ -364,6 +381,7 @@ gateway/
 **Symptom**: Gateway returns timeout errors
 
 **Solutions**:
+
 1. Check timeout configuration: `spring.cloud.gateway.httpclient.connect-timeout`
 2. Verify downstream service is responding
 3. Review response time metrics
@@ -376,6 +394,7 @@ gateway/
 **Symptom**: Authentication failures at gateway
 
 **Solutions**:
+
 1. Verify JWT token validation configuration
 2. Check token expiration and refresh logic
 3. Review security filter chain configuration
@@ -388,6 +407,7 @@ gateway/
 **Symptom**: Requests always go to same service instance
 
 **Solutions**:
+
 1. Verify multiple instances are registered in Eureka
 2. Check load balancer configuration
 3. Review service instance metadata

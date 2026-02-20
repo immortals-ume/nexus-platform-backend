@@ -49,7 +49,7 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
             method, path, ipAddress, correlationId);
         
         Counter.builder("gateway.requests.total")
-            .tag("method", method != null ? method.name() : "UNKNOWN")
+            .tag("method", method.name())
             .tag("path", path)
             .register(meterRegistry)
             .increment();
@@ -68,7 +68,7 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
                 method, path, statusCode, duration, correlationId);
             
             Timer.builder("gateway.requests.duration")
-                .tag("method", method != null ? method.name() : "UNKNOWN")
+                .tag("method", method.name())
                 .tag("path", path)
                 .tag("status", String.valueOf(statusCode))
                 .register(meterRegistry)

@@ -1,29 +1,27 @@
 package com.immortals.platform.common.exception;
 
+import org.springframework.http.HttpStatus;
+
 import java.io.Serial;
 
-/**
- * Exception for business logic violations.
- * Used when business rules are not satisfied.
- */
 public class BusinessException extends PlatformException {
 
     @Serial
     private static final long serialVersionUID = 15L;
 
     public BusinessException(String message) {
-        super(message);
+        super(message, ErrorCode.BUSINESS_RULE_VIOLATION, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     public BusinessException(String message, String errorCode) {
-        super(message, errorCode);
+        super(message, errorCode, ErrorCode.getHttpStatus(errorCode));
     }
 
     public BusinessException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, ErrorCode.BUSINESS_RULE_VIOLATION, HttpStatus.UNPROCESSABLE_ENTITY, cause);
     }
 
     public BusinessException(String message, String errorCode, Throwable cause) {
-        super(message, errorCode, cause);
+        super(message, errorCode, ErrorCode.getHttpStatus(errorCode), cause);
     }
 }

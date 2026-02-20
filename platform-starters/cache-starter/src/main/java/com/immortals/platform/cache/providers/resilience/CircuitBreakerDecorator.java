@@ -73,7 +73,7 @@ public class CircuitBreakerDecorator<K, V> extends CacheDecorator<K, V> {
     public void put(K key, V value) {
         try {
             circuitBreaker.executeRunnable(() -> delegate.put(key, value));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.warn("Circuit breaker open or error during put for namespace: {}", namespace, e);
             throw e;
         }

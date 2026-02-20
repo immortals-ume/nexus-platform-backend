@@ -1,0 +1,84 @@
+flowchart LR
+%% =====================
+%% UI Layer
+%% =====================
+    Client[Client]
+    BFF[BFF]
+
+    Client --> BFF
+
+%% =====================
+%% Orchestrator
+%% =====================
+    Orchestrator[Checkout Orchestrator]
+
+    BFF --> Orchestrator
+
+%% =====================
+%% Kafka Backbone
+%% =====================
+    subgraph Kafka["Kafka Event Bus"]
+        Cmd[(Command Topics)]
+        Evt[(Event Topics)]
+        Retry[(Retry Topics)]
+        DLQ[(Dead Letter Queue)]
+    end
+
+%% =====================
+%% Commerce Services
+%% =====================
+    CartSvc[Cart Service]
+    PricingSvc[Pricing Service]
+    PromoSvc[Promotion Service]
+    InventorySvc[Inventory Service]
+    PaymentSvc[Payment Service]
+    OrderSvc[Order Service]
+    ShippingSvc[Shipping Service]
+
+%% =====================
+%% Forward Flow (Commands)
+%% =====================
+    Orchestrator --> Cmd
+
+    Cmd --> CartSvc
+    Cmd --> PricingSvc
+    Cmd --> PromoSvc
+    Cmd --> InventorySvc
+    Cmd --> PaymentSvc
+    Cmd --> OrderSvc
+    Cmd --> ShippingSvc
+
+%% =====================
+%% Events back to Orchestrator
+%% =====================
+    CartSvc --> Evt
+    PricingSvc --> Evt
+    PromoSvc --> Evt
+    InventorySvc --> Evt
+    PaymentSvc --> Evt
+    OrderSvc --> Evt
+    ShippingSvc --> Evt
+
+    Evt --> Orchestrator
+
+%% =====================
+%% Retry & Failure
+%% =====================
+    CartSvc -. fail .-> Retry
+    PricingSvc -. fail .-> Retry
+    PromoSvc -. fail .-> Retry
+    InventorySvc -. fail .-> Retry
+    PaymentSvc -. fail .-> Retry
+    OrderSvc -. fail .-> Retry
+    ShippingSvc -. fail .-> Retry
+
+    Retry --> Cmd
+    Retry -. poison .-> DLQ
+    DLQ --> Orchestrator
+
+%% =====================
+%% Back Propagation
+%% =====================
+    Orchestrator --> SagaStatus[(Saga Status Events)]
+    SagaStatus --> BFF
+    BFF --> Client

@@ -1,6 +1,7 @@
 package com.immortals.platform.common.db.context;
 
-import com.immortals.platform.domain.enums.DbType;
+
+import com.immortals.platform.common.props.DbType;
 
 /**
  * Thread-local context holder for database routing.

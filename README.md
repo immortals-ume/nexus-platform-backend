@@ -1,9 +1,11 @@
 # nexus-platform-backend
+
 Production-ready enterprise microservices platform built with Spring Boot 3, Spring Cloud, and cloud-native patterns
 
 ## Java Version Compatibility
 
-The Nexus microbackend platform supports multiple Java versions to provide flexibility for different development and deployment environments.
+The Nexus microbackend platform supports multiple Java versions to provide flexibility for different development and
+deployment environments.
 
 ### Supported Java Versions
 
@@ -11,7 +13,8 @@ The Nexus microbackend platform supports multiple Java versions to provide flexi
 - **Java 21** (LTS) - Recommended for production (default)
 - **Java 23** - Latest features and performance improvements
 
-All services compile to Java 17 bytecode for maximum compatibility while allowing you to build and run with any supported version.
+All services compile to Java 17 bytecode for maximum compatibility while allowing you to build and run with any
+supported version.
 
 ### Building with Different Java Versions
 
@@ -84,13 +87,13 @@ mvn clean package -Ddocker.base.image=ghcr.io/graalvm/jdk:ol9-java21
 
 The following Maven properties control Java version behavior:
 
-| Property | Default | Description |
-|----------|---------|-------------|
-| `java.version` | 17 | Java language level for source and target |
-| `maven.compiler.source` | `${java.version}` | Java source compatibility |
-| `maven.compiler.target` | `${java.version}` | Java target compatibility |
-| `maven.compiler.release` | `${java.version}` | Java release version (recommended) |
-| `docker.base.image` | `eclipse-temurin:21-jre-alpine` | Docker base image for containers |
+| Property                 | Default                         | Description                               |
+|--------------------------|---------------------------------|-------------------------------------------|
+| `java.version`           | 17                              | Java language level for source and target |
+| `maven.compiler.source`  | `${java.version}`               | Java source compatibility                 |
+| `maven.compiler.target`  | `${java.version}`               | Java target compatibility                 |
+| `maven.compiler.release` | `${java.version}`               | Java release version (recommended)        |
+| `docker.base.image`      | `eclipse-temurin:21-jre-alpine` | Docker base image for containers          |
 
 ### Troubleshooting
 
@@ -178,8 +181,8 @@ docker run --rm your-image:tag java -version
 image: eclipse-temurin:21-jdk
 
 # Jenkins example
-tools {
-    jdk 'Java 21'
+  tools {
+  jdk 'Java 21'
 }
 ```
 
@@ -189,24 +192,28 @@ tools {
 
 2. **Compile to Java 17 Bytecode**: This ensures maximum compatibility across environments (default behavior).
 
-3. **Match Docker Runtime to Build Version**: While not strictly required, using the same Java version for build and runtime avoids potential issues.
+3. **Match Docker Runtime to Build Version**: While not strictly required, using the same Java version for build and
+   runtime avoids potential issues.
 
 4. **Avoid Preview Features**: They break cross-version compatibility and aren't suitable for production code.
 
 5. **Test Across Versions**: If your team uses different Java versions, test builds with all supported versions.
 
-6. **Document Version Requirements**: If a specific service requires a particular Java version, document it in the service's README.
+6. **Document Version Requirements**: If a specific service requires a particular Java version, document it in the
+   service's README.
 
 ### Version-Specific Features
 
 While the platform supports Java 17-23, be aware of version-specific features:
 
 #### Java 17 (Baseline)
+
 - Sealed classes
 - Pattern matching for switch (preview)
 - Strong encapsulation of JDK internals
 
 #### Java 21 (Recommended)
+
 - Virtual threads (Project Loom)
 - Sequenced collections
 - Pattern matching for switch (finalized)
@@ -214,8 +221,10 @@ While the platform supports Java 17-23, be aware of version-specific features:
 - String templates (preview)
 
 #### Java 23 (Latest)
+
 - Structured concurrency (preview)
 - Scoped values (preview)
 - Vector API improvements
 
-**Note**: Using features from Java 21+ will prevent the code from running on Java 17 runtimes. Stick to Java 17 features for maximum compatibility. 
+**Note**: Using features from Java 21+ will prevent the code from running on Java 17 runtimes. Stick to Java 17 features
+for maximum compatibility. 

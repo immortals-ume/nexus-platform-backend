@@ -3,8 +3,7 @@ package com.immortals.gateway.controller;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,15 +23,15 @@ import java.util.Map;
 @RestController
 @RequestMapping("/fallback")
 @RequiredArgsConstructor
+@Slf4j
 public class FallbackController {
 
-    private static final Logger logger = LoggerFactory.getLogger(FallbackController.class);
     private final MeterRegistry meterRegistry;
 
     @GetMapping("/auth")
     public ResponseEntity<Map<String, Object>> authFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("Auth service fallback triggered for request: {}, correlationId: {}",
+        log.warn("Auth service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("auth-service",
             "Authentication service is temporarily unavailable. Please try again later.", correlationId);
@@ -41,7 +40,7 @@ public class FallbackController {
     @GetMapping("/users")
     public ResponseEntity<Map<String, Object>> usersFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("User management service fallback triggered for request: {}, correlationId: {}",
+        log.warn("User management service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("user-management-service",
             "User management service is temporarily unavailable. Please try again later.", correlationId);
@@ -50,7 +49,7 @@ public class FallbackController {
     @GetMapping("/notifications")
     public ResponseEntity<Map<String, Object>> notificationsFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("Notification service fallback triggered for request: {}, correlationId: {}",
+        log.warn("Notification service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("notification-service",
             "Notification service is temporarily unavailable. Your notification will be processed later.", correlationId);
@@ -59,7 +58,7 @@ public class FallbackController {
     @GetMapping("/storage")
     public ResponseEntity<Map<String, Object>> storageFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("Storage service fallback triggered for request: {}, correlationId: {}",
+        log.warn("Storage service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("storage-service",
             "Storage service is temporarily unavailable. Please try again later.", correlationId);
@@ -68,7 +67,7 @@ public class FallbackController {
     @GetMapping("/otp")
     public ResponseEntity<Map<String, Object>> otpFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("OTP service fallback triggered for request: {}, correlationId: {}",
+        log.warn("OTP service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("otp-service",
             "OTP service is temporarily unavailable. Please try again later.", correlationId);
@@ -77,7 +76,7 @@ public class FallbackController {
     @GetMapping("/urls")
     public ResponseEntity<Map<String, Object>> urlsFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("URL shortener service fallback triggered for request: {}, correlationId: {}",
+        log.warn("URL shortener service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("url-shortener-service",
             "URL shortener service is temporarily unavailable. Please try again later.", correlationId);
@@ -86,7 +85,7 @@ public class FallbackController {
     @GetMapping("/customers")
     public ResponseEntity<Map<String, Object>> customersFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("Customer service fallback triggered for request: {}, correlationId: {}",
+        log.warn("Customer service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("customer-service",
             "Customer service is temporarily unavailable. Please try again later.", correlationId);
@@ -95,7 +94,7 @@ public class FallbackController {
     @GetMapping("/orders")
     public ResponseEntity<Map<String, Object>> ordersFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("Order service fallback triggered for request: {}, correlationId: {}",
+        log.warn("Order service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("order-service",
             "Order service is temporarily unavailable. Please try again later.", correlationId);
@@ -104,7 +103,7 @@ public class FallbackController {
     @GetMapping("/payments")
     public ResponseEntity<Map<String, Object>> paymentsFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("Payment service fallback triggered for request: {}, correlationId: {}",
+        log.warn("Payment service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("payment-service",
             "Payment service is temporarily unavailable. Please try again later.", correlationId);
@@ -113,7 +112,7 @@ public class FallbackController {
     @GetMapping("/products")
     public ResponseEntity<Map<String, Object>> productsFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("Product service fallback triggered for request: {}, correlationId: {}",
+        log.warn("Product service fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("product-service",
             "Product service is temporarily unavailable. Please try again later.", correlationId);
@@ -125,7 +124,7 @@ public class FallbackController {
     @GetMapping("/generic")
     public ResponseEntity<Map<String, Object>> genericFallback(ServerWebExchange exchange) {
         String correlationId = getCorrelationId(exchange);
-        logger.warn("Generic fallback triggered for request: {}, correlationId: {}",
+        log.warn("Generic fallback triggered for request: {}, correlationId: {}",
             exchange.getRequest().getPath(), correlationId);
         return createFallbackResponse("service",
             "The requested service is temporarily unavailable. Please try again later.", correlationId);

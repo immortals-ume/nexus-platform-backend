@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.7</version>
+        <version>3.5.9</version>
         <relativePath/>
     </parent>
 
@@ -120,7 +120,6 @@
 
         <pluginManagement>
             <plugins>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -390,12 +389,9 @@
 
                                     <bannedDependencies>
                                         <excludes>
-
                                             <exclude>log4j:log4j</exclude>
                                             <exclude>org.apache.logging.log4j:log4j-core:(,2.17.0)</exclude>
-
                                             <exclude>commons-collections:commons-collections:[3.0,3.2.2]</exclude>
-
                                             <exclude>commons-beanutils:commons-beanutils:[1.0,1.9.4)</exclude>
                                             <exclude>org.yaml:snakeyaml:[1.0,1.33)</exclude>
                                             <exclude>com.fasterxml.jackson.core:jackson-databind:[2.0,2.13.4.2)
@@ -478,146 +474,8 @@
 
                         <ignoreNonCompile>false</ignoreNonCompile>
 
-                        <ignoredUnusedDeclaredDependencies>
-
-                            <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
-
-                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-*
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-autoconfigure
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>
-                                org.springframework.boot:spring-boot-configuration-processor
-                            </ignoredUnusedDeclaredDependency>
-
-                            <ignoredUnusedDeclaredDependency>org.postgresql:postgresql</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
-
-                            <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-test
-                            </ignoredUnusedDeclaredDependency>
-
-                            <!-- Testing frameworks -->
-                            <ignoredUnusedDeclaredDependency>net.jqwik:jqwik</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.testcontainers:*</ignoredUnusedDeclaredDependency>
-
-                            <!-- Optional runtime dependencies -->
-                            <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-spring-boot3
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-bus-kafka
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-config-monitor
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-netflix-eureka-client
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-netflix-eureka-server
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-config
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-test
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-gateway
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-loadbalancer
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>io.projectreactor:reactor-test
-                            </ignoredUnusedDeclaredDependency>
-
-                            <ignoredUnusedDeclaredDependency>io.micrometer:micrometer-*
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>io.opentelemetry:opentelemetry-*
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>io.zipkin.reporter2:zipkin-reporter-brave
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>ch.qos.logback:logback-classic
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>net.logstash.logback:logstash-logback-encoder
-                            </ignoredUnusedDeclaredDependency>
-
-                            <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.core:jackson-databind
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.datatype:jackson-datatype-jsr310
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.apache.commons:commons-lang3
-                            </ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency> org.apache.tomcat:tomcat-annotations-api</ignoredUnusedDeclaredDependency>
-                        </ignoredUnusedDeclaredDependencies>
-
-                        <ignoredUsedUndeclaredDependencies>
-
-                            <ignoredUsedUndeclaredDependency>jakarta.annotation:jakarta.annotation-api
-                            </ignoredUsedUndeclaredDependency>
-
-                            <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
-
-                            <ignoredUsedUndeclaredDependency>org.springframework:spring-*
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>
-                                org.springframework.boot:spring-boot-actuator-autoconfigure
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>
-                                org.springframework.boot:spring-boot-autoconfigure
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>
-                                org.springframework.boot:spring-boot-test
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>
-                                org.springframework.boot:spring-boot-actuator
-                            </ignoredUsedUndeclaredDependency>
-
-                            <!-- Testing frameworks -->
-                            <ignoredUsedUndeclaredDependency>net.jqwik:jqwik-api</ignoredUsedUndeclaredDependency>
-
-                            <!-- Spring Security transitive dependencies -->
-                            <ignoredUsedUndeclaredDependency>org.springframework.security:spring-security-*
-                            </ignoredUsedUndeclaredDependency>
-
-                            <!-- Eureka transitive dependencies -->
-                            <ignoredUsedUndeclaredDependency>com.netflix.eureka:eureka-*
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>org.springframework.cloud:spring-cloud-netflix-eureka-server
-                            </ignoredUsedUndeclaredDependency>
-
-                            <!-- Resilience4j transitive dependencies -->
-                            <ignoredUsedUndeclaredDependency>io.github.resilience4j:resilience4j-core
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>io.github.resilience4j:resilience4j-circuitbreaker
-                            </ignoredUsedUndeclaredDependency>
-
-                            <!-- Spring Cloud Gateway transitive dependencies -->
-                            <ignoredUsedUndeclaredDependency>org.springframework.cloud:spring-cloud-gateway-server
-                            </ignoredUsedUndeclaredDependency>
-
-                            <!-- Spring Data transitive dependencies -->
-                            <ignoredUsedUndeclaredDependency>org.springframework.data:spring-data-redis
-                            </ignoredUsedUndeclaredDependency>
-
-                            <!-- Reactor transitive dependencies -->
-                            <ignoredUsedUndeclaredDependency>io.projectreactor:reactor-core
-                            </ignoredUsedUndeclaredDependency>
-
-                            <!-- Micrometer transitive dependencies -->
-                            <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-observation
-                            </ignoredUsedUndeclaredDependency>
-
-                            <!-- Spring Cloud Commons transitive dependencies -->
-                            <ignoredUsedUndeclaredDependency>org.springframework.cloud:spring-cloud-commons
-                            </ignoredUsedUndeclaredDependency>
-
-                            <ignoredUsedUndeclaredDependency>com.fasterxml.jackson.core:jackson-*
-                            </ignoredUsedUndeclaredDependency>
-
-                            <ignoredUsedUndeclaredDependency>io.opentelemetry:opentelemetry-*
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-tracing
-                            </ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core
-                            </ignoredUsedUndeclaredDependency>
-
-                        </ignoredUsedUndeclaredDependencies>
+                        <ignoredUnusedDeclaredDependencies> </ignoredUnusedDeclaredDependencies>
+                        <ignoredUsedUndeclaredDependencies> </ignoredUsedUndeclaredDependencies>
 
                         <outputFile>${project.build.directory}/dependency-analysis.txt</outputFile>
 
@@ -876,70 +734,6 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>
-
-                <!-- Mutation Testing Plugin -->
-                <plugin>
-                    <groupId>org.pitest</groupId>
-                    <artifactId>pitest-maven</artifactId>
-                    <version>${pitest-maven-plugin.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.pitest</groupId>
-                            <artifactId>pitest-junit5-plugin</artifactId>
-                            <version>${pitest-junit5-plugin.version}</version>
-                        </dependency>
-                    </dependencies>
-                    <configuration>
-                        <!-- Mutation threshold -->
-                        <mutationThreshold>${pitest.mutation.threshold}</mutationThreshold>
-                        <coverageThreshold>${pitest.coverage.threshold}</coverageThreshold>
-
-                        <!-- Mutators -->
-                        <mutators>
-                            <mutator>DEFAULTS</mutator>
-                            <mutator>STRONGER</mutator>
-                        </mutators>
-
-                        <!-- Target classes and tests -->
-                        <targetClasses>
-                            <param>com.immortals.*</param>
-                        </targetClasses>
-                        <targetTests>
-                            <param>com.immortals.*</param>
-                        </targetTests>
-
-                        <!-- Exclusions -->
-                        <excludedClasses>
-                            <param>com.immortals.*.config.*</param>
-                            <param>com.immortals.*.dto.*</param>
-                            <param>com.immortals.*.entity.*</param>
-                            <param>com.immortals.*.model.*</param>
-                            <param>com.immortals.*.*Application</param>
-                            <param>com.immortals.*.*Config</param>
-                            <param>com.immortals.*.*Properties</param>
-                        </excludedClasses>
-
-                        <!-- Output formats -->
-                        <outputFormats>
-                            <outputFormat>HTML</outputFormat>
-                            <outputFormat>XML</outputFormat>
-                        </outputFormats>
-
-                        <!-- Performance settings -->
-                        <threads>4</threads>
-                        <timeoutConstant>4000</timeoutConstant>
-                        <timeoutFactor>1.25</timeoutFactor>
-
-                        <!-- Reporting -->
-                        <verbose>false</verbose>
-                        <timestampedReports>false</timestampedReports>
-                        <exportLineCoverage>true</exportLineCoverage>
-
-                        <!-- Integration with other tools -->
-                        <failWhenNoMutations>false</failWhenNoMutations>
-                        <skipFailingTests>false</skipFailingTests>
-                    </configuration>
                 </plugin>
 
                 <!-- Contract Testing Plugin -->

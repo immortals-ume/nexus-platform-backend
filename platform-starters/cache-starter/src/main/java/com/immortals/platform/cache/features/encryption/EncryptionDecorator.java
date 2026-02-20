@@ -130,7 +130,6 @@ public class EncryptionDecorator<K, V> implements CacheService<K, V> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private V deserialize(byte[] data) {
         try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
              ObjectInputStream ois = new ObjectInputStream(bis)) {

@@ -20,6 +20,11 @@
 
     <modules>
         <module>commerce</module>
+        <module>identity/otp-service</module>
+        <module>notification-service</module>
+        <module>identity/auth-service</module>
+        <module>identity/user-service</module>
+        <module>storage/storage-service/</module>
     </modules>
 
 </project>

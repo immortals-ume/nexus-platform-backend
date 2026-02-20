@@ -4,6 +4,7 @@ import com.immortals.platform.cache.features.compression.CompressionDecorator;
 import com.immortals.platform.cache.features.compression.GzipCompressionStrategy;
 import com.immortals.platform.cache.features.serialization.JacksonSerializationStrategy;
 import com.immortals.platform.cache.providers.caffeine.L1CacheService;
+import lombok.Getter;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -212,27 +213,26 @@ class CacheFeaturesIntegrationTest {
                 });
     }
 
-    // Test classes for complex object testing
+    @Getter
     public static class TestComplexObject {
         private String name;
         private int value;
         private TestNestedObject nested;
 
-        public String getName() { return name; }
         public void setName(String name) { this.name = name; }
-        public int getValue() { return value; }
+
         public void setValue(int value) { this.value = value; }
-        public TestNestedObject getNested() { return nested; }
+
         public void setNested(TestNestedObject nested) { this.nested = nested; }
     }
 
+    @Getter
     public static class TestNestedObject {
         private String description;
         private boolean active;
 
-        public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
-        public boolean isActive() { return active; }
+
         public void setActive(boolean active) { this.active = active; }
     }
 }

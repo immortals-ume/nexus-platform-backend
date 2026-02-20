@@ -1,10 +1,12 @@
 # Config Server
 
-Spring Cloud Config Server for centralized configuration management with Git backend, encryption support, and refresh capabilities.
+Spring Cloud Config Server for centralized configuration management with Git backend, encryption support, and refresh
+capabilities.
 
 ## Features
 
 ### 1. Spring Cloud Config Server
+
 - **Git Backend**: Supports Git repository as configuration source
 - **Native Backend**: Supports local filesystem for development
 - **Environment-Specific Configs**: Separate profiles for dev, staging, and production
@@ -12,18 +14,21 @@ Spring Cloud Config Server for centralized configuration management with Git bac
 - **Basic Authentication**: Secured with username/password
 
 ### 2. Configuration Encryption
+
 - **Symmetric Encryption**: AES encryption for passwords and secrets
 - **Asymmetric Encryption**: RSA encryption support with keystore
 - **Encryption Endpoints**: `/encrypt` and `/decrypt` endpoints
 - **Decryption on Delivery**: Automatic decryption when serving configs
 
 ### 3. Configuration Refresh
+
 - **Manual Refresh**: `/actuator/refresh` endpoint for single service
 - **Broadcast Refresh**: `/actuator/busrefresh` for all services via Spring Cloud Bus
 - **Git Webhook Support**: `/monitor` endpoint for automatic refresh on Git push
 - **Kafka Integration**: Uses Kafka for broadcasting refresh events
 
 ### 4. Observability
+
 - **Metrics**: Configuration request counts, encryption/decryption counts, refresh events
 - **Audit Logging**: Logs all configuration access, encryption operations, and refresh events
 - **Distributed Tracing**: Integration with observability-starter
@@ -35,29 +40,29 @@ Spring Cloud Config Server for centralized configuration management with Git bac
 
 All environment-specific settings are externalized using environment variables with sensible defaults for development.
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| **Server Configuration** |
-| `SERVER_PORT` | Server port | `8888` | No |
-| `CONFIG_SERVER_USERNAME` | Basic auth username | `admin` | Yes (staging/prod) |
-| `CONFIG_SERVER_PASSWORD` | Basic auth password | `admin123` | Yes (staging/prod) |
+| Variable                       | Description                       | Default                         | Required                  |
+|--------------------------------|-----------------------------------|---------------------------------|---------------------------|
+| **Server Configuration**       |
+| `SERVER_PORT`                  | Server port                       | `8888`                          | No                        |
+| `CONFIG_SERVER_USERNAME`       | Basic auth username               | `admin`                         | Yes (staging/prod)        |
+| `CONFIG_SERVER_PASSWORD`       | Basic auth password               | `admin123`                      | Yes (staging/prod)        |
 | **Git Backend (staging/prod)** |
-| `GIT_REPO_URI` | Git repository URI | - | Yes (staging/prod) |
-| `GIT_USERNAME` | Git username | - | Yes (staging/prod) |
-| `GIT_PASSWORD` | Git password/token | - | Yes (staging/prod) |
-| **Encryption** |
-| `ENCRYPT_KEY` | Symmetric encryption key | - | Yes (if using encryption) |
-| `KEYSTORE_LOCATION` | Keystore file path | - | Yes (prod asymmetric) |
-| `KEYSTORE_PASSWORD` | Keystore password | - | Yes (prod asymmetric) |
-| `KEYSTORE_ALIAS` | Key alias | - | Yes (prod asymmetric) |
-| `KEYSTORE_SECRET` | Key password | - | Yes (prod asymmetric) |
-| **Service Discovery** |
-| `EUREKA_SERVER_URL` | Eureka server URL | `http://localhost:8761/eureka/` | No |
-| **Messaging (staging/prod)** |
-| `KAFKA_BOOTSTRAP_SERVERS` | Kafka bootstrap servers | `localhost:9092` | Yes (staging/prod) |
-| **Observability** |
-| `ZIPKIN_URL` | Zipkin server URL | `http://localhost:9411` | No |
-| `SPRING_PROFILES_ACTIVE` | Active profile (dev/staging/prod) | `native` | No |
+| `GIT_REPO_URI`                 | Git repository URI                | -                               | Yes (staging/prod)        |
+| `GIT_USERNAME`                 | Git username                      | -                               | Yes (staging/prod)        |
+| `GIT_PASSWORD`                 | Git password/token                | -                               | Yes (staging/prod)        |
+| **Encryption**                 |
+| `ENCRYPT_KEY`                  | Symmetric encryption key          | -                               | Yes (if using encryption) |
+| `KEYSTORE_LOCATION`            | Keystore file path                | -                               | Yes (prod asymmetric)     |
+| `KEYSTORE_PASSWORD`            | Keystore password                 | -                               | Yes (prod asymmetric)     |
+| `KEYSTORE_ALIAS`               | Key alias                         | -                               | Yes (prod asymmetric)     |
+| `KEYSTORE_SECRET`              | Key password                      | -                               | Yes (prod asymmetric)     |
+| **Service Discovery**          |
+| `EUREKA_SERVER_URL`            | Eureka server URL                 | `http://localhost:8761/eureka/` | No                        |
+| **Messaging (staging/prod)**   |
+| `KAFKA_BOOTSTRAP_SERVERS`      | Kafka bootstrap servers           | `localhost:9092`                | Yes (staging/prod)        |
+| **Observability**              |
+| `ZIPKIN_URL`                   | Zipkin server URL                 | `http://localhost:9411`         | No                        |
+| `SPRING_PROFILES_ACTIVE`       | Active profile (dev/staging/prod) | `native`                        | No                        |
 
 **Example Configuration:**
 
@@ -101,11 +106,13 @@ export ZIPKIN_URL=${ZIPKIN_URL}
 ## Endpoints
 
 ### Configuration Endpoints
+
 - `GET /{application}/{profile}/{label}` - Get configuration for application
 - `GET /{application}-{profile}.yml` - Get configuration as YAML
 - `GET /{application}-{profile}.properties` - Get configuration as properties
 
 ### Encryption Endpoints
+
 - `POST /encrypt` - Encrypt a value (symmetric)
 - `POST /decrypt` - Decrypt a value (symmetric)
 - `POST /encrypt/asymmetric` - Encrypt a value (asymmetric)
@@ -113,15 +120,18 @@ export ZIPKIN_URL=${ZIPKIN_URL}
 - `GET /encrypt/status` - Get encryption status
 
 ### Refresh Endpoints
+
 - `POST /actuator/refresh` - Refresh configuration (local)
 - `POST /actuator/busrefresh` - Broadcast refresh to all services
 - `POST /actuator/busrefresh/{service}` - Broadcast refresh to specific service
 
 ### Webhook Endpoint
+
 - `POST /monitor` - Git webhook endpoint for automatic refresh
 - `GET /monitor/health` - Webhook health check
 
 ### Actuator Endpoints
+
 - `GET /actuator/health` - Health check
 - `GET /actuator/info` - Application info
 - `GET /actuator/metrics` - Metrics
@@ -158,6 +168,7 @@ curl -u admin:admin123 -X POST http://localhost:8888/actuator/busrefresh/user-se
 ### Setting Up Git Webhook
 
 Configure your Git repository to send webhooks to:
+
 ```
 POST http://your-config-server:8888/monitor
 ```
@@ -186,6 +197,7 @@ config-repo/
 ## Metrics
 
 Available metrics:
+
 - `config.requests.total` - Total configuration requests
 - `config.requests.success` - Successful requests
 - `config.requests.failure` - Failed requests
@@ -214,6 +226,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 **Symptom**: Services cannot fetch configuration from Config Server
 
 **Solutions**:
+
 1. Verify Config Server is running: `curl http://localhost:8888/actuator/health`
 2. Check authentication credentials in client services
 3. Verify Git repository is accessible (if using Git backend)
@@ -225,6 +238,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 **Symptom**: Encrypted values not decrypting or encryption endpoint returns errors
 
 **Solutions**:
+
 1. Verify `ENCRYPT_KEY` is set correctly
 2. For asymmetric encryption, check keystore location and credentials
 3. Ensure encrypted values start with `{cipher}` prefix
@@ -236,6 +250,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 **Symptom**: Configuration changes not propagating to services
 
 **Solutions**:
+
 1. Verify Kafka is running and accessible
 2. Check Spring Cloud Bus configuration in both Config Server and client services
 3. Ensure services have `@RefreshScope` on beans that need refresh
@@ -248,6 +263,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 **Symptom**: Config Server cannot connect to Git repository
 
 **Solutions**:
+
 1. Verify Git repository URL is correct
 2. Check Git credentials (username/password or token)
 3. For private repositories, ensure authentication is configured
@@ -260,6 +276,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 **Symptom**: Config Server consuming excessive memory
 
 **Solutions**:
+
 1. Adjust JVM heap settings: `-Xmx512m -Xms256m`
 2. Monitor memory with: `curl http://localhost:8888/actuator/metrics/jvm.memory.used`
 3. Consider increasing container memory limits
@@ -271,6 +288,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 **Symptom**: 401 Unauthorized errors when accessing Config Server
 
 **Solutions**:
+
 1. Verify `CONFIG_SERVER_USERNAME` and `CONFIG_SERVER_PASSWORD` are set
 2. Check client configuration includes credentials in Eureka URL format: `http://user:pass@host:port/eureka/`
 3. Ensure Basic Auth header is included in requests
@@ -282,6 +300,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 **Symptom**: Configuration requests taking too long
 
 **Solutions**:
+
 1. Enable response caching in Config Server
 2. Optimize Git repository structure (avoid large files)
 3. Use native backend for development to avoid Git overhead
@@ -293,6 +312,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 **Symptom**: Git push events not triggering automatic refresh
 
 **Solutions**:
+
 1. Verify webhook URL is accessible from Git server
 2. Check webhook endpoint: `curl http://localhost:8888/monitor/health`
 3. Review Git webhook configuration (should POST to `/monitor`)

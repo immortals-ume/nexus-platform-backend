@@ -1,4 +1,4 @@
-package com.immortals.platform.gateway;
+package com.immortals.gateway;
 
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;

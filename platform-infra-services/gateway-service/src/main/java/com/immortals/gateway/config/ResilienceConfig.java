@@ -23,17 +23,23 @@ public class ResilienceConfig {
         
         registry.getAllRetries().forEach(retry -> {
             retry.getEventPublisher()
-                .onRetry(event -> log.warn("Retry attempt {} for operation '{}'. Exception: {}",
-                    event.getNumberOfRetryAttempts(),
-                    event.getName(),
-                    event.getLastThrowable().getMessage()))
+                .onRetry(event -> {
+                    assert event.getLastThrowable() != null;
+                    log.warn("Retry attempt {} for operation '{}'. Exception: {}",
+                        event.getNumberOfRetryAttempts(),
+                        event.getName(),
+                        event.getLastThrowable().getMessage());
+                })
                 .onSuccess(event -> log.info("Operation '{}' succeeded after {} attempts",
                     event.getName(),
                     event.getNumberOfRetryAttempts()))
-                .onError(event -> log.error("Operation '{}' failed after {} attempts. Final exception: {}",
-                    event.getName(),
-                    event.getNumberOfRetryAttempts(),
-                    event.getLastThrowable().getMessage()));
+                .onError(event -> {
+                    assert event.getLastThrowable() != null;
+                    log.error("Operation '{}' failed after {} attempts. Final exception: {}",
+                        event.getName(),
+                        event.getNumberOfRetryAttempts(),
+                        event.getLastThrowable().getMessage());
+                });
         });
         
         return registry;

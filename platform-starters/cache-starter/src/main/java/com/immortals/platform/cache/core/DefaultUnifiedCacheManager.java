@@ -41,13 +41,13 @@ public class DefaultUnifiedCacheManager implements UnifiedCacheManager {
             CacheService<?, ?> sharedCacheInstance,
             CacheConfiguration defaultConfiguration,
             DecoratorChainBuilder decoratorChainBuilder) {
-        this.sharedCacheInstance = sharedCacheInstance;
+        this.sharedCacheInstance = Objects.requireNonNull(sharedCacheInstance, "sharedCacheInstance cannot be null");
         this.defaultConfiguration = defaultConfiguration != null ? defaultConfiguration : new CacheConfiguration();
         this.decoratorChainBuilder = decoratorChainBuilder != null ? decoratorChainBuilder : new NoOpDecoratorChainBuilder();
         this.cachedNamespacedInstances = new ConcurrentHashMap<>();
     }
 
-    /**
+        this.sharedCacheInstance = sharedCacheInstance;
      * Get the cache instance for the given namespace.
      * 
      * <p>Returns a NamespacedCacheService wrapping the shared cache instance.
@@ -109,21 +109,22 @@ public class DefaultUnifiedCacheManager implements UnifiedCacheManager {
      */
     @Override
     public Collection<String> getCacheNames() {
-        return cachedNamespacedInstances.keySet();
+        // Return a snapshot to avoid exposing internal mutable keySet
+        return Collections.unmodifiableSet(new LinkedHashSet<>(cachedNamespacedInstances.keySet()));
     }
 
     /**
      * Get aggregated statistics across all caches.
      * 
      * @return statistics for the shared cache instance
-     */
-    @Override
+        return cachedNamespacedInstances.keySet();
     public Map<String, CacheStatistics> getAllStatistics() {
         Map<String, CacheStatistics> stats = new ConcurrentHashMap<>();
         try {
             CacheStatistics cacheStats = sharedCacheInstance.getStatistics();
             stats.put("shared", cacheStats);
         } catch (Exception e) {
+            LOGGER.debug("Failed to collect statistics from shared cache instance", e);
         }
         return stats;
     }
@@ -131,7 +132,6 @@ public class DefaultUnifiedCacheManager implements UnifiedCacheManager {
 
 
     /**
-     * Validates namespace is not null or empty.
      */
     private void validateNamespace(String namespace) {
         if (namespace == null || namespace.trim().isEmpty()) {

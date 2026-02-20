@@ -1,7 +1,6 @@
 package com.immortals.authapp.audit;
 
 
-import com.immortals.platform.domain.enums.UserTypes;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;

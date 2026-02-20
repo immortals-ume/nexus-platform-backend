@@ -13,14 +13,14 @@ import com.immortals.platform.domain.entity.Category;
 import com.immortals.platform.domain.entity.PriceHistory;
 import com.immortals.platform.domain.entity.Product;
 import com.immortals.platform.domain.enums.ProductStatus;
-import com.immortals.platform.messaging.event.DomainEvent;
+import com.immortals.platform.domain.shared.event.DomainEvent;
 import com.immortals.platform.messaging.publisher.EventPublisher;
-import com.immortals.platform.product.annotation.ReadOnly;
-import com.immortals.platform.product.annotation.WriteOnly;
+import com.immortals.platform.common.db.annotation.ReadOnly;
+import com.immortals.platform.common.db.annotation.WriteOnly;
 import com.immortals.platform.product.config.KafkaTopicConfig;
-import com.immortals.platform.product.event.ProductCreatedEvent;
-import com.immortals.platform.product.event.ProductDeletedEvent;
-import com.immortals.platform.product.event.ProductUpdatedEvent;
+import com.immortals.platform.domain.event.product.ProductCreatedEvent;
+import com.immortals.platform.domain.event.product.ProductDeletedEvent;
+import com.immortals.platform.domain.event.product.ProductUpdatedEvent;
 import com.immortals.platform.product.repository.CategoryRepository;
 import com.immortals.platform.product.repository.PriceHistoryRepository;
 import com.immortals.platform.product.repository.ProductRepository;
@@ -57,12 +57,6 @@ public class ProductService implements IProductService {
     private final EventPublisher eventPublisher;
     private final KafkaTopicConfig kafkaTopicConfig;
 
-    /**
-     * Create a new product
-     * Isolation: READ_COMMITTED - Prevents dirty reads, allows concurrent access
-     * Propagation: REQUIRED - Uses existing transaction or creates new one
-     * Cache: Stores the created product in cache with 5 min TTL
-     */
     @Override
     @WriteOnly
     @Transactional(
@@ -81,25 +75,20 @@ public class ProductService implements IProductService {
         log.info("Creating product with SKU: {}", request.sku());
 
         try {
-            // Validate SKU uniqueness
             if (productRepository.existsBySku(request.sku())) {
                 throw new ValidationException("Product with SKU " + request.sku() + " already exists");
             }
 
-            // Validate barcode uniqueness if provided
             if (request.barcode() != null && !request.barcode().isBlank() 
                 && productRepository.existsByBarcode(request.barcode())) {
                 throw new ValidationException("Product with barcode " + request.barcode() + " already exists");
             }
-
-            // Validate category if provided
             Category category = null;
             if (request.categoryId() != null) {
                 category = categoryRepository.findById(request.categoryId())
                     .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.categoryId()));
             }
 
-        // Build product entity
         Product product = Product.builder()
             .sku(request.sku())
             .name(request.name())
@@ -170,7 +159,7 @@ public class ProductService implements IProductService {
         log.info("Updating product with ID: {} [Thread: {}]", productId, Thread.currentThread().getName());
 
         try {
-            // Use pessimistic write lock for concurrent update protection
+        
             Product product = productRepository.findByIdWithLock(productId)
                 .filter(p -> !p.isDeleted())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
@@ -178,14 +167,10 @@ public class ProductService implements IProductService {
             if (product.isDeleted()) {
                 throw new ValidationException("Cannot update deleted product");
             }
-
-        // Track price changes and status changes
         BigDecimal oldPrice = product.getCurrentPrice();
         ProductStatus oldStatus = product.getStatus();
         boolean priceChanged = false;
         boolean statusChanged = false;
-
-        // Update fields if provided
         if (request.name() != null) {
             product.setName(request.name());
         }
@@ -746,7 +731,6 @@ public class ProductService implements IProductService {
         } catch (Exception e) {
             log.debug("Could not retrieve correlation ID from MDC", e);
         }
-        // Generate new correlation ID if not present
         return UUID.randomUUID().toString();
     }
 }

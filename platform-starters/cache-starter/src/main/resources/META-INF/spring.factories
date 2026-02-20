@@ -3,6 +3,7 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 com.immortals.platform.cache.config.CacheAutoConfiguration,\
 com.immortals.platform.cache.config.CaffeineAutoConfiguration,\
 com.immortals.platform.cache.config.RedisAutoConfiguration,\
+com.immortals.platform.cache.config.RedisHashAutoConfiguration,\
 com.immortals.platform.cache.config.MultiLevelAutoConfiguration,\
 com.immortals.platform.cache.config.DecoratorAutoConfiguration,\
 com.immortals.platform.cache.config.CacheAnnotationAutoConfiguration,\

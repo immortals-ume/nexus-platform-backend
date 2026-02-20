@@ -28,7 +28,8 @@
         <!-- Platform Starters -->
         <dependency>
             <groupId>com.immortals.platform</groupId>
-            <artifactId>cache-starter</artifactId>
+            <artifactId>cache-features</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>

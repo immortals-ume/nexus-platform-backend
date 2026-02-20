@@ -1,7 +1,8 @@
 package com.immortals.platform.common.util;
 
 import java.util.Collection;
-import java.util.regex.Pattern;
+
+import static com.immortals.platform.common.constants.CommonConstant.*;
 
 /**
  * Utility class for string manipulation operations.
@@ -13,17 +14,6 @@ public final class StringUtils {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-    );
-
-    private static final Pattern PHONE_PATTERN = Pattern.compile(
-            "^\\+?[1-9]\\d{1,14}$"
-    );
-
-    private static final Pattern ALPHANUMERIC_PATTERN = Pattern.compile(
-            "^[a-zA-Z0-9]+$"
-    );
 
     /**
      * Checks if a string is null or empty

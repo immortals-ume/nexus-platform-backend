@@ -130,15 +130,7 @@ public class CacheTracingService {
     }
 
     /**
-     * Internal class to hold span and scope together.
-     */
-    private static class SpanContext {
-        final Span span;
-        final Scope scope;
-
-        SpanContext(Span span, Scope scope) {
-            this.span = span;
-            this.scope = scope;
-        }
-    }
+         * Internal class to hold span and scope together.
+         */
+        private record SpanContext(Span span, Scope scope) {}
 }

@@ -1,12 +1,12 @@
 package com.immortals.platform.messaging.handler;
 
-import com.immortals.platform.messaging.config.MessagingProperties;
-import com.immortals.platform.messaging.event.DomainEvent;
+import com.immortals.platform.domain.shared.config.MessagingProperties;
+import com.immortals.platform.domain.shared.event.DomainEvent;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -24,16 +24,12 @@ import java.util.concurrent.TimeUnit;
  * @param <T> The type of the event payload
  */
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AbstractEventHandler<T> {
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-
-    @Autowired
-    private MessagingProperties messagingProperties;
-
-    @Autowired(required = false)
-    private MeterRegistry meterRegistry;
+    private final StringRedisTemplate redisTemplate;
+    private final MessagingProperties messagingProperties;
+    private final MeterRegistry meterRegistry;
 
     private Counter successCounter;
     private Counter failureCounter;

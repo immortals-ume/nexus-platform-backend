@@ -1,7 +1,7 @@
 package com.immortals.authapp.helper;
 
-import com.immortals.authapp.constants.AuthAppConstant;
-import com.immortals.platform.domain.dto.LoginDto;
+import com.immortals.platform.domain.auth.constants.AuthAppConstant;
+import com.immortals.platform.domain.auth.dto.LoginDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,16 +17,14 @@ public class ValidateCredentials {
     public void validateLoginDto(LoginDto dto) {
 
         if (!StringUtils.hasText(dto.username()) || dto.username()
-                .isEmpty() || dto.username().length() > 16) {
+                .isEmpty() || dto.username()
+                .length() > 16) {
             throw new IllegalArgumentException("Username must be between 1 and 16 characters");
         }
-
 
         if (!StringUtils.hasText(dto.password()) || !Pattern.matches(AuthAppConstant.PASSWORD_REGEX, dto.password())) {
             throw new IllegalArgumentException("Password is not in correct format");
         }
-
-
     }
 
 }

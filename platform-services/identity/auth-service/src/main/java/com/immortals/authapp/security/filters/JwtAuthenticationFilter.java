@@ -1,8 +1,8 @@
 package com.immortals.authapp.security.filters;
 
-import com.immortals.authapp.security.exception.JwtNotFoundException;
+import com.immortals.platform.common.exception.JwtNotFoundException;
 import com.immortals.authapp.security.jwt.JwtProvider;
-import com.immortals.authapp.service.RedisTokenBlacklistService;
+import com.immortals.authapp.service.impl.RedisTokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,8 +26,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.immortals.authapp.constants.AuthAppConstant.HEADER_STRING;
-import static com.immortals.authapp.constants.AuthAppConstant.TOKEN_PREFIX;
+import static com.immortals.platform.domain.auth.constants.AuthAppConstant.HEADER_STRING;
+import static com.immortals.platform.domain.auth.constants.AuthAppConstant.TOKEN_PREFIX;
 
 @Order(2)
 @Component

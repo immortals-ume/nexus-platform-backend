@@ -6,10 +6,10 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 /**
  * Spring datasource router that dynamically selects between read and write datasources
  * based on the current thread-local database context.
- * 
+ * <p>
  * This class extends Spring's AbstractRoutingDataSource and uses DbContextHolder
  * to determine which datasource to route to for each database operation.
- * 
+ * <p>
  * When no context is set (DbContextHolder.get() returns null), the routing falls back
  * to the default datasource configured in DataSourceAutoConfiguration.
  */

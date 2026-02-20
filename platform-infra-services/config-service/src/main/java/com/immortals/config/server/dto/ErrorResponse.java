@@ -1,9 +1,6 @@
 package com.immortals.config.server.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,7 +9,8 @@ import java.util.List;
  * Standardized error response DTO
  * Used across all error scenarios for consistent error handling
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -52,8 +50,9 @@ public class ErrorResponse {
      * Validation errors (if applicable)
      */
     private List<ValidationError> validationErrors;
-    
-    @Data
+
+    @Getter
+    @Setter
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor

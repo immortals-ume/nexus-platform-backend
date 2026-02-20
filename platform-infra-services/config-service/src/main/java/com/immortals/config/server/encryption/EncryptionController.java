@@ -3,8 +3,8 @@ package com.immortals.config.server.encryption;
 import com.immortals.config.server.dto.EncryptionRequest;
 import com.immortals.config.server.dto.EncryptionResponse;
 import com.immortals.config.server.observability.ConfigAuditLogger;
-import com.immortals.config.server.util.InputSanitizer;
 import com.immortals.config.server.observability.ConfigMetrics;
+import com.immortals.config.server.util.InputSanitizer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +16,11 @@ import java.util.Map;
 
 /**
  * REST controller for custom encryption and decryption operations.
- * 
+ *
  * <p>Provides enhanced endpoints for encrypting and decrypting sensitive configuration values
  * using both symmetric and asymmetric algorithms. All operations are audited and
  * monitored for security and observability.</p>
- * 
+ *
  * <p><b>Endpoints:</b></p>
  * <ul>
  *   <li>{@code POST /api/encrypt} - Encrypt using symmetric encryption</li>
@@ -29,7 +29,7 @@ import java.util.Map;
  *   <li>{@code POST /api/decrypt/asymmetric} - Decrypt using asymmetric (RSA) encryption</li>
  *   <li>{@code GET /api/encrypt/status} - Get encryption configuration status</li>
  * </ul>
- * 
+ *
  * <p><b>Security:</b></p>
  * <ul>
  *   <li>All inputs are validated and sanitized</li>
@@ -37,13 +37,12 @@ import java.util.Map;
  *   <li>Metrics are recorded for monitoring</li>
  *   <li>Requires authentication (configured in SecurityConfig)</li>
  * </ul>
- * 
- * @author Platform Team
+ *
  * @version 1.0.0
- * @since 1.0.0
  * @see EncryptionService
  * @see ConfigAuditLogger
  * @see InputSanitizer
+ * @since 1.0.0
  */
 @Slf4j
 @RestController("customEncryptionController")
@@ -58,19 +57,19 @@ public class EncryptionController {
 
     /**
      * Encrypts a value using symmetric (AES) encryption.
-     * 
+     *
      * <p>Example request:</p>
      * <pre>
      * POST /encrypt
      * Content-Type: application/json
-     * 
+     *
      * {
      *   "value": "my-secret-password"
      * }
      * </pre>
-     * 
+     *
      * @param encryptionRequest the request containing the value to encrypt
-     * @param request the HTTP servlet request for audit logging
+     * @param request           the HTTP servlet request for audit logging
      * @return response containing the encrypted value
      * @throws EncryptionException if encryption fails
      */
@@ -81,11 +80,11 @@ public class EncryptionController {
         log.info("Received encryption request");
         String clientIp = request.getRemoteAddr();
         inputSanitizer.validateOrThrow(encryptionRequest.getValue(), "value");
-        
+
         String encrypted = encryptionService.encryptSymmetric(encryptionRequest.getValue());
         auditLogger.logEncryptionOperation("encrypt", clientIp, true);
         configMetrics.recordEncryptionRequest();
-        
+
         return ResponseEntity.ok(new EncryptionResponse(encrypted, "success"));
     }
 
@@ -101,11 +100,11 @@ public class EncryptionController {
         String clientIp = request.getRemoteAddr();
 
         inputSanitizer.validateOrThrow(encryptionRequest.getValue(), "value");
-        
+
         String decrypted = encryptionService.decryptSymmetric(encryptionRequest.getValue());
         auditLogger.logEncryptionOperation("decrypt", clientIp, true);
         configMetrics.recordDecryptionRequest();
-        
+
         return ResponseEntity.ok(new EncryptionResponse(decrypted, "success"));
     }
 
@@ -121,11 +120,11 @@ public class EncryptionController {
         String clientIp = request.getRemoteAddr();
 
         inputSanitizer.validateOrThrow(encryptionRequest.getValue(), "value");
-        
+
         String encrypted = encryptionService.encryptAsymmetric(encryptionRequest.getValue());
         auditLogger.logEncryptionOperation("encrypt-asymmetric", clientIp, true);
         configMetrics.recordEncryptionRequest();
-        
+
         return ResponseEntity.ok(new EncryptionResponse(encrypted, "success"));
     }
 
@@ -141,11 +140,11 @@ public class EncryptionController {
         String clientIp = request.getRemoteAddr();
 
         inputSanitizer.validateOrThrow(encryptionRequest.getValue(), "value");
-        
+
         String decrypted = encryptionService.decryptAsymmetric(encryptionRequest.getValue());
         auditLogger.logEncryptionOperation("decrypt-asymmetric", clientIp, true);
         configMetrics.recordDecryptionRequest();
-        
+
         return ResponseEntity.ok(new EncryptionResponse(decrypted, "success"));
     }
 
@@ -155,8 +154,8 @@ public class EncryptionController {
     @GetMapping("/encrypt/status")
     public ResponseEntity<Map<String, Object>> getEncryptionStatus() {
         return ResponseEntity.ok(Map.of(
-            "symmetricEnabled", true,
-            "asymmetricEnabled", encryptionService.isAsymmetricEnabled()
+                "symmetricEnabled", true,
+                "asymmetricEnabled", encryptionService.isAsymmetricEnabled()
         ));
     }
 }

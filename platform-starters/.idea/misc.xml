@@ -8,6 +8,7 @@
         <option value="$PROJECT_DIR$/security-starter/pom.xml" />
         <option value="$PROJECT_DIR$/messaging-starter/pom.xml" />
         <option value="$PROJECT_DIR$/observability-starter/pom.xml" />
+        <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
   </component>

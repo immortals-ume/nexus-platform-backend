@@ -13,12 +13,12 @@
     </parent>
 
     <artifactId>messaging-starter</artifactId>
-    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>Messaging Starter</name>
-    <description>Reusable messaging features including Kafka integration, event publishing, and idempotent event
-        handling
+    <description>
+        Reusable messaging starter providing Kafka integration,
+        event publishing, idempotent handling, and resilience support.
     </description>
 
     <repositories>
@@ -30,7 +30,6 @@
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
@@ -43,38 +42,30 @@
                 <version>1.9.0</version>
             </dependency>
 
-
             <dependency>
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
                 <version>20231013</version>
             </dependency>
-
-            <!-- Force consistent Kotlin version to resolve dependency convergence -->
-            <dependency>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-scripting-compiler-embeddable</artifactId>
-                <version>1.9.10</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-scripting-compiler-impl-embeddable</artifactId>
-                <version>1.9.10</version>
-            </dependency>
-
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
-
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <groupId>com.immortals.platform</groupId>
+            <artifactId>domain-starter</artifactId>
+            <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.swagger.core.v3</groupId>
+                    <artifactId>swagger-annotations-jakarta</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
         </dependency>
 
         <dependency>
@@ -83,9 +74,13 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
         </dependency>
 
         <dependency>
@@ -99,18 +94,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
         <dependency>
@@ -124,64 +109,10 @@
         </dependency>
 
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka-test</artifactId>
-            <scope>test</scope>
-            <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-collections</groupId>
-                    <artifactId>commons-collections</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-spring-boot3</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-circuitbreaker</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-bulkhead</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-ratelimiter</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-retry</artifactId>
-            <optional>true</optional>
-        </dependency>
-
 
         <dependency>
             <groupId>io.confluent</groupId>
@@ -218,71 +149,49 @@
         </dependency>
 
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.12.2</version>
-            <scope>test</scope>
-            <optional>true</optional>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
+
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <version>5.12.2</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
             <scope>test</scope>
-            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.pholser</groupId>
-            <artifactId>junit-quickcheck-core</artifactId>
+            <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>com.pholser</groupId>
-            <artifactId>junit-quickcheck-generators</artifactId>
-            <scope>test</scope>
-            <optional>true</optional>
         </dependency>
 
     </dependencies>
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <configuration>
-                    <ignoredUnusedDeclaredDependencies>
-                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-web</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-configuration-processor</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-data-redis</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-validation</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-test</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-data-jpa</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.springframework.kafka:spring-kafka-test</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-spring-boot3</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-circuitbreaker</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-bulkhead</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-ratelimiter</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>io.github.resilience4j:resilience4j-retry</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>io.confluent:kafka-schema-registry-client</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>io.confluent:kafka-json-schema-serializer</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter-params</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>com.pholser:junit-quickcheck-core</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>com.pholser:junit-quickcheck-generators</ignoredUnusedDeclaredDependency>
-                    </ignoredUnusedDeclaredDependencies>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>

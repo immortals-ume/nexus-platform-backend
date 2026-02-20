@@ -30,9 +30,17 @@
 
 ## 📦 Installation
 
-Add the dependency to your `pom.xml`:
+Add the dependencies to your `pom.xml`:
 
 ```xml
+<!-- Domain Starter (contains DomainEvent and MessagingProperties) -->
+<dependency>
+    <groupId>com.immortals.platform</groupId>
+    <artifactId>domain-starter</artifactId>
+    <version>1.0.0</version>
+</dependency>
+
+<!-- Messaging Starter (contains Kafka integration) -->
 <dependency>
     <groupId>com.immortals.platform</groupId>
     <artifactId>messaging-starter</artifactId>
@@ -103,6 +111,8 @@ public class UserService {
 }
 ```
 
+**Note**: `DomainEvent` is now located in the `domain-starter` package: `com.immortals.platform.domain.shared.event.DomainEvent`
+
 ### Consuming Events
 
 ```java
@@ -110,7 +120,11 @@ public class UserService {
 @Slf4j
 public class UserCreatedEventHandler extends DlqEnabledEventHandler<UserCreatedPayload> {
     
-    public UserCreatedEventHandler() {
+    public UserCreatedEventHandler(StringRedisTemplate redisTemplate,
+                                   MessagingProperties messagingProperties,
+                                   MeterRegistry meterRegistry,
+                                   EventPublisher eventPublisher) {
+        super(redisTemplate, messagingProperties, meterRegistry, eventPublisher);
         initMetrics("UserCreatedEventHandler");
     }
     
@@ -139,6 +153,10 @@ public class UserCreatedEventHandler extends DlqEnabledEventHandler<UserCreatedP
     }
 }
 ```
+
+**Note**: 
+- Event handlers use **constructor injection** instead of `@Autowired` for better library design
+- All messaging beans are auto-configured by the starter
 
 ## 🔄 Dead Letter Queue Management
 
@@ -297,13 +315,6 @@ Copyright © 2024 Immortals Platform
 
 Licensed under the Apache License, Version 2.0
 
-## 🆘 Support
-
-- 📖 **Documentation**: [Platform Starters Documentation](../README.md)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/YOUR_REPO/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/YOUR_USERNAME/YOUR_REPO/discussions)
-- 📧 **Email**: kapilsrivastava712@gmail.com
-
 ---
 
-**Built with ❤️ by the Immortals Platform Team**
+**Built with ❤️ by the Immortals Team**

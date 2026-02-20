@@ -1,15 +1,7 @@
-# Consolidated auto-configuration imports for cache starter
-# Core cache configuration
 com.immortals.platform.cache.config.CacheAutoConfiguration
-
-# Provider configurations
 com.immortals.platform.cache.config.CaffeineAutoConfiguration
 com.immortals.platform.cache.config.RedisAutoConfiguration
 com.immortals.platform.cache.config.MultiLevelAutoConfiguration
-
-# Feature configurations
 com.immortals.platform.cache.config.DecoratorAutoConfiguration
 com.immortals.platform.cache.config.CacheAnnotationAutoConfiguration
-
-# Observability configuration
 com.immortals.platform.cache.config.CacheObservabilityAutoConfiguration

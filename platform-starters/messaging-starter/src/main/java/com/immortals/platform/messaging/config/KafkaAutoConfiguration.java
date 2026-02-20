@@ -3,6 +3,10 @@ package com.immortals.platform.messaging.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.immortals.platform.domain.shared.config.MessagingProperties;
+import com.immortals.platform.messaging.dlq.DeadLetterQueueHandler;
+import com.immortals.platform.messaging.publisher.EventPublisher;
+import com.immortals.platform.messaging.publisher.KafkaEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -61,11 +65,12 @@ public class KafkaAutoConfiguration {
     public ProducerFactory<String, Object> producerFactory(ObjectMapper kafkaObjectMapper) {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-            messagingProperties.getKafka().getBootstrapServers());
+                messagingProperties.getKafka()
+                        .getBootstrapServers());
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-            StringSerializer.class);
+                StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-            JsonSerializer.class);
+                JsonSerializer.class);
 
         configProps.put(ProducerConfig.ACKS_CONFIG, "all");
         configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
@@ -78,10 +83,11 @@ public class KafkaAutoConfiguration {
         configProps.put(ProducerConfig.BATCH_SIZE_CONFIG, 32768);
 
         log.info("Configured Kafka producer with bootstrap servers: {}",
-            messagingProperties.getKafka().getBootstrapServers());
+                messagingProperties.getKafka()
+                        .getBootstrapServers());
 
         DefaultKafkaProducerFactory<String, Object> factory =
-            new DefaultKafkaProducerFactory<>(configProps);
+                new DefaultKafkaProducerFactory<>(configProps);
         factory.setValueSerializer(new JsonSerializer<>(kafkaObjectMapper));
 
         return factory;
@@ -110,41 +116,52 @@ public class KafkaAutoConfiguration {
     public ConsumerFactory<String, Object> consumerFactory(ObjectMapper kafkaObjectMapper) {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-            messagingProperties.getKafka().getBootstrapServers());
+                messagingProperties.getKafka()
+                        .getBootstrapServers());
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-            StringDeserializer.class);
+                StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-            ErrorHandlingDeserializer.class);
+                ErrorHandlingDeserializer.class);
         configProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS,
-            JsonDeserializer.class);
+                JsonDeserializer.class);
 
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG,
-            messagingProperties.getKafka().getConsumerGroupPrefix());
+                messagingProperties.getKafka()
+                        .getConsumerGroupPrefix());
         configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-            messagingProperties.getKafka().getAutoOffsetReset());
+                messagingProperties.getKafka()
+                        .getAutoOffsetReset());
         configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,
-            messagingProperties.getKafka().isAutoCommit());
+                messagingProperties.getKafka()
+                        .isAutoCommit());
 
         configProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG,
-            (int) messagingProperties.getKafka().getSessionTimeout().toMillis());
+                (int) messagingProperties.getKafka()
+                        .getSessionTimeout()
+                        .toMillis());
         configProps.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG,
-            (int) messagingProperties.getKafka().getHeartbeatInterval().toMillis());
+                (int) messagingProperties.getKafka()
+                        .getHeartbeatInterval()
+                        .toMillis());
 
         configProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,
-            messagingProperties.getKafka().getMaxPollRecords());
+                messagingProperties.getKafka()
+                        .getMaxPollRecords());
 
         configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         configProps.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Object.class);
 
         log.info("Configured Kafka consumer with bootstrap servers: {} and group prefix: {}",
-            messagingProperties.getKafka().getBootstrapServers(),
-            messagingProperties.getKafka().getConsumerGroupPrefix());
+                messagingProperties.getKafka()
+                        .getBootstrapServers(),
+                messagingProperties.getKafka()
+                        .getConsumerGroupPrefix());
 
         DefaultKafkaConsumerFactory<String, Object> factory =
-            new DefaultKafkaConsumerFactory<>(configProps);
+                new DefaultKafkaConsumerFactory<>(configProps);
         factory.setValueDeserializer(new ErrorHandlingDeserializer<>(
-            new JsonDeserializer<>(Object.class, kafkaObjectMapper, false)));
+                new JsonDeserializer<>(Object.class, kafkaObjectMapper, false)));
 
         return factory;
     }
@@ -157,17 +174,40 @@ public class KafkaAutoConfiguration {
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
             ConsumerFactory<String, Object> consumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
-            new ConcurrentKafkaListenerContainerFactory<>();
+                new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
-        factory.setConcurrency(messagingProperties.getKafka().getConcurrency());
+        factory.setConcurrency(messagingProperties.getKafka()
+                .getConcurrency());
 
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        factory.getContainerProperties()
+                .setAckMode(ContainerProperties.AckMode.MANUAL);
 
-        factory.getContainerProperties().setObservationEnabled(true);
+        factory.getContainerProperties()
+                .setObservationEnabled(true);
 
         log.info("Configured Kafka listener container factory with concurrency: {}",
-            messagingProperties.getKafka().getConcurrency());
+                messagingProperties.getKafka()
+                        .getConcurrency());
 
         return factory;
+    }
+
+    /**
+     * Configure EventPublisher bean
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EventPublisher eventPublisher(KafkaTemplate<String, Object> kafkaTemplate) {
+        return new KafkaEventPublisher(kafkaTemplate);
+    }
+
+    /**
+     * Configure DeadLetterQueueHandler bean
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public DeadLetterQueueHandler deadLetterQueueHandler(MessagingProperties messagingProperties,
+                                                         EventPublisher eventPublisher) {
+        return new DeadLetterQueueHandler(messagingProperties, eventPublisher);
     }
 }

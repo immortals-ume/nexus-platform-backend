@@ -1,31 +1,16 @@
 package com.immortals.platform.common.util;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-/**
- * Utility class for common validation patterns.
- * Provides validation methods for various data types and formats.
- */
+import static com.immortals.platform.common.constants.CommonConstant.*;
+
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ValidationUtils {
-
-    private ValidationUtils() {
-        throw new UnsupportedOperationException("Utility class cannot be instantiated");
-    }
-
-    private static final Pattern UUID_PATTERN = Pattern.compile(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-    );
-
-    private static final Pattern URL_PATTERN = Pattern.compile(
-            "^(https?|ftp)://[^\\s/$.?#].[^\\s]*$",
-            Pattern.CASE_INSENSITIVE
-    );
-
-    private static final Pattern IPV4_PATTERN = Pattern.compile(
-            "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
-    );
 
     /**
      * Validates that an object is not null
