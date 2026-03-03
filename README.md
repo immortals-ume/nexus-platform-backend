@@ -1,10 +1,10 @@
-# nexus-platform-backend
+# Nexus-platform-backend
 
 Production-ready enterprise microservices platform built with Spring Boot 3, Spring Cloud, and cloud-native patterns
 
 ## Java Version Compatibility
 
-The Nexus microbackend platform supports multiple Java versions to provide flexibility for different development and
+The Nexus micro backend platform supports multiple Java versions to provide flexibility for different development and
 deployment environments.
 
 ### Supported Java Versions
@@ -169,22 +169,6 @@ docker run --rm your-image:tag java -version
 **Problem**: Build works locally but fails in CI/CD pipeline.
 
 **Solution**: Ensure CI/CD environment uses compatible Java version:
-
-```yaml
-# GitHub Actions example
-- uses: actions/setup-java@v3
-  with:
-    distribution: 'temurin'
-    java-version: '21'
-
-# GitLab CI example
-image: eclipse-temurin:21-jdk
-
-# Jenkins example
-  tools {
-  jdk 'Java 21'
-}
-```
 
 ### Best Practices
 
